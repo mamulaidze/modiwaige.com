@@ -27,6 +27,7 @@ import { StatusBadge } from '@/features/feed/components/status-badge';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
+import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 
 import {
@@ -52,6 +53,7 @@ type EditPostValues = z.output<typeof editPostSchema>;
 export function PostDetailsPage() {
   const { postId } = useParams();
   const { isAuthenticated, user } = useAuth();
+  const { language, localizedPath, t } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
@@ -87,7 +89,7 @@ export function PostDetailsPage() {
   const reserveMutation = useMutation({
     mutationFn: async () => {
       if (!post || !user) {
-        throw new Error('Log in to reserve this item.');
+        throw new Error(t('Log in to reserve this item.'));
       }
 
       await reservePost(post.id);
@@ -101,7 +103,7 @@ export function PostDetailsPage() {
       setActionError(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Could not reserve item.',
+          : t('Could not reserve item.'),
       );
     },
   });
@@ -109,7 +111,7 @@ export function PostDetailsPage() {
   const cancelReservationMutation = useMutation({
     mutationFn: async () => {
       if (!post?.activeReservation) {
-        throw new Error('Reservation was not found.');
+        throw new Error(t('Reservation was not found.'));
       }
 
       await cancelReservation(post.activeReservation.id);
@@ -124,7 +126,7 @@ export function PostDetailsPage() {
       setActionError(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Could not cancel reservation.',
+          : t('Could not cancel reservation.'),
       );
     },
   });
@@ -132,7 +134,7 @@ export function PostDetailsPage() {
   const markGivenMutation = useMutation({
     mutationFn: async () => {
       if (!post) {
-        throw new Error('Post was not found.');
+        throw new Error(t('Post was not found.'));
       }
 
       await markPostGiven(post.id);
@@ -147,7 +149,7 @@ export function PostDetailsPage() {
       setActionError(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Could not mark item as given.',
+          : t('Could not mark item as given.'),
       );
     },
   });
@@ -155,20 +157,20 @@ export function PostDetailsPage() {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!post) {
-        throw new Error('Post was not found.');
+        throw new Error(t('Post was not found.'));
       }
 
       await deletePost(post);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
-      navigate('/', { replace: true });
+      navigate(localizedPath('/'), { replace: true });
     },
     onError: (mutationError) => {
       setActionError(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Could not delete item.',
+          : t('Could not delete item.'),
       );
     },
   });
@@ -176,7 +178,7 @@ export function PostDetailsPage() {
   const updateMutation = useMutation({
     mutationFn: (values: EditPostValues) => {
       if (!post) {
-        throw new Error('Post was not found.');
+        throw new Error(t('Post was not found.'));
       }
 
       return updatePostDetails(post.id, values);
@@ -192,7 +194,7 @@ export function PostDetailsPage() {
       setActionError(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Could not update item.',
+          : t('Could not update item.'),
       );
     },
   });
@@ -200,7 +202,7 @@ export function PostDetailsPage() {
   const reportMutation = useMutation({
     mutationFn: (values: { body: string; subject: string }) => {
       if (!post || !user) {
-        throw new Error('Log in to report this item.');
+        throw new Error(t('Log in to report this item.'));
       }
 
       return createPostReport({
@@ -218,21 +220,22 @@ export function PostDetailsPage() {
       setActionError(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Could not submit report.',
+          : t('Could not submit report.'),
       );
     },
   });
 
   if (!postId) {
-    return <Navigate replace to="/" />;
+    return <Navigate replace to={localizedPath('/')} />;
   }
 
   if (isLoading) {
     return (
       <PageContainer>
         <LoadingState
-          title="Loading item"
-          description="Gaachuqe is loading item details."
+          title={t('Loading item')}
+          description={t('Gaachuqe is loading item details.')}
+          variant="details"
         />
       </PageContainer>
     );
@@ -242,11 +245,11 @@ export function PostDetailsPage() {
     return (
       <PageContainer>
         <EmptyState
-          title="Item not found"
+          title={t('Item not found')}
           description={
             error instanceof Error
               ? error.message
-              : 'This item could not be loaded.'
+              : t('This item could not be loaded.')
           }
         />
       </PageContainer>
@@ -261,9 +264,9 @@ export function PostDetailsPage() {
   return (
     <PageContainer className="gap-6">
       <Button asChild className="w-fit" variant="outline">
-        <Link to="/">
+        <Link to={localizedPath('/')}>
           <ArrowLeft className="size-4" aria-hidden="true" />
-          Back
+          {t('Back')}
         </Link>
       </Button>
 
@@ -331,12 +334,12 @@ export function PostDetailsPage() {
             >
               <EditField
                 error={editForm.formState.errors.title?.message}
-                label="Title"
+                label={t('Title')}
                 registration={editForm.register('title')}
               />
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="description">
-                  Description
+                  {t('Description')}
                 </label>
                 <textarea
                   className="border-input bg-background focus-visible:ring-ring min-h-32 w-full rounded-md border px-3 py-3 text-base outline-none focus-visible:ring-2"
@@ -349,24 +352,24 @@ export function PostDetailsPage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-sm font-medium">Category</span>
+                  <span className="text-sm font-medium">{t('Category')}</span>
                   <select
                     className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
                     {...editForm.register('category')}
                   >
                     {postCategoryOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.label}
+                        {t(option.label)}
                       </option>
                     ))}
                   </select>
                 </label>
                 <label className="space-y-2">
-                  <span className="text-sm font-medium">City</span>
+                  <span className="text-sm font-medium">{t('City')}</span>
                   <input
                     className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
                     list="edit-post-city-options"
-                    placeholder="Search city"
+                    placeholder={t('Search city')}
                     type="search"
                     {...editForm.register('city')}
                   />
@@ -375,12 +378,14 @@ export function PostDetailsPage() {
                       <option key={city} value={city} />
                     ))}
                   </datalist>
-                  <FieldError message={editForm.formState.errors.city?.message} />
+                  <FieldError
+                    message={editForm.formState.errors.city?.message}
+                  />
                 </label>
               </div>
               <div className="flex gap-2">
                 <Button disabled={updateMutation.isPending} type="submit">
-                  {updateMutation.isPending ? 'Saving...' : 'Save'}
+                  {updateMutation.isPending ? t('Saving...') : t('Save')}
                 </Button>
                 <Button
                   type="button"
@@ -390,40 +395,42 @@ export function PostDetailsPage() {
                     setSearchParams({}, { replace: true });
                   }}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </Button>
               </div>
             </form>
           ) : (
             <>
               <div className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <h1 className="text-3xl font-semibold">{post.title}</h1>
+                <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+                  <h1 className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-3xl leading-tight font-semibold">
+                    {post.title}
+                  </h1>
                   <StatusBadge status={post.status} />
                 </div>
-                <p className="text-muted-foreground leading-7 whitespace-pre-line">
+                <p className="text-muted-foreground break-words whitespace-pre-line [overflow-wrap:anywhere] leading-7">
                   {post.description}
                 </p>
               </div>
 
               <dl className="grid gap-3 text-sm">
                 <DetailRow
-                  label="Category"
-                  value={formatCategory(post.category)}
+                  label={t('Category')}
+                  value={formatCategory(post.category, t)}
                 />
                 <DetailRow
-                  label="City"
-                  value={post.location}
+                  label={t('City')}
+                  value={t(post.location)}
                   icon={<MapPin className="size-4" />}
                 />
                 <DetailRow
-                  label="Date"
-                  value={formatDate(post.createdAt)}
+                  label={t('Date')}
+                  value={formatDate(post.createdAt, language)}
                   icon={<CalendarDays className="size-4" />}
                 />
                 <DetailRow
-                  label="Expires"
-                  value={formatDate(post.expiresAt)}
+                  label={t('Expires')}
+                  value={formatDate(post.expiresAt, language)}
                   icon={<CalendarDays className="size-4" />}
                 />
               </dl>
@@ -452,10 +459,12 @@ export function PostDetailsPage() {
                   </div>
                   <div>
                     <h2 className="font-semibold">
-                      {post.owner?.displayName ?? 'Gaachuqe member'}
+                      {post.owner?.displayName ?? t('Gaachuqe member')}
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                      {post.owner?.location ?? 'Owner information is limited'}
+                      {post.owner?.location
+                        ? t(post.owner.location)
+                        : t('Owner information is limited')}
                     </p>
                   </div>
                 </div>
@@ -465,13 +474,13 @@ export function PostDetailsPage() {
               post.activeReservation?.requesterId === user?.id &&
               post.owner?.phoneNumber ? (
                 <section className="border-primary/30 bg-primary/5 rounded-lg border p-4">
-                  <h2 className="font-semibold">Reservation active</h2>
+                  <h2 className="font-semibold">{t('Reservation active')}</h2>
                   <p className="text-muted-foreground mt-1 text-sm leading-6">
-                    Contact the owner to arrange pickup.
+                    {t('Contact the owner to arrange pickup.')}
                   </p>
                   <Button asChild className="mt-3 w-full">
                     <a href={`tel:${post.owner.phoneNumber}`}>
-                      Call {post.owner.phoneNumber}
+                      {t('Call')} {post.owner.phoneNumber}
                     </a>
                   </Button>
                 </section>
@@ -487,8 +496,9 @@ export function PostDetailsPage() {
               ) : null}
 
               {isOwner ? (
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2">
                   <Button
+                    className="h-auto min-h-11 w-full whitespace-normal"
                     type="button"
                     variant="outline"
                     onClick={() => {
@@ -497,9 +507,10 @@ export function PostDetailsPage() {
                     }}
                   >
                     <Pencil className="size-4" aria-hidden="true" />
-                    Edit
+                    {t('Edit')}
                   </Button>
                   <Button
+                    className="h-auto min-h-11 w-full whitespace-normal"
                     disabled={
                       post.status === 'given' || markGivenMutation.isPending
                     }
@@ -508,7 +519,9 @@ export function PostDetailsPage() {
                     onClick={() => {
                       if (
                         window.confirm(
-                          'Mark this item as given? Active reservations will be completed.',
+                          t(
+                            'Mark this item as given? Active reservations will be completed.',
+                          ),
                         )
                       ) {
                         markGivenMutation.mutate();
@@ -516,19 +529,22 @@ export function PostDetailsPage() {
                     }}
                   >
                     {markGivenMutation.isPending
-                      ? 'Saving...'
+                      ? t('Saving...')
                       : post.status === 'given'
-                        ? 'Given'
-                        : 'Mark given'}
+                        ? t('Given')
+                        : t('Mark given')}
                   </Button>
                   <Button
+                    className="h-auto min-h-11 w-full whitespace-normal"
                     disabled={deleteMutation.isPending}
                     type="button"
                     variant="outline"
                     onClick={() => {
                       if (
                         window.confirm(
-                          'Delete this post permanently? This cannot be undone.',
+                          t(
+                            'Delete this post permanently? This cannot be undone.',
+                          ),
                         )
                       ) {
                         deleteMutation.mutate();
@@ -536,7 +552,7 @@ export function PostDetailsPage() {
                     }}
                   >
                     <Trash2 className="size-4" aria-hidden="true" />
-                    {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                    {deleteMutation.isPending ? t('Deleting...') : t('Delete')}
                   </Button>
                 </div>
               ) : (
@@ -554,7 +570,7 @@ export function PostDetailsPage() {
                     onCancel={() => {
                       if (
                         window.confirm(
-                          'Cancel your reservation for this item?',
+                          t('Cancel your reservation for this item?'),
                         )
                       ) {
                         cancelReservationMutation.mutate();
@@ -563,7 +579,7 @@ export function PostDetailsPage() {
                     onReserve={() => {
                       if (
                         window.confirm(
-                          'Reserve this item? The owner will be notified.',
+                          t('Reserve this item? The owner will be notified.'),
                         )
                       ) {
                         reserveMutation.mutate();
@@ -578,7 +594,7 @@ export function PostDetailsPage() {
                       onClick={() => setIsReportOpen(true)}
                     >
                       <FileWarning className="size-4" aria-hidden="true" />
-                      Report
+                      {t('Report')}
                     </Button>
                   ) : null}
                 </div>
@@ -652,12 +668,12 @@ function DetailRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-md border p-3">
-      <dt className="text-muted-foreground flex items-center gap-2">
+    <div className="flex min-w-0 items-center justify-between gap-4 rounded-md border p-3">
+      <dt className="text-muted-foreground flex min-w-0 items-center gap-2">
         {icon}
-        {label}
+        <span className="break-words">{label}</span>
       </dt>
-      <dd className="font-medium">{value}</dd>
+      <dd className="min-w-0 text-right font-medium break-words">{value}</dd>
     </div>
   );
 }
@@ -679,10 +695,12 @@ function VisitorAction({
   onCancel: () => void;
   onReserve: () => void;
 }) {
+  const { localizedPath, t } = useI18n();
+
   if (!isAuthenticated) {
     return (
       <Button asChild className="w-full">
-        <Link to="/login">Log in to reserve</Link>
+        <Link to={localizedPath('/login')}>{t('Log in to reserve')}</Link>
       </Button>
     );
   }
@@ -696,7 +714,7 @@ function VisitorAction({
         variant="outline"
         onClick={onCancel}
       >
-        {isCancelling ? 'Cancelling...' : 'Unreserve'}
+        {isCancelling ? t('Cancelling...') : t('Unreserve')}
       </Button>
     );
   }
@@ -708,7 +726,7 @@ function VisitorAction({
       type="button"
       onClick={onReserve}
     >
-      {isPending ? 'Reserving...' : 'Reserve'}
+      {isPending ? t('Reserving...') : t('Reserve')}
     </Button>
   );
 }
@@ -722,6 +740,7 @@ function ReportPostModal({
   onClose: () => void;
   onSubmit: (values: { body: string; subject: string }) => void;
 }) {
+  const { t } = useI18n();
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const canSubmit =
@@ -744,17 +763,19 @@ function ReportPostModal({
           </div>
           <div>
             <h2 className="text-lg font-semibold" id="report-post-title">
-              Report item
+              {t('Report item')}
             </h2>
             <p className="text-muted-foreground mt-2 text-sm leading-6">
-              Reports are reviewed by admins and help keep the marketplace safe.
+              {t(
+                'Reports are reviewed by admins and help keep the marketplace safe.',
+              )}
             </p>
           </div>
         </div>
 
         <div className="mt-5 space-y-4">
           <label className="space-y-2">
-            <span className="text-sm font-medium">Subject</span>
+            <span className="text-sm font-medium">{t('Subject')}</span>
             <input
               className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
               disabled={isSubmitting}
@@ -763,7 +784,7 @@ function ReportPostModal({
             />
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium">Details</span>
+            <span className="text-sm font-medium">{t('Details')}</span>
             <textarea
               className="border-input bg-background focus-visible:ring-ring min-h-28 w-full rounded-md border px-3 py-3 text-base outline-none focus-visible:ring-2"
               disabled={isSubmitting}
@@ -780,7 +801,7 @@ function ReportPostModal({
             variant="outline"
             onClick={onClose}
           >
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             disabled={!canSubmit || isSubmitting}
@@ -789,7 +810,7 @@ function ReportPostModal({
               onSubmit({ body: body.trim(), subject: subject.trim() })
             }
           >
-            {isSubmitting ? 'Submitting...' : 'Submit report'}
+            {isSubmitting ? t('Submitting...') : t('Submit report')}
           </Button>
         </div>
       </div>
@@ -806,6 +827,8 @@ function EditField({
   label: string;
   registration: UseFormRegisterReturn;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium" htmlFor={registration.name}>
@@ -817,7 +840,7 @@ function EditField({
         type="text"
         {...registration}
       />
-      <FieldError message={error} />
+      <FieldError message={t(error ?? '')} />
     </div>
   );
 }
@@ -830,18 +853,44 @@ function FieldError({ message }: { message?: string }) {
   return <p className="text-destructive text-sm">{message}</p>;
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en', {
+function formatDate(value: string, language: string) {
+  if (language === 'ge') {
+    const date = new Date(value);
+    const months = [
+      'იანვარი',
+      'თებერვალი',
+      'მარტი',
+      'აპრილი',
+      'მაისი',
+      'ივნისი',
+      'ივლისი',
+      'აგვისტო',
+      'სექტემბერი',
+      'ოქტომბერი',
+      'ნოემბერი',
+      'დეკემბერი',
+    ];
+
+    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+  }
+
+  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   }).format(new Date(value));
 }
 
-function formatCategory(value: string) {
-  return value
+function formatCategory(value: string, t: (text: string) => string) {
+  if (value === 'home') {
+    return t('HomeCategory');
+  }
+
+  const label = value
     .replace('_', ' ')
     .replace(/^\w/, (letter) => letter.toUpperCase());
+
+  return t(label);
 }
 
 function normalizeCity(value: string): EditPostValues['city'] {

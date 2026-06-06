@@ -5,7 +5,7 @@ export const postCategoryOptions: Array<{
   value: FeedCategory;
 }> = [
   { label: 'Clothing', value: 'clothing' },
-  { label: 'Home', value: 'home' },
+  { label: 'HomeCategory', value: 'home' },
   { label: 'Electronics', value: 'electronics' },
   { label: 'Books', value: 'books' },
   { label: 'Children', value: 'children' },

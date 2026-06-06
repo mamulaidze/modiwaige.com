@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes } from 'react';
 import type { FieldError, UseFormRegisterReturn } from 'react-hook-form';
 
+import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 
 type AuthFormFieldProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -17,12 +18,13 @@ export function AuthFormField({
   registration,
   ...props
 }: AuthFormFieldProps) {
+  const { t } = useI18n();
   const errorId = error ? `${id}-error` : undefined;
 
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium" htmlFor={id}>
-        {label}
+        {t(label)}
       </label>
       <input
         aria-describedby={errorId}
@@ -38,7 +40,7 @@ export function AuthFormField({
       />
       {error ? (
         <p className="text-destructive text-sm" id={errorId}>
-          {error.message}
+          {t(error.message ?? '')}
         </p>
       ) : null}
     </div>

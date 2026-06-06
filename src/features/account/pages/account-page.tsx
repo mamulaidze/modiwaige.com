@@ -29,6 +29,7 @@ import { markReservationNotificationsRead } from '@/features/notifications/api/n
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
+import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { cn } from '@/shared/lib/cn';
 
@@ -50,6 +51,7 @@ type ProfileTab = 'posts' | 'reserved' | 'settings';
 
 export function AccountPage() {
   const { user } = useAuth();
+  const { localizedPath, t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
@@ -93,7 +95,7 @@ export function AccountPage() {
     profileQuery.data?.displayName ??
     (typeof user?.user_metadata.display_name === 'string'
       ? user.user_metadata.display_name
-      : 'Your account');
+      : t('Your account'));
 
   const isLoading =
     profileQuery.isLoading ||
@@ -131,7 +133,7 @@ export function AccountPage() {
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl font-semibold">Profile</h1>
+              <h1 className="text-2xl font-semibold">{t('Profile')}</h1>
               <p className="text-muted-foreground mt-1 text-sm">
                 {displayName}
               </p>
@@ -142,58 +144,61 @@ export function AccountPage() {
               <Phone className="size-4" aria-hidden="true" />
               {profileQuery.data?.phoneNumber ??
                 user?.phone ??
-                'Phone unavailable'}
+                t('Phone unavailable')}
             </span>
             <span className="flex items-center gap-2">
               <MapPin className="size-4" aria-hidden="true" />
-              {profileQuery.data?.location ?? 'Georgia'}
+              {profileQuery.data?.location
+                ? t(profileQuery.data.location)
+                : t('Georgia')}
             </span>
           </div>
         </div>
       </section>
 
       <section
-        aria-label="Profile statistics"
+        aria-label={t('Profile statistics')}
         className="grid gap-3 sm:grid-cols-4"
       >
-        <StatCard label="Total posts" value={stats.totalPosts} />
-        <StatCard label="Available" value={stats.availablePosts} />
-        <StatCard label="Reserved posts" value={stats.reservedPosts} />
-        <StatCard label="My reservations" value={stats.reservedItems} />
+        <StatCard label={t('Total posts')} value={stats.totalPosts} />
+        <StatCard label={t('Available')} value={stats.availablePosts} />
+        <StatCard label={t('Reserved posts')} value={stats.reservedPosts} />
+        <StatCard label={t('My reservations')} value={stats.reservedItems} />
       </section>
 
       <div className="bg-card grid grid-cols-3 gap-1 rounded-lg border p-1">
         <TabButton
           active={activeTab === 'posts'}
-          label="My Posts"
+          label={t('My Posts')}
           onClick={() => setActiveTab('posts')}
         />
         <TabButton
           active={activeTab === 'reserved'}
-          label="Reserved Items"
+          label={t('Reserved Items')}
           onClick={() => setActiveTab('reserved')}
         />
         <TabButton
           active={activeTab === 'settings'}
-          label="Settings"
+          label={t('Settings')}
           onClick={() => setActiveTab('settings')}
         />
       </div>
 
       {isLoading ? (
         <LoadingState
-          title="Loading profile"
-          description="Gaachuqe is loading your account."
+          title={t('Loading profile')}
+          description={t('Gaachuqe is loading your account.')}
+          variant="account"
         />
       ) : null}
 
       {error ? (
         <div className="bg-card rounded-lg border p-4" role="alert">
           <h2 className="text-destructive font-semibold">
-            Could not load profile
+            {t('Could not load profile')}
           </h2>
           <p className="text-muted-foreground mt-2 text-sm">
-            {error instanceof Error ? error.message : 'Please try again.'}
+            {error instanceof Error ? error.message : t('Please try again.')}
           </p>
         </div>
       ) : null}
@@ -240,7 +245,7 @@ export function AccountPage() {
           }}
           onAccountDeleted={() => {
             queryClient.clear();
-            navigate('/', { replace: true });
+            navigate(localizedPath('/'), { replace: true });
           }}
         />
       ) : null}
@@ -302,6 +307,7 @@ function MyPostsSection({
   onError: (message: string | null) => void;
   posts: ProfilePost[];
 }) {
+  const { localizedPath, t } = useI18n();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [markingGivenId, setMarkingGivenId] = useState<string | null>(null);
   const [statsPostId, setStatsPostId] = useState<string | null>(null);
@@ -310,14 +316,14 @@ function MyPostsSection({
     return (
       <EmptyState
         title="No posts yet"
-        description="Create a post when you have an item to give away."
+        description={t('Create a post when you have an item to give away.')}
       />
     );
   }
 
   async function handleDelete(postId: string) {
     if (
-      !window.confirm('Delete this post permanently? This cannot be undone.')
+      !window.confirm(t('Delete this post permanently? This cannot be undone.'))
     ) {
       return;
     }
@@ -331,7 +337,7 @@ function MyPostsSection({
       await onDeleted();
     } catch (error) {
       onError(
-        error instanceof Error ? error.message : 'Could not delete post.',
+        error instanceof Error ? error.message : t('Could not delete post.'),
       );
     } finally {
       setDeletingId(null);
@@ -341,7 +347,7 @@ function MyPostsSection({
   async function handleMarkGiven(postId: string) {
     if (
       !window.confirm(
-        'Mark this item as given? Active reservations will be completed.',
+        t('Mark this item as given? Active reservations will be completed.'),
       )
     ) {
       return;
@@ -357,7 +363,7 @@ function MyPostsSection({
       onError(
         error instanceof Error
           ? error.message
-          : 'Could not mark post as given.',
+          : t('Could not mark post as given.'),
       );
     } finally {
       setMarkingGivenId(null);
@@ -377,8 +383,8 @@ function MyPostsSection({
                 ) : null}
               </div>
               <p className="text-muted-foreground text-sm">
-                {post.location} - {formatCategory(post.category)} -{' '}
-                {post.reservationCount} reservations
+                {t(post.location)} - {formatCategory(post.category, t)} -{' '}
+                {post.reservationCount} {t('reservations')}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -393,18 +399,18 @@ function MyPostsSection({
                 }
               >
                 <BarChart3 className="size-4" aria-hidden="true" />
-                Statistics
+                {t('Statistics')}
               </Button>
               <Button asChild variant="outline">
-                <Link to={`/posts/${post.id}`}>
+                <Link to={localizedPath(`/posts/${post.id}`)}>
                   <Eye className="size-4" aria-hidden="true" />
-                  View
+                  {t('View')}
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to={`/posts/${post.id}?edit=1`}>
+                <Link to={`${localizedPath(`/posts/${post.id}`)}?edit=1`}>
                   <Pencil className="size-4" aria-hidden="true" />
-                  Edit
+                  {t('Edit')}
                 </Link>
               </Button>
               <Button
@@ -414,10 +420,10 @@ function MyPostsSection({
                 onClick={() => void handleMarkGiven(post.id)}
               >
                 {markingGivenId === post.id
-                  ? 'Saving...'
+                  ? t('Saving...')
                   : post.status === 'given'
-                    ? 'Given'
-                    : 'Mark given'}
+                    ? t('Given')
+                    : t('Mark given')}
               </Button>
               <Button
                 disabled={deletingId === post.id}
@@ -426,7 +432,7 @@ function MyPostsSection({
                 onClick={() => void handleDelete(post.id)}
               >
                 <Trash2 className="size-4" aria-hidden="true" />
-                {deletingId === post.id ? 'Deleting...' : 'Delete'}
+                {deletingId === post.id ? t('Deleting...') : t('Delete')}
               </Button>
             </div>
           </div>
@@ -438,18 +444,25 @@ function MyPostsSection({
 }
 
 function PostStatistics({ post }: { post: ProfilePost }) {
+  const { language, t } = useI18n();
   const statusLabel =
-    post.status === 'archived' ? 'Archived' : formatCategory(post.status);
+    post.status === 'archived' ? t('Archived') : formatCategory(post.status, t);
 
   return (
     <dl className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-4">
-      <StatisticDetail label="Status" value={statusLabel} />
+      <StatisticDetail label={t('Status')} value={statusLabel} />
       <StatisticDetail
-        label="Reservations"
+        label={t('Reservations')}
         value={String(post.reservationCount)}
       />
-      <StatisticDetail label="Created" value={formatDate(post.createdAt)} />
-      <StatisticDetail label="Expires" value={formatDate(post.expiresAt)} />
+      <StatisticDetail
+        label={t('Created')}
+        value={formatDate(post.createdAt, language)}
+      />
+      <StatisticDetail
+        label={t('Expires')}
+        value={formatDate(post.expiresAt, language)}
+      />
     </dl>
   );
 }
@@ -472,6 +485,7 @@ function ReservedItemsSection({
   onCancelled: () => Promise<void>;
   reservations: ReservedItem[];
 }) {
+  const { localizedPath, t } = useI18n();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -479,13 +493,13 @@ function ReservedItemsSection({
     return (
       <EmptyState
         title="No reserved items"
-        description="Reserved items will appear here."
+        description={t('Reserved items will appear here.')}
       />
     );
   }
 
   async function handleCancelReservation(reservationId: string) {
-    if (!window.confirm('Cancel your reservation for this item?')) {
+    if (!window.confirm(t('Cancel your reservation for this item?'))) {
       return;
     }
 
@@ -499,7 +513,7 @@ function ReservedItemsSection({
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'Could not cancel reservation.',
+          : t('Could not cancel reservation.'),
       );
     } finally {
       setCancellingId(null);
@@ -521,17 +535,21 @@ function ReservedItemsSection({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-semibold">
-                {reservation.post?.title ?? 'Unavailable item'}
+                {reservation.post?.title ?? t('Unavailable item')}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                {reservation.post?.location ?? 'Location unavailable'} -{' '}
-                {formatCategory(reservation.status)}
+                {reservation.post?.location
+                  ? t(reservation.post.location)
+                  : t('Location unavailable')}{' '}
+                - {formatCategory(reservation.status, t)}
               </p>
             </div>
             {reservation.post ? (
               <div className="flex flex-wrap gap-2">
                 <Button asChild variant="outline">
-                  <Link to={`/posts/${reservation.post.id}`}>View</Link>
+                  <Link to={localizedPath(`/posts/${reservation.post.id}`)}>
+                    {t('View')}
+                  </Link>
                 </Button>
                 {reservation.status === 'pending' ||
                 reservation.status === 'accepted' ? (
@@ -542,8 +560,8 @@ function ReservedItemsSection({
                     onClick={() => void handleCancelReservation(reservation.id)}
                   >
                     {cancellingId === reservation.id
-                      ? 'Cancelling...'
-                      : 'Unreserve'}
+                      ? t('Cancelling...')
+                      : t('Unreserve')}
                   </Button>
                 ) : null}
               </div>
@@ -573,6 +591,7 @@ function SettingsSection({
   onSaved: () => Promise<void>;
   userId: string;
 }) {
+  const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -598,10 +617,12 @@ function SettingsSection({
     try {
       await updateProfileSettings({ userId, ...values });
       await onSaved();
-      setMessage('Settings saved.');
+      setMessage(t('Settings saved.'));
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : 'Settings could not be saved.',
+        error instanceof Error
+          ? error.message
+          : t('Settings could not be saved.'),
       );
     }
   }
@@ -614,11 +635,11 @@ function SettingsSection({
             className="text-muted-foreground size-5"
             aria-hidden="true"
           />
-          <h2 className="text-lg font-semibold">Account settings</h2>
+          <h2 className="text-lg font-semibold">{t('Account settings')}</h2>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <label className="space-y-2">
-            <span className="text-sm font-medium">Display name</span>
+            <span className="text-sm font-medium">{t('Display name')}</span>
             <input
               className={inputClassName(Boolean(errors.displayName))}
               {...register('displayName')}
@@ -630,7 +651,7 @@ function SettingsSection({
             name="phoneNumber"
             render={({ field }) => (
               <label className="space-y-2">
-                <span className="text-sm font-medium">Phone number</span>
+                <span className="text-sm font-medium">{t('Phone number')}</span>
                 <input
                   className={inputClassName(Boolean(errors.phoneNumber))}
                   inputMode="tel"
@@ -648,7 +669,7 @@ function SettingsSection({
             )}
           />
           <label className="space-y-2">
-            <span className="text-sm font-medium">Location</span>
+            <span className="text-sm font-medium">{t('Location')}</span>
             <input
               className={inputClassName(Boolean(errors.location))}
               {...register('location')}
@@ -663,9 +684,11 @@ function SettingsSection({
               {errorMessage}
             </p>
           ) : null}
-          {message ? <p className="text-primary text-sm">{message}</p> : null}
+          {message ? (
+            <p className="text-primary text-sm">{t(message)}</p>
+          ) : null}
           <Button disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Saving...' : 'Save settings'}
+            {isSubmitting ? t('Saving...') : t('Save settings')}
           </Button>
         </form>
       </section>
@@ -673,10 +696,11 @@ function SettingsSection({
       <section className="bg-card border-destructive/40 rounded-lg border p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Delete account</h2>
+            <h2 className="text-lg font-semibold">{t('Delete account')}</h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              Permanently remove your profile, posts, reservations, and post
-              images.
+              {t(
+                'Permanently remove your profile, posts, reservations, and post images.',
+              )}
             </p>
           </div>
           <Button
@@ -686,7 +710,7 @@ function SettingsSection({
             onClick={() => setIsDeleteModalOpen(true)}
           >
             <Trash2 className="size-4" aria-hidden="true" />
-            Delete account
+            {t('Delete account')}
           </Button>
         </div>
       </section>
@@ -708,6 +732,7 @@ function DeleteAccountModal({
   onClose: () => void;
   onDeleted: () => void;
 }) {
+  const { t } = useI18n();
   const [confirmation, setConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -728,7 +753,7 @@ function DeleteAccountModal({
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'Account could not be deleted.',
+          : t('Account could not be deleted.'),
       );
       setIsDeleting(false);
     }
@@ -748,17 +773,20 @@ function DeleteAccountModal({
           </div>
           <div>
             <h2 className="text-lg font-semibold" id="delete-account-title">
-              Delete account permanently
+              {t('Delete account permanently')}
             </h2>
             <p className="text-muted-foreground mt-2 text-sm leading-6">
-              This removes your profile, posts, post images, and reservations.
-              This action cannot be undone.
+              {t(
+                'This removes your profile, posts, post images, and reservations. This action cannot be undone.',
+              )}
             </p>
           </div>
         </div>
 
         <label className="mt-5 block space-y-2">
-          <span className="text-sm font-medium">Type DELETE to confirm</span>
+          <span className="text-sm font-medium">
+            {t('Type DELETE to confirm')}
+          </span>
           <input
             className={inputClassName(false)}
             disabled={isDeleting}
@@ -783,7 +811,7 @@ function DeleteAccountModal({
             variant="outline"
             onClick={onClose}
           >
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             className="bg-destructive text-primary-foreground hover:bg-destructive/90"
@@ -796,7 +824,7 @@ function DeleteAccountModal({
             ) : (
               <Trash2 className="size-4" aria-hidden="true" />
             )}
-            {isDeleting ? 'Deleting...' : 'Delete account'}
+            {isDeleting ? t('Deleting...') : t('Delete account')}
           </Button>
         </div>
       </div>
@@ -812,17 +840,27 @@ function inputClassName(hasError: boolean) {
 }
 
 function FieldError({ message }: { message?: string }) {
-  return message ? <p className="text-destructive text-sm">{message}</p> : null;
+  const { t } = useI18n();
+
+  return message ? (
+    <p className="text-destructive text-sm">{t(message)}</p>
+  ) : null;
 }
 
-function formatCategory(value: string) {
-  return value
+function formatCategory(value: string, t: (text: string) => string) {
+  if (value === 'home') {
+    return t('HomeCategory');
+  }
+
+  const label = value
     .replace('_', ' ')
     .replace(/^\w/, (letter) => letter.toUpperCase());
+
+  return t(label);
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en', {
+function formatDate(value: string, language: string) {
+  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

@@ -12,9 +12,11 @@ import {
   type LoginFormValues,
 } from '@/features/auth/validation/auth-schemas';
 import { Button } from '@/shared/components/ui/button';
+import { useI18n } from '@/shared/i18n/i18n';
 
 export function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { localizedPath, t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,7 +26,7 @@ export function LoginPage() {
     'from' in location.state &&
     typeof location.state.from === 'string'
       ? location.state.from
-      : '/profile';
+      : localizedPath('/profile');
 
   const {
     formState: { errors, isSubmitting },
@@ -45,21 +47,21 @@ export function LoginPage() {
       await loginWithEmail(values);
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Login failed.');
+      setFormError(error instanceof Error ? error.message : t('Login failed.'));
     }
   }
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={localizedPath('/profile')} replace />;
   }
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
       <div className="bg-card rounded-lg border p-5 shadow-sm">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">Log in</h1>
+          <h1 className="text-2xl font-semibold">{t('Log in')}</h1>
           <p className="text-muted-foreground text-sm">
-            Use your email and password to access Gaachuqe.
+            {t('Use your email and password to access Gaachuqe.')}
           </p>
         </div>
 
@@ -69,7 +71,7 @@ export function LoginPage() {
             error={errors.email}
             id="email"
             inputMode="email"
-            label="Email"
+            label={t('Email')}
             placeholder="name@example.com"
             registration={register('email')}
             type="email"
@@ -78,7 +80,7 @@ export function LoginPage() {
             autoComplete="current-password"
             error={errors.password}
             id="password"
-            label="Password"
+            label={t('Password')}
             registration={register('password')}
             type="password"
           />
@@ -88,7 +90,7 @@ export function LoginPage() {
               className="text-destructive rounded-md border border-current p-3 text-sm"
               role="alert"
             >
-              {formError}
+              {t(formError)}
             </p>
           ) : null}
 
@@ -98,17 +100,17 @@ export function LoginPage() {
             type="submit"
           >
             <LogIn className="size-4" aria-hidden="true" />
-            {isSubmitting ? 'Logging in...' : 'Log in'}
+            {isSubmitting ? t('Logging in...') : t('Log in')}
           </Button>
         </form>
 
         <p className="text-muted-foreground mt-5 text-center text-sm">
-          No account?{' '}
+          {t('No account?')}{' '}
           <Link
             className="text-primary font-medium underline-offset-4 hover:underline"
-            to="/register"
+            to={localizedPath('/register')}
           >
-            Register
+            {t('Register')}
           </Link>
         </p>
       </div>

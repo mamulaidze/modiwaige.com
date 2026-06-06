@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import type { FeedPage } from '@/features/feed/api/feed-api';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { Button } from '@/shared/components/ui/button';
+import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 
 import { createPost } from '../api/create-post-api';
@@ -29,6 +30,7 @@ type PhotoPreview = {
 
 export function CreatePostForm() {
   const { user } = useAuth();
+  const { localizedPath, t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
@@ -76,11 +78,13 @@ export function CreatePostForm() {
         },
       );
       void queryClient.invalidateQueries({ queryKey: ['feed'] });
-      navigate('/', { replace: true });
+      navigate(localizedPath('/'), { replace: true });
     },
     onError: (error) => {
       setFormError(
-        error instanceof Error ? error.message : 'Post could not be created.',
+        error instanceof Error
+          ? error.message
+          : t('Post could not be created.'),
       );
     },
   });
@@ -125,7 +129,7 @@ export function CreatePostForm() {
       setFormError(
         error instanceof Error
           ? error.message
-          : 'Photos could not be processed.',
+          : t('Photos could not be processed.'),
       );
     }
   }
@@ -144,7 +148,7 @@ export function CreatePostForm() {
     setFormError(null);
 
     if (!user) {
-      setFormError('You must be logged in to create a post.');
+      setFormError(t('You must be logged in to create a post.'));
       return;
     }
 
@@ -161,7 +165,7 @@ export function CreatePostForm() {
     >
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="title">
-          Title
+          {t('Title')}
         </label>
         <input
           aria-invalid={Boolean(errors.title)}
@@ -170,12 +174,14 @@ export function CreatePostForm() {
           type="text"
           {...register('title')}
         />
-        {errors.title ? <FieldError message={errors.title.message} /> : null}
+        {errors.title ? (
+          <FieldError message={t(errors.title.message ?? '')} />
+        ) : null}
       </div>
 
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="description">
-          Description
+          {t('Description')}
         </label>
         <textarea
           aria-invalid={Boolean(errors.description)}
@@ -187,34 +193,34 @@ export function CreatePostForm() {
           {...register('description')}
         />
         {errors.description ? (
-          <FieldError message={errors.description.message} />
+          <FieldError message={t(errors.description.message ?? '')} />
         ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="space-y-2">
-          <span className="text-sm font-medium">Category</span>
+          <span className="text-sm font-medium">{t('Category')}</span>
           <select
             className={inputClassName(Boolean(errors.category))}
             {...register('category')}
           >
             {postCategoryOptions.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </option>
             ))}
           </select>
           {errors.category ? (
-            <FieldError message={errors.category.message} />
+            <FieldError message={t(errors.category.message ?? '')} />
           ) : null}
         </label>
 
         <label className="space-y-2">
-          <span className="text-sm font-medium">City</span>
+          <span className="text-sm font-medium">{t('City')}</span>
           <input
             className={inputClassName(Boolean(errors.city))}
             list="create-post-city-options"
-            placeholder="Search city"
+            placeholder={t('Search city')}
             type="search"
             {...register('city')}
           />
@@ -223,15 +229,17 @@ export function CreatePostForm() {
               <option key={city} value={city} />
             ))}
           </datalist>
-          {errors.city ? <FieldError message={errors.city.message} /> : null}
+          {errors.city ? (
+            <FieldError message={t(errors.city.message ?? '')} />
+          ) : null}
         </label>
       </div>
 
       <div className="space-y-3">
         <div>
-          <p className="text-sm font-medium">Photos</p>
+          <p className="text-sm font-medium">{t('Photos')}</p>
           <p className="text-muted-foreground mt-1 text-sm">
-            Add 1 to 5 photos. Images are compressed before upload.
+            {t('Add 1 to 5 photos. Images are compressed before upload.')}
           </p>
         </div>
 
@@ -248,7 +256,7 @@ export function CreatePostForm() {
                   alt=""
                 />
                 <Button
-                  aria-label={`Remove photo ${index + 1}`}
+                  aria-label={`${t('Remove photo')} ${index + 1}`}
                   className="absolute top-2 right-2 size-9 p-0"
                   type="button"
                   variant="outline"
@@ -267,9 +275,9 @@ export function CreatePostForm() {
               className="text-muted-foreground size-6"
               aria-hidden="true"
             />
-            <span className="text-sm font-medium">Choose photos</span>
+            <span className="text-sm font-medium">{t('Choose photos')}</span>
             <span className="text-muted-foreground text-xs">
-              {remainingPhotoSlots} slots left
+              {remainingPhotoSlots} {t('slots left')}
             </span>
             <input
               accept="image/jpeg,image/png,image/webp"
@@ -283,7 +291,7 @@ export function CreatePostForm() {
           </label>
         ) : null}
 
-        {photoError ? <FieldError message={photoError} /> : null}
+        {photoError ? <FieldError message={t(photoError)} /> : null}
       </div>
 
       {formError ? (
@@ -291,12 +299,12 @@ export function CreatePostForm() {
           className="text-destructive rounded-md border border-current p-3 text-sm"
           role="alert"
         >
-          {formError}
+          {t(formError)}
         </p>
       ) : null}
 
       <Button className="w-full" disabled={isSubmitting} type="submit">
-        {isSubmitting ? 'Creating post...' : 'Create post'}
+        {isSubmitting ? t('Creating post...') : t('Create post')}
       </Button>
     </form>
   );

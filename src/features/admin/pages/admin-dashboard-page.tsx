@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
+import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { cn } from '@/shared/lib/cn';
 
@@ -31,6 +32,7 @@ import {
 type AdminTab = 'users' | 'posts' | 'reports';
 
 export function AdminDashboardPage() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
   const queryClient = useQueryClient();
 
@@ -96,9 +98,9 @@ export function AdminDashboardPage() {
             <ShieldCheck className="size-6" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold">Admin dashboard</h1>
+            <h1 className="text-2xl font-semibold">{t('Admin dashboard')}</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Review users, moderate posts, and triage reports.
+              {t('Review users, moderate posts, and triage reports.')}
             </p>
           </div>
         </div>
@@ -109,35 +111,36 @@ export function AdminDashboardPage() {
       <div className="bg-card grid grid-cols-3 gap-1 rounded-lg border p-1">
         <TabButton
           active={activeTab === 'users'}
-          label="Users"
+          label={t('Users')}
           onClick={() => setActiveTab('users')}
         />
         <TabButton
           active={activeTab === 'posts'}
-          label="Posts"
+          label={t('Posts')}
           onClick={() => setActiveTab('posts')}
         />
         <TabButton
           active={activeTab === 'reports'}
-          label="Reports"
+          label={t('Reports')}
           onClick={() => setActiveTab('reports')}
         />
       </div>
 
       {isLoading ? (
         <LoadingState
-          title="Loading admin data"
-          description="Gaachuqe is loading moderation records."
+          title={t('Loading admin data')}
+          description={t('Gaachuqe is loading moderation records.')}
+          variant="admin"
         />
       ) : null}
 
       {error ? (
         <div className="bg-card rounded-lg border p-4" role="alert">
           <h2 className="text-destructive font-semibold">
-            Could not load admin tools
+            {t('Could not load admin tools')}
           </h2>
           <p className="text-muted-foreground mt-2 text-sm">
-            {error instanceof Error ? error.message : 'Please try again.'}
+            {error instanceof Error ? error.message : t('Please try again.')}
           </p>
         </div>
       ) : null}
@@ -169,16 +172,18 @@ export function AdminDashboardPage() {
 }
 
 function StatsGrid({ stats }: { stats: AdminStats }) {
+  const { t } = useI18n();
+
   return (
     <section
-      aria-label="Admin statistics"
+      aria-label={t('Admin statistics')}
       className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
     >
-      <StatCard label="Users" value={stats.users} />
-      <StatCard label="Posts" value={stats.posts} />
-      <StatCard label="Open reports" value={stats.openReports} />
-      <StatCard label="Reservations" value={stats.reservations} />
-      <StatCard label="Expired posts" value={stats.expiredPosts} />
+      <StatCard label={t('Users')} value={stats.users} />
+      <StatCard label={t('Posts')} value={stats.posts} />
+      <StatCard label={t('Open reports')} value={stats.openReports} />
+      <StatCard label={t('Reservations')} value={stats.reservations} />
+      <StatCard label={t('Expired posts')} value={stats.expiredPosts} />
     </section>
   );
 }
@@ -221,11 +226,13 @@ function TabButton({
 }
 
 function UsersTable({ users }: { users: AdminUser[] }) {
+  const { language, t } = useI18n();
+
   if (users.length === 0) {
     return (
       <EmptyState
-        title="No users"
-        description="Registered users will appear here."
+        title={t('No users')}
+        description={t('Registered users will appear here.')}
       />
     );
   }
@@ -234,11 +241,11 @@ function UsersTable({ users }: { users: AdminUser[] }) {
     <AdminTable>
       <thead>
         <tr>
-          <HeaderCell>User</HeaderCell>
-          <HeaderCell>Role</HeaderCell>
-          <HeaderCell>Posts</HeaderCell>
-          <HeaderCell>Reservations</HeaderCell>
-          <HeaderCell>Joined</HeaderCell>
+          <HeaderCell>{t('User')}</HeaderCell>
+          <HeaderCell>{t('Role')}</HeaderCell>
+          <HeaderCell>{t('Posts')}</HeaderCell>
+          <HeaderCell>{t('Reservations')}</HeaderCell>
+          <HeaderCell>{t('Joined')}</HeaderCell>
         </tr>
       </thead>
       <tbody>
@@ -255,10 +262,10 @@ function UsersTable({ users }: { users: AdminUser[] }) {
                 </div>
               </div>
             </BodyCell>
-            <BodyCell>{formatValue(user.role)}</BodyCell>
+            <BodyCell>{formatValue(user.role, t)}</BodyCell>
             <BodyCell>{user.postCount}</BodyCell>
             <BodyCell>{user.reservationCount}</BodyCell>
-            <BodyCell>{formatDate(user.createdAt)}</BodyCell>
+            <BodyCell>{formatDate(user.createdAt, language)}</BodyCell>
           </tr>
         ))}
       </tbody>
@@ -277,13 +284,14 @@ function PostsTable({
   onDelete: (postId: string) => void;
   posts: AdminPost[];
 }) {
+  const { language, localizedPath, t } = useI18n();
   const [confirmingPostId, setConfirmingPostId] = useState<string | null>(null);
 
   if (posts.length === 0) {
     return (
       <EmptyState
-        title="No posts"
-        description="Posts created by members will appear here."
+        title={t('No posts')}
+        description={t('Posts created by members will appear here.')}
       />
     );
   }
@@ -293,12 +301,12 @@ function PostsTable({
       <AdminTable>
         <thead>
           <tr>
-            <HeaderCell>Post</HeaderCell>
-            <HeaderCell>Owner</HeaderCell>
-            <HeaderCell>Status</HeaderCell>
-            <HeaderCell>Reports</HeaderCell>
-            <HeaderCell>Expires</HeaderCell>
-            <HeaderCell>Action</HeaderCell>
+            <HeaderCell>{t('Post')}</HeaderCell>
+            <HeaderCell>{t('Owner')}</HeaderCell>
+            <HeaderCell>{t('Status')}</HeaderCell>
+            <HeaderCell>{t('Reports')}</HeaderCell>
+            <HeaderCell>{t('Expires')}</HeaderCell>
+            <HeaderCell>{t('Action')}</HeaderCell>
           </tr>
         </thead>
         <tbody>
@@ -311,18 +319,18 @@ function PostsTable({
                 <BodyCell>
                   <Link
                     className="font-medium underline-offset-4"
-                    to={`/posts/${post.id}`}
+                    to={localizedPath(`/posts/${post.id}`)}
                   >
                     {post.title}
                   </Link>
                   <p className="text-muted-foreground text-xs">
-                    {post.location} - {formatValue(post.category)}
+                    {t(post.location)} - {formatValue(post.category, t)}
                   </p>
                 </BodyCell>
                 <BodyCell>{post.ownerName}</BodyCell>
-                <BodyCell>{formatValue(post.status)}</BodyCell>
+                <BodyCell>{formatValue(post.status, t)}</BodyCell>
                 <BodyCell>{post.reportCount}</BodyCell>
-                <BodyCell>{formatDate(post.expiresAt)}</BodyCell>
+                <BodyCell>{formatDate(post.expiresAt, language)}</BodyCell>
                 <BodyCell>
                   <Button
                     className="border-destructive text-destructive hover:bg-destructive hover:text-primary-foreground"
@@ -340,10 +348,10 @@ function PostsTable({
                   >
                     <Trash2 className="size-4" aria-hidden="true" />
                     {isDeleting
-                      ? 'Deleting...'
+                      ? t('Deleting...')
                       : isConfirming
-                        ? 'Confirm'
-                        : 'Delete'}
+                        ? t('Confirm')
+                        : t('Delete')}
                   </Button>
                 </BodyCell>
               </tr>
@@ -356,7 +364,7 @@ function PostsTable({
           className="text-destructive rounded-md border border-current p-3 text-sm"
           role="alert"
         >
-          {error instanceof Error ? error.message : 'Could not delete post.'}
+          {error instanceof Error ? error.message : t('Could not delete post.')}
         </p>
       ) : null}
     </section>
@@ -372,11 +380,13 @@ function ReportsTable({
   reports: AdminReport[];
   updatingReportId: string | null;
 }) {
+  const { language, localizedPath, t } = useI18n();
+
   if (reports.length === 0) {
     return (
       <EmptyState
-        title="No reports"
-        description="Member reports will appear here."
+        title={t('No reports')}
+        description={t('Member reports will appear here.')}
       />
     );
   }
@@ -385,11 +395,11 @@ function ReportsTable({
     <AdminTable>
       <thead>
         <tr>
-          <HeaderCell>Report</HeaderCell>
-          <HeaderCell>Post</HeaderCell>
-          <HeaderCell>Reporter</HeaderCell>
-          <HeaderCell>Status</HeaderCell>
-          <HeaderCell>Created</HeaderCell>
+          <HeaderCell>{t('Report')}</HeaderCell>
+          <HeaderCell>{t('Post')}</HeaderCell>
+          <HeaderCell>{t('Reporter')}</HeaderCell>
+          <HeaderCell>{t('Status')}</HeaderCell>
+          <HeaderCell>{t('Created')}</HeaderCell>
         </tr>
       </thead>
       <tbody>
@@ -410,12 +420,12 @@ function ReportsTable({
               {report.post ? (
                 <Link
                   className="underline-offset-4"
-                  to={`/posts/${report.post.id}`}
+                  to={localizedPath(`/posts/${report.post.id}`)}
                 >
                   {report.post.title}
                 </Link>
               ) : (
-                'Deleted post'
+                t('Deleted post')
               )}
             </BodyCell>
             <BodyCell>{report.reporterName}</BodyCell>
@@ -431,13 +441,13 @@ function ReportsTable({
                   )
                 }
               >
-                <option value="open">Open</option>
-                <option value="reviewing">Reviewing</option>
-                <option value="resolved">Resolved</option>
-                <option value="dismissed">Dismissed</option>
+                <option value="open">{t('OpenStatus')}</option>
+                <option value="reviewing">{t('Reviewing')}</option>
+                <option value="resolved">{t('Resolved')}</option>
+                <option value="dismissed">{t('Dismissed')}</option>
               </select>
             </BodyCell>
-            <BodyCell>{formatDate(report.createdAt)}</BodyCell>
+            <BodyCell>{formatDate(report.createdAt, language)}</BodyCell>
           </tr>
         ))}
       </tbody>
@@ -467,14 +477,20 @@ function BodyCell({ children }: { children: React.ReactNode }) {
   return <td className="px-4 py-3">{children}</td>;
 }
 
-function formatValue(value: string) {
-  return value
+function formatValue(value: string, t: (text: string) => string) {
+  if (value === 'home') {
+    return t('HomeCategory');
+  }
+
+  const label = value
     .replaceAll('_', ' ')
     .replace(/^\w/, (letter) => letter.toUpperCase());
+
+  return t(label);
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en', {
+function formatDate(value: string, language: string) {
+  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

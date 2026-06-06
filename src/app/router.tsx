@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppLayout } from '@/shared/layouts/app-layout';
 import { RouteLoading } from '@/shared/components/route-loading';
@@ -49,11 +49,47 @@ function withSuspense(element: ReactNode) {
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <Navigate replace to="/ge" />,
+  },
+  {
+    path: '/homepage',
+    element: <Navigate replace to="/ge/homepage" />,
+  },
+  {
+    path: '/login',
+    element: <Navigate replace to="/ge/login" />,
+  },
+  {
+    path: '/register',
+    element: <Navigate replace to="/ge/register" />,
+  },
+  {
+    path: '/create',
+    element: <Navigate replace to="/ge/create" />,
+  },
+  {
+    path: '/profile',
+    element: <Navigate replace to="/ge/profile" />,
+  },
+  {
+    path: '/admin',
+    element: <Navigate replace to="/ge/admin" />,
+  },
+  {
+    path: '/posts/:postId',
+    element: <Navigate replace to="/ge" />,
+  },
+  {
+    path: '/:lang',
     element: <AppLayout />,
     errorElement: <NotFoundPage />,
     children: [
       {
         index: true,
+        element: withSuspense(<HomePage />),
+      },
+      {
+        path: 'homepage',
         element: withSuspense(<HomePage />),
       },
       {

@@ -1,6 +1,7 @@
 import { CalendarDays, ImageIcon, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { useI18n } from '@/shared/i18n/i18n';
 import type { FeedPost } from '../types/feed';
 import { StatusBadge } from './status-badge';
 
@@ -9,6 +10,8 @@ type PostCardProps = {
 };
 
 export function PostCard({ post }: PostCardProps) {
+  const { language, localizedPath, t } = useI18n();
+
   return (
     <article className="bg-card overflow-hidden rounded-md border shadow-sm">
       <div className="bg-muted aspect-[16/10] w-full">
@@ -31,7 +34,7 @@ export function PostCard({ post }: PostCardProps) {
           <h2 className="line-clamp-2 text-sm leading-5 font-semibold sm:text-base sm:leading-6">
             <Link
               className="focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2"
-              to={`/posts/${post.id}`}
+              to={localizedPath(`/posts/${post.id}`)}
             >
               <span className="absolute inset-0" aria-hidden="true" />
               {post.title}
@@ -46,15 +49,11 @@ export function PostCard({ post }: PostCardProps) {
 
         <div className="text-muted-foreground flex flex-col gap-1.5 text-xs sm:text-sm">
           <span className="flex min-w-0 items-center gap-1.5">
-            <MapPin className="size-3.5 shrink-0 sm:size-4" aria-hidden="true" />
-            <span className="truncate">{post.location}</span>
-          </span>
-          <span className="flex min-w-0 items-center gap-1.5">
-            <CalendarDays
+            <MapPin
               className="size-3.5 shrink-0 sm:size-4"
               aria-hidden="true"
             />
-            <span className="truncate">{formatDate(post.createdAt)}</span>
+            <span className="truncate">{t(post.location)}</span>
           </span>
           <span className="flex min-w-0 items-center gap-1.5">
             <CalendarDays
@@ -62,7 +61,16 @@ export function PostCard({ post }: PostCardProps) {
               aria-hidden="true"
             />
             <span className="truncate">
-              Expires {formatDate(post.expiresAt)}
+              {formatDate(post.createdAt, language)}
+            </span>
+          </span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <CalendarDays
+              className="size-3.5 shrink-0 sm:size-4"
+              aria-hidden="true"
+            />
+            <span className="truncate">
+              {t('Expires')} {formatDate(post.expiresAt, language)}
             </span>
           </span>
         </div>
@@ -71,8 +79,8 @@ export function PostCard({ post }: PostCardProps) {
   );
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en', {
+function formatDate(value: string, language: string) {
+  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

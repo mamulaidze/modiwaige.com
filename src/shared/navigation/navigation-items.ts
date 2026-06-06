@@ -10,7 +10,7 @@ import type { ComponentType, SVGProps } from 'react';
 
 type NavigationItem = {
   href: string;
-  label: string;
+  labelKey: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   requiresAuth?: boolean;
   guestOnly?: boolean;
@@ -20,37 +20,37 @@ type NavigationItem = {
 export const navigationItems: NavigationItem[] = [
   {
     href: '/',
-    label: 'Home',
+    labelKey: 'Home',
     icon: Home,
   },
   {
     href: '/create',
-    label: 'Create',
+    labelKey: 'Create',
     icon: PlusCircle,
     requiresAuth: true,
   },
   {
     href: '/profile',
-    label: 'Profile',
+    labelKey: 'Profile',
     icon: User,
     requiresAuth: true,
   },
   {
     href: '/admin',
-    label: 'Admin',
+    labelKey: 'Admin',
     icon: ShieldCheck,
     requiresAuth: true,
     adminOnly: true,
   },
   {
     href: '/login',
-    label: 'Login',
+    labelKey: 'Login',
     icon: LogIn,
     guestOnly: true,
   },
   {
     href: '/register',
-    label: 'Register',
+    labelKey: 'Register',
     icon: UserPlus,
     guestOnly: true,
   },

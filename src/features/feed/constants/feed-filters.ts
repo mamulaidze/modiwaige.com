@@ -8,7 +8,7 @@ export const categoryOptions: Array<{
 }> = [
   { label: 'All categories', value: 'all' },
   { label: 'Clothing', value: 'clothing' },
-  { label: 'Home', value: 'home' },
+  { label: 'HomeCategory', value: 'home' },
   { label: 'Electronics', value: 'electronics' },
   { label: 'Books', value: 'books' },
   { label: 'Children', value: 'children' },
@@ -28,5 +28,4 @@ export const statusOptions: Array<{
   { label: 'Any status', value: 'all' },
   { label: 'Available', value: 'available' },
   { label: 'Reserved', value: 'reserved' },
-  { label: 'Given', value: 'given' },
 ];

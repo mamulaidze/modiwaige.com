@@ -13,10 +13,12 @@ import {
 } from '@/features/auth/validation/auth-schemas';
 import { formatGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-number';
 import { Button } from '@/shared/components/ui/button';
+import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 
 export function RegisterPage() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { localizedPath, t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -41,25 +43,27 @@ export function RegisterPage() {
 
     try {
       await registerWithEmail(values);
-      navigate('/profile', { replace: true });
+      navigate(localizedPath('/profile'), { replace: true });
     } catch (error) {
       setFormError(
-        error instanceof Error ? error.message : 'Registration failed.',
+        error instanceof Error ? error.message : t('Registration failed.'),
       );
     }
   }
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={localizedPath('/profile')} replace />;
   }
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
       <div className="bg-card rounded-lg border p-5 shadow-sm">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">Register</h1>
+          <h1 className="text-2xl font-semibold">{t('Register')}</h1>
           <p className="text-muted-foreground text-sm">
-            Create an account with your name, email, phone number, and password.
+            {t(
+              'Create an account with your name, email, phone number, and password.',
+            )}
           </p>
         </div>
 
@@ -68,7 +72,7 @@ export function RegisterPage() {
             autoComplete="given-name"
             error={errors.firstName}
             id="firstName"
-            label="First name"
+            label={t('First name')}
             registration={register('firstName')}
             type="text"
           />
@@ -76,7 +80,7 @@ export function RegisterPage() {
             autoComplete="family-name"
             error={errors.lastName}
             id="lastName"
-            label="Last name"
+            label={t('Last name')}
             registration={register('lastName')}
             type="text"
           />
@@ -85,7 +89,7 @@ export function RegisterPage() {
             error={errors.email}
             id="email"
             inputMode="email"
-            label="Email"
+            label={t('Email')}
             placeholder="name@example.com"
             registration={register('email')}
             type="email"
@@ -96,7 +100,7 @@ export function RegisterPage() {
             render={({ field }) => (
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="phoneNumber">
-                  Phone number
+                  {t('Phone number')}
                 </label>
                 <input
                   aria-describedby={
@@ -122,8 +126,11 @@ export function RegisterPage() {
                   }
                 />
                 {errors.phoneNumber ? (
-                  <p className="text-destructive text-sm" id="phoneNumber-error">
-                    {errors.phoneNumber.message}
+                  <p
+                    className="text-destructive text-sm"
+                    id="phoneNumber-error"
+                  >
+                    {t(errors.phoneNumber.message ?? '')}
                   </p>
                 ) : null}
               </div>
@@ -133,7 +140,7 @@ export function RegisterPage() {
             autoComplete="new-password"
             error={errors.password}
             id="password"
-            label="Password"
+            label={t('Password')}
             registration={register('password')}
             type="password"
           />
@@ -143,7 +150,7 @@ export function RegisterPage() {
               className="text-destructive rounded-md border border-current p-3 text-sm"
               role="alert"
             >
-              {formError}
+              {t(formError)}
             </p>
           ) : null}
 
@@ -153,17 +160,17 @@ export function RegisterPage() {
             type="submit"
           >
             <UserPlus className="size-4" aria-hidden="true" />
-            {isSubmitting ? 'Creating account...' : 'Create account'}
+            {isSubmitting ? t('Creating account...') : t('Create account')}
           </Button>
         </form>
 
         <p className="text-muted-foreground mt-5 text-center text-sm">
-          Already registered?{' '}
+          {t('Already registered?')}{' '}
           <Link
             className="text-primary font-medium underline-offset-4 hover:underline"
-            to="/login"
+            to={localizedPath('/login')}
           >
-            Log in
+            {t('Log in')}
           </Link>
         </p>
       </div>

@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useI18n } from '@/shared/i18n/i18n';
 
 import type { FeedStatus } from '../types/feed';
 
@@ -19,6 +20,8 @@ type StatusBadgeProps = {
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
+  const { t } = useI18n();
+
   return (
     <span
       className={cn(
@@ -26,7 +29,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         statusStyles[status],
       )}
     >
-      {statusLabels[status]}
+      {t(statusLabels[status])}
     </span>
   );
 }
