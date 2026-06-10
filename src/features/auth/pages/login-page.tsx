@@ -57,9 +57,11 @@ export function LoginPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
-      <div className="bg-card rounded-lg border p-5 shadow-sm">
+      <div className="premium-card rounded-3xl p-5">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">{t('Log in')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t('Log in')}
+          </h1>
           <p className="text-muted-foreground text-sm">
             {t('Use your email and password to access Gaachuqe.')}
           </p>

@@ -33,10 +33,10 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label={t('Mobile navigation')}
-      className="bg-background/95 fixed inset-x-0 bottom-0 z-20 border-t backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 px-4 pb-3 md:hidden"
     >
       <div
-        className="mx-auto grid max-w-md gap-1 px-2 py-2"
+        className="glass-surface mx-auto grid max-w-md gap-1 rounded-3xl px-2 py-2"
         style={{
           gridTemplateColumns: `repeat(${mobileItems.length}, minmax(0, 1fr))`,
         }}
@@ -46,7 +46,8 @@ export function MobileBottomNav() {
             className={({ isActive }) =>
               cn(
                 'text-muted-foreground flex min-h-14 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs font-medium',
-                isActive && 'bg-accent text-accent-foreground',
+                isActive &&
+                  'bg-primary/10 text-primary shadow-[0_0_24px_hsl(154_54%_34%/0.18)]',
               )
             }
             key={item.href}

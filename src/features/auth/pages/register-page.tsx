@@ -57,9 +57,11 @@ export function RegisterPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
-      <div className="bg-card rounded-lg border p-5 shadow-sm">
+      <div className="premium-card rounded-3xl p-5">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">{t('Register')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t('Register')}
+          </h1>
           <p className="text-muted-foreground text-sm">
             {t(
               'Create an account with your name, email, phone number, and password.',
@@ -109,7 +111,7 @@ export function RegisterPage() {
                   aria-invalid={Boolean(errors.phoneNumber)}
                   autoComplete="tel"
                   className={cn(
-                    'border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60',
+                    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
                     errors.phoneNumber &&
                       'border-destructive focus-visible:ring-destructive',
                   )}

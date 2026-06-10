@@ -160,7 +160,7 @@ export function CreatePostForm() {
 
   return (
     <form
-      className="bg-card space-y-5 rounded-lg border p-5 shadow-sm"
+      className="premium-card min-w-0 space-y-5 rounded-3xl p-4 sm:p-5"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="space-y-2">
@@ -238,13 +238,13 @@ export function CreatePostForm() {
       <div className="space-y-3">
         <div>
           <p className="text-sm font-medium">{t('Photos')}</p>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere] break-words">
             {t('Add 1 to 5 photos. Images are compressed before upload.')}
           </p>
         </div>
 
         {photoPreviews.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:grid-cols-5">
             {photoPreviews.map((preview, index) => (
               <div
                 className="group relative overflow-hidden rounded-lg border"
@@ -270,12 +270,14 @@ export function CreatePostForm() {
         ) : null}
 
         {remainingPhotoSlots > 0 ? (
-          <label className="border-input bg-background hover:bg-accent flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-center transition-colors">
+          <label className="glass-surface flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-dashed p-4 text-center transition-all hover:-translate-y-0.5 hover:bg-white/80">
             <ImagePlus
               className="text-muted-foreground size-6"
               aria-hidden="true"
             />
-            <span className="text-sm font-medium">{t('Choose photos')}</span>
+            <span className="text-sm font-medium [overflow-wrap:anywhere] break-words">
+              {t('Choose photos')}
+            </span>
             <span className="text-muted-foreground text-xs">
               {remainingPhotoSlots} {t('slots left')}
             </span>
@@ -312,7 +314,7 @@ export function CreatePostForm() {
 
 function inputClassName(hasError: boolean) {
   return cn(
-    'border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60',
+    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
     hasError && 'border-destructive focus-visible:ring-destructive',
   );
 }

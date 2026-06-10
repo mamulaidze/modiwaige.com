@@ -9,14 +9,16 @@ export function CreatePostPage() {
 
   return (
     <PageContainer className="gap-6">
-      <section className="bg-card rounded-lg border p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="bg-primary text-primary-foreground flex size-10 items-center justify-center rounded-md">
+      <section className="premium-card rounded-3xl p-4 sm:p-5">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="bg-primary text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-[0_10px_24px_hsl(154_54%_30%/0.24)]">
             <ImagePlus className="size-5" aria-hidden="true" />
           </div>
-          <div>
-            <h1 className="text-2xl font-semibold">{t('Create Post')}</h1>
-            <p className="text-muted-foreground mt-1 text-sm">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold tracking-tight [overflow-wrap:anywhere] break-words sm:text-2xl">
+              {t('Create Post')}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere] break-words">
               {t('Give away an unwanted item for free.')}
             </p>
           </div>

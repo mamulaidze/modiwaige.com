@@ -37,14 +37,19 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
   });
 
   return (
-    <div className="mx-auto hidden min-h-16 w-full max-w-5xl items-center justify-between gap-6 px-6 py-3 md:flex lg:px-8">
-      <Link className="flex items-center gap-3" to={localizedPath('/')}>
-        <div className="bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-md">
+    <div className="mx-auto hidden min-h-18 w-full max-w-5xl items-center justify-between gap-6 rounded-[24px] border border-white/65 bg-white/68 px-5 py-3 shadow-[0_18px_50px_hsl(170_28%_16%/0.12),inset_0_1px_0_hsl(0_0%_100%/0.78)] backdrop-blur-2xl md:flex lg:px-6">
+      <Link
+        className="group focus-visible:ring-ring flex min-w-0 items-center gap-3 rounded-[20px] transition-transform duration-200 outline-none focus-visible:ring-2 active:scale-[0.99]"
+        to={localizedPath('/')}
+      >
+        <div className="text-primary-foreground via-primary flex size-12 shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-emerald-700 to-emerald-400 shadow-[0_16px_34px_hsl(154_54%_30%/0.3)] ring-1 ring-white/35 transition-transform duration-200 group-hover:scale-[1.03]">
           <Gift className="size-5" aria-hidden="true" />
         </div>
-        <div>
-          <p className="text-base leading-none font-semibold">Gaachuqe</p>
-          <p className="text-muted-foreground mt-1 text-xs">
+        <div className="min-w-0">
+          <p className="text-foreground truncate text-lg leading-none font-semibold tracking-tight">
+            Gaachuqe
+          </p>
+          <p className="text-muted-foreground mt-1 max-w-56 truncate text-xs">
             {t('Free giving in Georgia')}
           </p>
         </div>
@@ -52,13 +57,17 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
 
       <nav
         aria-label={t('Primary navigation')}
-        className="flex items-center gap-1"
+        className="flex min-w-0 items-center gap-1.5"
       >
         {visibleItems.map((item) => (
           <Button asChild key={item.href} variant="outline">
             <NavLink
               className={({ isActive }) =>
-                cn(isActive && 'bg-accent text-accent-foreground')
+                cn(
+                  'rounded-xl transition-transform duration-200 active:scale-[0.98]',
+                  isActive &&
+                    'bg-primary/10 text-primary shadow-[0_0_22px_hsl(154_54%_34%/0.16)]',
+                )
               }
               to={localizedPath(item.href)}
             >

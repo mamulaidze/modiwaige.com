@@ -270,9 +270,9 @@ export function PostDetailsPage() {
         </Link>
       </Button>
 
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-        <div className="space-y-3">
-          <div className="bg-muted flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border">
+      <section className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <div className="min-w-0 space-y-3">
+          <div className="premium-card bg-muted flex aspect-[4/3] items-center justify-center overflow-hidden rounded-3xl">
             {activeImage?.url ? (
               <button
                 aria-label="Open full image"
@@ -295,11 +295,11 @@ export function PostDetailsPage() {
           </div>
 
           {post.images.length > 1 ? (
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
               {post.images.map((image, index) => (
                 <button
                   aria-label={`Show image ${index + 1}`}
-                  className="focus-visible:ring-ring overflow-hidden rounded-md border focus-visible:ring-2"
+                  className="focus-visible:ring-ring overflow-hidden rounded-2xl border bg-white/70 transition-transform hover:scale-[1.02] focus-visible:ring-2"
                   key={image.id}
                   type="button"
                   onClick={() => setActiveImageIndex(index)}
@@ -324,7 +324,7 @@ export function PostDetailsPage() {
           ) : null}
         </div>
 
-        <div className="bg-card space-y-5 rounded-lg border p-5 shadow-sm">
+        <div className="premium-card min-w-0 space-y-5 rounded-3xl p-4 sm:p-5">
           {isEditing ? (
             <form
               className="space-y-4"
@@ -342,7 +342,7 @@ export function PostDetailsPage() {
                   {t('Description')}
                 </label>
                 <textarea
-                  className="border-input bg-background focus-visible:ring-ring min-h-32 w-full rounded-md border px-3 py-3 text-base outline-none focus-visible:ring-2"
+                  className="modern-input min-h-32 w-full rounded-2xl px-3 py-3 text-base outline-none"
                   id="description"
                   {...editForm.register('description')}
                 />
@@ -354,7 +354,7 @@ export function PostDetailsPage() {
                 <label className="space-y-2">
                   <span className="text-sm font-medium">{t('Category')}</span>
                   <select
-                    className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
                     {...editForm.register('category')}
                   >
                     {postCategoryOptions.map((option) => (
@@ -367,7 +367,7 @@ export function PostDetailsPage() {
                 <label className="space-y-2">
                   <span className="text-sm font-medium">{t('City')}</span>
                   <input
-                    className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
                     list="edit-post-city-options"
                     placeholder={t('Search city')}
                     type="search"
@@ -383,11 +383,16 @@ export function PostDetailsPage() {
                   />
                 </label>
               </div>
-              <div className="flex gap-2">
-                <Button disabled={updateMutation.isPending} type="submit">
+              <div className="grid gap-2 sm:flex">
+                <Button
+                  className="w-full sm:w-auto"
+                  disabled={updateMutation.isPending}
+                  type="submit"
+                >
                   {updateMutation.isPending ? t('Saving...') : t('Save')}
                 </Button>
                 <Button
+                  className="w-full sm:w-auto"
                   type="button"
                   variant="outline"
                   onClick={() => {
@@ -402,13 +407,13 @@ export function PostDetailsPage() {
           ) : (
             <>
               <div className="space-y-3">
-                <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
-                  <h1 className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-3xl leading-tight font-semibold">
+                <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-3">
+                  <h1 className="min-w-0 text-xl leading-7 font-semibold [overflow-wrap:anywhere] break-words sm:flex-1 sm:text-2xl sm:leading-tight lg:text-3xl">
                     {post.title}
                   </h1>
                   <StatusBadge status={post.status} />
                 </div>
-                <p className="text-muted-foreground break-words whitespace-pre-line [overflow-wrap:anywhere] leading-7">
+                <p className="text-muted-foreground leading-7 [overflow-wrap:anywhere] break-words whitespace-pre-line">
                   {post.description}
                 </p>
               </div>
@@ -441,9 +446,9 @@ export function PostDetailsPage() {
                 />
               ) : null}
 
-              <section className="rounded-lg border p-4">
+              <section className="rounded-3xl border bg-white/65 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-muted flex size-10 items-center justify-center overflow-hidden rounded-md">
+                  <div className="bg-muted flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
                     {post.owner?.avatarUrl ? (
                       <img
                         className="h-full w-full object-cover"
@@ -457,11 +462,11 @@ export function PostDetailsPage() {
                       />
                     )}
                   </div>
-                  <div>
-                    <h2 className="font-semibold">
+                  <div className="min-w-0">
+                    <h2 className="font-semibold [overflow-wrap:anywhere] break-words">
                       {post.owner?.displayName ?? t('Gaachuqe member')}
                     </h2>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm [overflow-wrap:anywhere] break-words">
                       {post.owner?.location
                         ? t(post.owner.location)
                         : t('Owner information is limited')}
@@ -473,7 +478,7 @@ export function PostDetailsPage() {
               {!isOwner &&
               post.activeReservation?.requesterId === user?.id &&
               post.owner?.phoneNumber ? (
-                <section className="border-primary/30 bg-primary/5 rounded-lg border p-4">
+                <section className="border-primary/20 bg-primary/5 rounded-3xl border p-4 shadow-[0_0_32px_hsl(154_54%_34%/0.12)]">
                   <h2 className="font-semibold">{t('Reservation active')}</h2>
                   <p className="text-muted-foreground mt-1 text-sm leading-6">
                     {t('Contact the owner to arrange pickup.')}
@@ -636,7 +641,7 @@ function ImageViewerModal({
     <div
       aria-label="Full image viewer"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-5"
       role="dialog"
       onClick={onClose}
     >
@@ -668,12 +673,14 @@ function DetailRow({
   value: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center justify-between gap-4 rounded-md border p-3">
+    <div className="flex min-w-0 flex-col gap-1 rounded-md border p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <dt className="text-muted-foreground flex min-w-0 items-center gap-2">
         {icon}
-        <span className="break-words">{label}</span>
+        <span className="[overflow-wrap:anywhere] break-words">{label}</span>
       </dt>
-      <dd className="min-w-0 text-right font-medium break-words">{value}</dd>
+      <dd className="min-w-0 font-medium [overflow-wrap:anywhere] break-words sm:text-right">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -753,19 +760,19 @@ function ReportPostModal({
     <div
       aria-labelledby="report-post-title"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
       role="dialog"
     >
-      <div className="bg-card w-full max-w-md rounded-lg border p-5 shadow-lg">
-        <div className="flex items-start gap-3">
+      <div className="glass-surface max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl p-4 sm:p-5">
+        <div className="flex min-w-0 items-start gap-3">
           <div className="bg-destructive/10 text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
             <FileWarning className="size-5" aria-hidden="true" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-lg font-semibold" id="report-post-title">
               {t('Report item')}
             </h2>
-            <p className="text-muted-foreground mt-2 text-sm leading-6">
+            <p className="text-muted-foreground mt-2 text-sm leading-6 [overflow-wrap:anywhere] break-words">
               {t(
                 'Reports are reviewed by admins and help keep the marketplace safe.',
               )}
@@ -777,7 +784,7 @@ function ReportPostModal({
           <label className="space-y-2">
             <span className="text-sm font-medium">{t('Subject')}</span>
             <input
-              className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+              className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
               disabled={isSubmitting}
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
@@ -786,7 +793,7 @@ function ReportPostModal({
           <label className="space-y-2">
             <span className="text-sm font-medium">{t('Details')}</span>
             <textarea
-              className="border-input bg-background focus-visible:ring-ring min-h-28 w-full rounded-md border px-3 py-3 text-base outline-none focus-visible:ring-2"
+              className="modern-input min-h-28 w-full rounded-2xl px-3 py-3 text-base outline-none"
               disabled={isSubmitting}
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -835,7 +842,7 @@ function EditField({
         {label}
       </label>
       <input
-        className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+        className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
         id={registration.name}
         type="text"
         {...registration}

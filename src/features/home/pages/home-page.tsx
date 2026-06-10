@@ -51,9 +51,9 @@ export function HomePage() {
   });
 
   return (
-    <PageContainer className="gap-8">
+    <PageContainer className="gap-7">
       <section className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-normal">
+        <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
           {t('Free items in Georgia')}
         </h1>
         <p className="text-muted-foreground max-w-2xl text-base leading-7">
@@ -96,7 +96,7 @@ export function HomePage() {
       {posts.length > 0 ? (
         <section
           aria-label={t('Free item feed')}
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:gap-4"
+          className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 lg:gap-5"
         >
           {posts.map((post) => (
             <PostCard key={post.id} post={post} />

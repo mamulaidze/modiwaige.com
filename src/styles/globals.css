@@ -1,20 +1,20 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-background: hsl(42 24% 97%);
-  --color-foreground: hsl(170 18% 12%);
+  --color-background: hsl(44 36% 97%);
+  --color-foreground: hsl(172 28% 10%);
   --color-card: hsl(0 0% 100%);
   --color-card-foreground: hsl(170 18% 12%);
-  --color-primary: hsl(154 48% 28%);
+  --color-primary: hsl(155 54% 30%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted: hsl(42 18% 90%);
-  --color-muted-foreground: hsl(172 9% 38%);
-  --color-accent: hsl(42 28% 89%);
+  --color-muted: hsl(44 24% 91%);
+  --color-muted-foreground: hsl(174 9% 39%);
+  --color-accent: hsl(154 36% 91%);
   --color-accent-foreground: hsl(170 18% 12%);
   --color-destructive: hsl(0 72% 44%);
-  --color-border: hsl(42 16% 82%);
-  --color-input: hsl(42 16% 82%);
-  --color-ring: hsl(154 48% 28%);
+  --color-border: hsl(42 18% 82% / 0.78);
+  --color-input: hsl(42 18% 82% / 0.82);
+  --color-ring: hsl(154 54% 34%);
 }
 
 * {
@@ -36,7 +36,32 @@ body {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  background: theme(--color-background);
+  position: relative;
+  background:
+    radial-gradient(
+      circle at top left,
+      hsl(154 48% 86% / 0.55),
+      transparent 30rem
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      hsl(42 72% 88% / 0.48),
+      transparent 26rem
+    ),
+    linear-gradient(180deg, hsl(44 46% 98%), theme(--color-background) 42rem);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: '';
+  background-image:
+    linear-gradient(hsl(170 24% 20% / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(170 24% 20% / 0.03) 1px, transparent 1px);
+  background-size: 4.5rem 4.5rem;
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
 }
 
 a {
@@ -61,4 +86,40 @@ a {
   transform: translateY(0);
   outline: 2px solid theme(--color-ring);
   outline-offset: 2px;
+}
+
+@layer components {
+  .glass-surface {
+    border: 1px solid hsl(0 0% 100% / 0.55);
+    background: linear-gradient(
+      135deg,
+      hsl(0 0% 100% / 0.78),
+      hsl(0 0% 100% / 0.52)
+    );
+    box-shadow:
+      0 18px 48px hsl(170 30% 18% / 0.1),
+      inset 0 1px 0 hsl(0 0% 100% / 0.65);
+    backdrop-filter: blur(18px);
+  }
+
+  .premium-card {
+    border: 1px solid hsl(42 18% 82% / 0.7);
+    background: hsl(0 0% 100% / 0.96);
+    box-shadow: 0 18px 42px hsl(170 22% 18% / 0.09);
+  }
+
+  .modern-input {
+    border: 1px solid hsl(42 18% 82% / 0.72);
+    background: hsl(0 0% 100% / 0.72);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.72);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .modern-input:focus {
+    border-color: hsl(154 54% 34% / 0.72);
+    box-shadow: 0 0 0 4px hsl(154 54% 34% / 0.12);
+  }
 }

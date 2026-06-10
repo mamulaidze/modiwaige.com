@@ -40,9 +40,12 @@ const translations: Record<string, string> = {
   'Free item feed': 'უფასო ნივთების სია',
 
   Filters: 'ფილტრები',
+  Clear: 'გასუფთავება',
   Open: 'გახსნა',
   Close: 'დახურვა',
-  'Search, category, city, and status': 'ძიება, კატეგორიები, ადგილმდებარეობა და ნივთის სტატუსი',
+  'Search, category, city, and status':
+    'ძიება, კატეგორიები, ადგილმდებარეობა და ნივთის სტატუსი',
+  'Search, category, and city': 'ძიება, კატეგორიები და ადგილმდებარეობა',
   active: 'აქტიური',
   'Search free items': 'უფასო ნივთების ძიება',
   Category: 'კატეგორია',

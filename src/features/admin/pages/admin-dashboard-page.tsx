@@ -92,13 +92,15 @@ export function AdminDashboardPage() {
 
   return (
     <PageContainer className="gap-6">
-      <section className="bg-card rounded-lg border p-5 shadow-sm">
+      <section className="premium-card rounded-3xl p-5">
         <div className="flex items-start gap-3">
-          <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-md">
+          <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-2xl shadow-[0_10px_24px_hsl(154_54%_30%/0.24)]">
             <ShieldCheck className="size-6" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold">{t('Admin dashboard')}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t('Admin dashboard')}
+            </h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {t('Review users, moderate posts, and triage reports.')}
             </p>
@@ -108,7 +110,7 @@ export function AdminDashboardPage() {
 
       {statsQuery.data ? <StatsGrid stats={statsQuery.data} /> : null}
 
-      <div className="bg-card grid grid-cols-3 gap-1 rounded-lg border p-1">
+      <div className="glass-surface grid grid-cols-3 gap-1 rounded-3xl p-1">
         <TabButton
           active={activeTab === 'users'}
           label={t('Users')}
@@ -135,7 +137,7 @@ export function AdminDashboardPage() {
       ) : null}
 
       {error ? (
-        <div className="bg-card rounded-lg border p-4" role="alert">
+        <div className="premium-card rounded-3xl p-4" role="alert">
           <h2 className="text-destructive font-semibold">
             {t('Could not load admin tools')}
           </h2>
@@ -190,7 +192,7 @@ function StatsGrid({ stats }: { stats: AdminStats }) {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-card rounded-lg border p-4">
+    <div className="premium-card rounded-3xl p-4">
       <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <BarChart3 className="size-4" aria-hidden="true" />
         {label}
@@ -212,10 +214,10 @@ function TabButton({
   return (
     <button
       className={cn(
-        'rounded-md px-3 py-2 text-sm font-medium',
+        'rounded-2xl px-3 py-2 text-sm font-medium transition-colors',
         active
-          ? 'bg-primary text-primary-foreground'
-          : 'text-muted-foreground hover:bg-accent',
+          ? 'bg-primary text-primary-foreground shadow-[0_10px_24px_hsl(154_54%_30%/0.18)]'
+          : 'text-muted-foreground hover:bg-white/65',
       )}
       type="button"
       onClick={onClick}
@@ -431,7 +433,7 @@ function ReportsTable({
             <BodyCell>{report.reporterName}</BodyCell>
             <BodyCell>
               <select
-                className="border-input bg-background h-10 rounded-md border px-2 text-sm"
+                className="modern-input h-10 rounded-2xl px-3 text-sm outline-none"
                 disabled={updatingReportId === report.id}
                 value={report.status}
                 onChange={(event) =>
@@ -457,7 +459,7 @@ function ReportsTable({
 
 function AdminTable({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-card overflow-x-auto rounded-lg border">
+    <div className="premium-card overflow-x-auto rounded-3xl">
       <table className="w-full min-w-[760px] border-collapse text-left text-sm">
         {children}
       </table>

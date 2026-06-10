@@ -13,11 +13,11 @@ export function PostCard({ post }: PostCardProps) {
   const { language, localizedPath, t } = useI18n();
 
   return (
-    <article className="bg-card overflow-hidden rounded-md border shadow-sm">
-      <div className="bg-muted aspect-[16/10] w-full">
+    <article className="premium-card group overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_hsl(170_22%_18%/0.14)]">
+      <div className="bg-muted aspect-[4/3] w-full overflow-hidden">
         {post.imageUrl ? (
           <img
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"
             src={post.imageUrl}
             alt=""
             loading="lazy"
@@ -29,9 +29,9 @@ export function PostCard({ post }: PostCardProps) {
         )}
       </div>
 
-      <div className="relative space-y-2 p-3">
+      <div className="relative space-y-3 p-4">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <h2 className="line-clamp-2 text-sm leading-5 font-semibold sm:text-base sm:leading-6">
+          <h2 className="line-clamp-2 text-base leading-6 font-semibold tracking-tight">
             <Link
               className="focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2"
               to={localizedPath(`/posts/${post.id}`)}
@@ -43,11 +43,11 @@ export function PostCard({ post }: PostCardProps) {
           <StatusBadge status={post.status} />
         </div>
 
-        <p className="text-muted-foreground line-clamp-2 text-xs leading-5 sm:text-sm">
+        <p className="text-muted-foreground line-clamp-2 text-sm leading-6">
           {post.description}
         </p>
 
-        <div className="text-muted-foreground flex flex-col gap-1.5 text-xs sm:text-sm">
+        <div className="text-muted-foreground flex flex-col gap-1.5 text-sm">
           <span className="flex min-w-0 items-center gap-1.5">
             <MapPin
               className="size-3.5 shrink-0 sm:size-4"

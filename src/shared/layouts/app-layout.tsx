@@ -37,17 +37,17 @@ function LocalizedAppLayout() {
   }
 
   return (
-    <div className="bg-background text-foreground flex min-h-svh flex-col">
+    <div className="text-foreground flex min-h-svh flex-col">
       <AnalyticsTracker />
       <a className="skip-link" href="#main-content">
         {t('Skip to content')}
       </a>
-      <header className="bg-background/95 border-b">
+      <header className="sticky top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-4">
         <DesktopNavbar isLoggingOut={isLoggingOut} onLogout={handleLogout} />
         <MobileHeader />
         {logoutError ? (
           <p
-            className="text-destructive mx-auto w-full max-w-5xl px-4 pb-3 text-sm"
+            className="text-destructive mx-auto mt-2 w-full max-w-5xl rounded-2xl bg-white/75 px-4 py-3 text-sm shadow-sm backdrop-blur"
             role="alert"
           >
             {logoutError}

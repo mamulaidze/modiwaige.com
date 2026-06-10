@@ -1,13 +1,9 @@
-import { ChevronDown, Search, SlidersHorizontal } from 'lucide-react';
-import { useId, useState } from 'react';
+import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
-import {
-  categoryOptions,
-  cityOptions,
-  statusOptions,
-} from '../constants/feed-filters';
+import { categoryOptions, cityOptions } from '../constants/feed-filters';
 import type { FeedFilters as FeedFiltersValue } from '../types/feed';
 
 type FeedFiltersProps = {
@@ -18,133 +14,184 @@ type FeedFiltersProps = {
 export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
   const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const panelId = useId();
   const selectedCity = filters.city === 'all' ? '' : filters.city;
   const activeFilterCount = [
     filters.search.trim(),
     filters.category !== 'all',
     filters.city !== 'all',
-    filters.status !== 'all',
   ].filter(Boolean).length;
+  const hasActiveFilters = activeFilterCount > 0;
+  const isCollapsed = isScrolled && !isOpen;
+
+  useEffect(() => {
+    function updateScrolledState() {
+      setIsScrolled(window.scrollY > 120);
+    }
+
+    updateScrolledState();
+    window.addEventListener('scroll', updateScrolledState, { passive: true });
+
+    return () => window.removeEventListener('scroll', updateScrolledState);
+  }, []);
+
+  function clearFilters() {
+    onChange({
+      ...filters,
+      search: '',
+      category: 'all',
+      city: 'all',
+    });
+  }
 
   return (
     <section
-      className="bg-card rounded-lg border p-4 shadow-sm"
+      className={`sticky top-28 z-20 transition-all duration-300 sm:top-30 ${
+        isCollapsed
+          ? 'ml-auto w-fit'
+          : 'glass-surface overflow-hidden rounded-3xl'
+      }`}
       aria-label="Feed filters"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            <SlidersHorizontal className="size-4" aria-hidden="true" />
-            {t('Filters')}
-          </h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {activeFilterCount > 0
-              ? `${activeFilterCount} ${t('active')}`
-              : t('Search, category, city, and status')}
-          </p>
-        </div>
+      {isCollapsed ? (
         <Button
           aria-controls={panelId}
           aria-expanded={isOpen}
-          className="shrink-0 px-3"
+          aria-label={t('Filters')}
+          className="glass-surface size-14 rounded-3xl px-0"
           type="button"
           variant="outline"
-          onClick={() => setIsOpen((current) => !current)}
+          onClick={() => setIsOpen(true)}
         >
-          {isOpen ? t('Close') : t('Open')}
-          <ChevronDown
-            className={`size-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />
+          <SlidersHorizontal className="size-5" aria-hidden="true" />
         </Button>
-      </div>
+      ) : null}
 
-      {isOpen ? (
-        <div id={panelId} className="mt-4">
-          <div className="relative">
-            <Search
-              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-              aria-hidden="true"
-            />
-            <input
-              aria-label={t('Search free items')}
-              className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border pr-3 pl-9 text-base outline-none focus-visible:ring-2"
-              placeholder={t('Search free items')}
-              type="search"
-              value={filters.search}
-              onChange={(event) =>
-                onChange({ ...filters, search: event.target.value })
-              }
-            />
+      {!isCollapsed ? (
+        <>
+          <div className="space-y-3 p-3 sm:p-4">
+            <div className="flex items-center gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Search
+                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  aria-hidden="true"
+                />
+                <input
+                  aria-label={t('Search free items')}
+                  className="modern-input h-12 w-full rounded-2xl pr-3 pl-9 text-base outline-none"
+                  placeholder={t('Search free items')}
+                  type="search"
+                  value={filters.search}
+                  onChange={(event) =>
+                    onChange({ ...filters, search: event.target.value })
+                  }
+                />
+              </div>
+
+              <Button
+                aria-controls={panelId}
+                aria-expanded={isOpen}
+                aria-label={t('Filters')}
+                className="size-12 shrink-0 rounded-2xl px-0"
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen((current) => !current)}
+              >
+                <SlidersHorizontal className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
+
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <button
+                aria-controls={panelId}
+                aria-expanded={isOpen}
+                className="text-muted-foreground hover:text-foreground flex min-w-0 items-center gap-2 text-sm font-medium transition-colors"
+                type="button"
+                onClick={() => setIsOpen((current) => !current)}
+              >
+                <span className="truncate">
+                  {hasActiveFilters
+                    ? `${activeFilterCount} ${t('active')}`
+                    : t('Search, category, and city')}
+                </span>
+                <ChevronDown
+                  className={`size-4 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {hasActiveFilters ? (
+                <Button
+                  className="h-8 shrink-0 px-2 text-xs"
+                  type="button"
+                  variant="outline"
+                  onClick={clearFilters}
+                >
+                  <X className="size-3.5" aria-hidden="true" />
+                  {t('Clear')}
+                </Button>
+              ) : null}
+            </div>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <label className="space-y-2">
-              <span className="text-sm font-medium">{t('Category')}</span>
-              <select
-                className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
-                value={filters.category}
-                onChange={(event) =>
-                  onChange({
-                    ...filters,
-                    category: event.target
-                      .value as FeedFiltersValue['category'],
-                  })
-                }
-              >
-                {categoryOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.label)}
-                  </option>
-                ))}
-              </select>
-            </label>
+          {isOpen ? (
+            <div
+              id={panelId}
+              className="border-t border-white/50 p-3 pt-4 sm:p-4"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-2">
+                  <span className="text-muted-foreground text-xs font-medium uppercase">
+                    {t('Category')}
+                  </span>
+                  <select
+                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
+                    value={filters.category}
+                    onChange={(event) =>
+                      onChange({
+                        ...filters,
+                        category: event.target
+                          .value as FeedFiltersValue['category'],
+                      })
+                    }
+                  >
+                    {categoryOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {t(option.label)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label className="space-y-2">
-              <span className="text-sm font-medium">{t('City')}</span>
-              <input
-                aria-label={t('Search by city')}
-                className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
-                list="feed-city-options"
-                placeholder={t('Search city')}
-                type="search"
-                value={selectedCity}
-                onChange={(event) =>
-                  onChange({
-                    ...filters,
-                    city: event.target.value.trim() || 'all',
-                  })
-                }
-              />
-              <datalist id="feed-city-options">
-                {cityOptions.slice(1).map((option) => (
-                  <option key={option.value} value={option.value} />
-                ))}
-              </datalist>
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium">{t('Status')}</span>
-              <select
-                className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
-                value={filters.status}
-                onChange={(event) =>
-                  onChange({
-                    ...filters,
-                    status: event.target.value as FeedFiltersValue['status'],
-                  })
-                }
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.label)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
+                <label className="space-y-2">
+                  <span className="text-muted-foreground text-xs font-medium uppercase">
+                    {t('City')}
+                  </span>
+                  <input
+                    aria-label={t('Search by city')}
+                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
+                    list="feed-city-options"
+                    placeholder={t('Search city')}
+                    type="search"
+                    value={selectedCity}
+                    onChange={(event) =>
+                      onChange({
+                        ...filters,
+                        city: event.target.value.trim() || 'all',
+                      })
+                    }
+                  />
+                  <datalist id="feed-city-options">
+                    {cityOptions.slice(1).map((option) => (
+                      <option key={option.value} value={option.value} />
+                    ))}
+                  </datalist>
+                </label>
+              </div>
+            </div>
+          ) : null}
+        </>
       ) : null}
     </section>
   );

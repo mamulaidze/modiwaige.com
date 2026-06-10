@@ -2,16 +2,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
+  CalendarDays,
   Eye,
   Loader2,
   MapPin,
   Pencil,
   Phone,
   Settings,
+  Tag,
   Trash2,
   User,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -118,10 +120,10 @@ export function AccountPage() {
 
   return (
     <PageContainer className="gap-6">
-      <section className="bg-card rounded-lg border p-5 shadow-sm">
+      <section className="premium-card rounded-3xl p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center overflow-hidden rounded-md">
+            <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center overflow-hidden rounded-2xl shadow-[0_10px_24px_hsl(154_54%_30%/0.24)]">
               {profileQuery.data?.avatarUrl ? (
                 <img
                   className="h-full w-full object-cover"
@@ -133,7 +135,9 @@ export function AccountPage() {
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl font-semibold">{t('Profile')}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {t('Profile')}
+              </h1>
               <p className="text-muted-foreground mt-1 text-sm">
                 {displayName}
               </p>
@@ -166,7 +170,7 @@ export function AccountPage() {
         <StatCard label={t('My reservations')} value={stats.reservedItems} />
       </section>
 
-      <div className="bg-card grid grid-cols-3 gap-1 rounded-lg border p-1">
+      <div className="glass-surface grid grid-cols-3 gap-1 rounded-3xl p-1">
         <TabButton
           active={activeTab === 'posts'}
           label={t('My Posts')}
@@ -264,7 +268,7 @@ export function AccountPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-card rounded-lg border p-4">
+    <div className="premium-card rounded-3xl p-4">
       <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <BarChart3 className="size-4" aria-hidden="true" />
         {label}
@@ -287,8 +291,8 @@ function TabButton({
     <button
       className={
         active
-          ? 'bg-primary text-primary-foreground rounded-md px-3 py-2 text-sm font-medium'
-          : 'text-muted-foreground hover:bg-accent rounded-md px-3 py-2 text-sm font-medium'
+          ? 'bg-primary text-primary-foreground rounded-2xl px-3 py-2 text-sm font-medium shadow-[0_10px_24px_hsl(154_54%_30%/0.18)]'
+          : 'text-muted-foreground rounded-2xl px-3 py-2 text-sm font-medium transition-colors hover:bg-white/65'
       }
       type="button"
       onClick={onClick}
@@ -307,7 +311,7 @@ function MyPostsSection({
   onError: (message: string | null) => void;
   posts: ProfilePost[];
 }) {
-  const { localizedPath, t } = useI18n();
+  const { language, localizedPath, t } = useI18n();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [markingGivenId, setMarkingGivenId] = useState<string | null>(null);
   const [statsPostId, setStatsPostId] = useState<string | null>(null);
@@ -373,23 +377,46 @@ function MyPostsSection({
   return (
     <section className="space-y-3" aria-label="My posts">
       {posts.map((post) => (
-        <article className="bg-card rounded-lg border p-4" key={post.id}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-semibold">{post.title}</h2>
+        <article className="premium-card rounded-3xl p-4" key={post.id}>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between">
+                <h2 className="min-w-0 text-lg leading-6 font-semibold tracking-tight [overflow-wrap:anywhere] break-words">
+                  {post.title}
+                </h2>
                 {post.status !== 'archived' ? (
                   <StatusBadge status={post.status} />
                 ) : null}
               </div>
-              <p className="text-muted-foreground text-sm">
-                {t(post.location)} - {formatCategory(post.category, t)} -{' '}
-                {post.reservationCount} {t('reservations')}
-              </p>
+
+              <div className="grid gap-2 min-[420px]:grid-cols-2">
+                <PostMetaChip
+                  icon={<MapPin className="size-4" aria-hidden="true" />}
+                  label={t('Location')}
+                  value={t(post.location)}
+                />
+                <PostMetaChip
+                  icon={<Tag className="size-4" aria-hidden="true" />}
+                  label={t('Category')}
+                  value={formatCategory(post.category, t)}
+                />
+                <PostMetaChip
+                  icon={<BarChart3 className="size-4" aria-hidden="true" />}
+                  label={t('Reservations')}
+                  value={`${post.reservationCount} ${t('reservations')}`}
+                />
+                <PostMetaChip
+                  icon={<CalendarDays className="size-4" aria-hidden="true" />}
+                  label={t('Expires')}
+                  value={formatDate(post.expiresAt, language)}
+                />
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <Button
                 aria-expanded={statsPostId === post.id}
+                className="h-auto min-h-11 whitespace-normal"
                 type="button"
                 variant="outline"
                 onClick={() =>
@@ -401,19 +428,28 @@ function MyPostsSection({
                 <BarChart3 className="size-4" aria-hidden="true" />
                 {t('Statistics')}
               </Button>
-              <Button asChild variant="outline">
+              <Button
+                asChild
+                className="h-auto min-h-11 whitespace-normal"
+                variant="outline"
+              >
                 <Link to={localizedPath(`/posts/${post.id}`)}>
                   <Eye className="size-4" aria-hidden="true" />
                   {t('View')}
                 </Link>
               </Button>
-              <Button asChild variant="outline">
+              <Button
+                asChild
+                className="h-auto min-h-11 whitespace-normal"
+                variant="outline"
+              >
                 <Link to={`${localizedPath(`/posts/${post.id}`)}?edit=1`}>
                   <Pencil className="size-4" aria-hidden="true" />
                   {t('Edit')}
                 </Link>
               </Button>
               <Button
+                className="h-auto min-h-11 whitespace-normal"
                 disabled={post.status === 'given' || markingGivenId === post.id}
                 type="button"
                 variant="outline"
@@ -426,6 +462,7 @@ function MyPostsSection({
                     : t('Mark given')}
               </Button>
               <Button
+                className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground h-auto min-h-11 whitespace-normal"
                 disabled={deletingId === post.id}
                 type="button"
                 variant="outline"
@@ -440,6 +477,26 @@ function MyPostsSection({
         </article>
       ))}
     </section>
+  );
+}
+
+function PostMetaChip({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/70 bg-white/55 px-3 py-2">
+      <span className="text-muted-foreground shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-muted-foreground text-xs leading-4">{label}</p>
+        <p className="truncate text-sm font-semibold">{value}</p>
+      </div>
+    </div>
   );
 }
 
@@ -531,7 +588,7 @@ function ReservedItemsSection({
         </p>
       ) : null}
       {reservations.map((reservation) => (
-        <article className="bg-card rounded-lg border p-4" key={reservation.id}>
+        <article className="premium-card rounded-3xl p-4" key={reservation.id}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-semibold">
@@ -629,7 +686,7 @@ function SettingsSection({
 
   return (
     <>
-      <section className="bg-card rounded-lg border p-5">
+      <section className="premium-card rounded-3xl p-5">
         <div className="mb-5 flex items-center gap-2">
           <Settings
             className="text-muted-foreground size-5"
@@ -693,7 +750,7 @@ function SettingsSection({
         </form>
       </section>
 
-      <section className="bg-card border-destructive/40 rounded-lg border p-5">
+      <section className="premium-card border-destructive/40 rounded-3xl p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold">{t('Delete account')}</h2>
@@ -763,10 +820,10 @@ function DeleteAccountModal({
     <div
       aria-labelledby="delete-account-title"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
       role="dialog"
     >
-      <div className="bg-card w-full max-w-md rounded-lg border p-5 shadow-lg">
+      <div className="glass-surface w-full max-w-md rounded-3xl p-5">
         <div className="flex items-start gap-3">
           <div className="bg-destructive/10 text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
             <Trash2 className="size-5" aria-hidden="true" />
@@ -834,7 +891,7 @@ function DeleteAccountModal({
 
 function inputClassName(hasError: boolean) {
   return cn(
-    'border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2',
+    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none',
     hasError && 'border-destructive focus-visible:ring-destructive',
   );
 }
