@@ -57,7 +57,7 @@ export function LoginPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
-      <div className="premium-card rounded-3xl p-5">
+      <div className="glass-surface rounded-[28px] p-5 sm:p-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
             {t('Log in')}

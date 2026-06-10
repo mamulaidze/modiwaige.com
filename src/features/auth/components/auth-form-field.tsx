@@ -30,7 +30,7 @@ export function AuthFormField({
         aria-describedby={errorId}
         aria-invalid={Boolean(error)}
         className={cn(
-          'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
+          'modern-input h-11 w-full rounded-2xl bg-white/70 px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
           error && 'border-destructive focus-visible:ring-destructive',
           className,
         )}

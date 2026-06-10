@@ -47,10 +47,10 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
 
   return (
     <section
-      className={`sticky top-28 z-20 transition-all duration-300 sm:top-30 ${
+      className={`sticky top-20 z-20 transition-all duration-500 ease-out sm:top-24 ${
         isCollapsed
           ? 'ml-auto w-fit'
-          : 'glass-surface overflow-hidden rounded-3xl'
+          : 'filter-card-enter glass-surface overflow-hidden rounded-3xl'
       }`}
       aria-label="Feed filters"
     >
@@ -59,7 +59,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
           aria-controls={panelId}
           aria-expanded={isOpen}
           aria-label={t('Filters')}
-          className="glass-surface size-14 rounded-3xl px-0"
+          className="filter-pop-in glass-surface size-14 rounded-3xl px-0 transition-transform duration-200 hover:scale-105"
           type="button"
           variant="outline"
           onClick={() => setIsOpen(true)}
@@ -138,7 +138,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
           {isOpen ? (
             <div
               id={panelId}
-              className="border-t border-white/50 p-3 pt-4 sm:p-4"
+              className="filter-panel-enter border-t border-white/50 p-3 pt-4 sm:p-4"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-2">

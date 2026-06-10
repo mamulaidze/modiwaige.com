@@ -15,6 +15,9 @@ const translations: Record<string, string> = {
   Login: 'შესვლა',
   Register: 'რეგისტრაცია',
   'Log out': 'გასვლა',
+  'Log out?': 'გსურთ გასვლა?',
+  'Do you really want to log out of your account?':
+    'ნამდვილად გსურთ ანგარიშიდან გასვლა?',
   'Logging out...': 'გასვლა...',
   'New reservation activity': 'ახალი აქტივობა ჯავშანზე',
   'Primary navigation': 'მთავარი ნავიგაცია',
@@ -23,6 +26,9 @@ const translations: Record<string, string> = {
   Language: 'ენა',
 
   'Free items in Georgia': 'ნივთების გაცემა-გაჩუქება',
+  'Community giving': 'ქურდებს სიცოცხლე',
+  'Local and free': 'დავეხმაროთ ერთმანეთს',
+  'Georgia-wide': 'მთელ საქართველოში',
   'Find unwanted items people are giving away and help keep useful things out of waste.':
     'არ გადააგდო, გააჩუქე!',
   'Loading free items': 'უფასო ნივთები იტვირთება',
@@ -37,6 +43,7 @@ const translations: Record<string, string> = {
   'More free items are being loaded.': 'იტვირთება მეტი უფასო ნივთი.',
   'Loading...': 'იტვირთება...',
   'Load more': 'მეტის ჩატვირთვა',
+  'Show more': 'მეტის ნახვა',
   'Free item feed': 'უფასო ნივთების სია',
 
   Filters: 'ფილტრები',

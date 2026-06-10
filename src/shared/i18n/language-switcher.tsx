@@ -6,11 +6,10 @@ import { switchLanguagePath, useI18n, type Language } from './i18n';
 
 const languageOptions: Array<{
   label: string;
-  shortLabel: string;
   value: Language;
 }> = [
-  { label: 'ქართული', shortLabel: 'GE', value: 'ge' },
-  { label: 'English', shortLabel: 'EN', value: 'en' },
+  { label: 'ქართული', value: 'ge' },
+  { label: 'English', value: 'en' },
 ];
 
 export function LanguageSwitcher() {
@@ -39,7 +38,7 @@ export function LanguageSwitcher() {
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label="Language"
-        className="group text-primary flex size-12 items-center justify-center rounded-full border border-white/70 bg-white/55 shadow-[0_10px_28px_hsl(170_20%_16%/0.1),inset_0_1px_0_hsl(0_0%_100%/0.75)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/70 active:translate-y-0"
+        className="group text-primary flex size-10 items-center justify-center rounded-full border border-white/70 bg-white/55 shadow-[0_8px_22px_hsl(170_20%_16%/0.09),inset_0_1px_0_hsl(0_0%_100%/0.75)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/70 active:translate-y-0"
         type="button"
         onClick={() => setIsOpen((current) => !current)}
       >
@@ -48,7 +47,7 @@ export function LanguageSwitcher() {
 
       {isOpen ? (
         <div
-          className="absolute top-14 right-0 z-50 w-40 overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-1.5 shadow-[0_18px_48px_hsl(170_24%_16%/0.16),inset_0_1px_0_hsl(0_0%_100%/0.78)] backdrop-blur-2xl"
+          className="absolute top-12 right-0 z-50 w-40 overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-1.5 shadow-[0_18px_48px_hsl(170_24%_16%/0.16),inset_0_1px_0_hsl(0_0%_100%/0.78)] backdrop-blur-2xl"
           role="menu"
         >
           {languageOptions.map((option) => {

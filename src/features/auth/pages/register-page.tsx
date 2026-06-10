@@ -57,7 +57,7 @@ export function RegisterPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
-      <div className="premium-card rounded-3xl p-5">
+      <div className="glass-surface rounded-[28px] p-5 sm:p-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
             {t('Register')}
@@ -111,7 +111,7 @@ export function RegisterPage() {
                   aria-invalid={Boolean(errors.phoneNumber)}
                   autoComplete="tel"
                   className={cn(
-                    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
+                    'modern-input h-11 w-full rounded-2xl bg-white/70 px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
                     errors.phoneNumber &&
                       'border-destructive focus-visible:ring-destructive',
                   )}

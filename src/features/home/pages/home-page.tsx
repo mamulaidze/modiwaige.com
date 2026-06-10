@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
+import { HeartHandshake, MapPin, Sparkles } from 'lucide-react';
 
 import { FeedFilters } from '@/features/feed/components/feed-filters';
 import { PostCard } from '@/features/feed/components/post-card';
 import { useFeed } from '@/features/feed/hooks/use-feed';
-import { useInfiniteScroll } from '@/features/feed/hooks/use-infinite-scroll';
 import type { FeedFilters as FeedFiltersValue } from '@/features/feed/types/feed';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
@@ -45,22 +45,38 @@ export function HomePage() {
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const loadMoreRef = useInfiniteScroll({
-    enabled: Boolean(hasNextPage) && !isFetchingNextPage,
-    onLoadMore: loadMore,
-  });
-
   return (
     <PageContainer className="gap-7">
-      <section className="space-y-2">
-        <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
-          {t('Free items in Georgia')}
-        </h1>
-        <p className="text-muted-foreground max-w-2xl text-base leading-7">
-          {t(
-            'Find unwanted items people are giving away and help keep useful things out of waste.',
-          )}
-        </p>
+      <section className="relative isolate space-y-5 py-2">
+        <div className="text-primary flex w-fit items-center gap-2 rounded-full border border-white/70 bg-white/60 px-3 py-2 text-sm font-semibold shadow-[0_10px_28px_hsl(170_20%_16%/0.08),inset_0_1px_0_hsl(0_0%_100%/0.75)] backdrop-blur-xl">
+          <Sparkles className="size-4" aria-hidden="true" />
+          {t('Community giving')}
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="max-w-3xl text-4xl leading-[1.08] font-semibold tracking-tight text-balance sm:text-5xl">
+            {t('Free items in Georgia')}
+          </h1>
+          <p className="text-muted-foreground max-w-2xl text-lg leading-8">
+            {t(
+              'Find unwanted items people are giving away and help keep useful things out of waste.',
+            )}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <span className="text-foreground flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-3 py-2 text-sm font-medium shadow-sm backdrop-blur-xl">
+            <HeartHandshake
+              className="text-primary size-4"
+              aria-hidden="true"
+            />
+            {t('Local and free')}
+          </span>
+          <span className="text-foreground flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-3 py-2 text-sm font-medium shadow-sm backdrop-blur-xl">
+            <MapPin className="text-primary size-4" aria-hidden="true" />
+            {t('Georgia-wide')}
+          </span>
+        </div>
       </section>
 
       <FeedFilters filters={filters} onChange={setFilters} />
@@ -104,16 +120,6 @@ export function HomePage() {
         </section>
       ) : null}
 
-      <div ref={loadMoreRef} className="min-h-8">
-        {isFetchingNextPage ? (
-          <LoadingState
-            title={t('Loading more items')}
-            description={t('More free items are being loaded.')}
-            variant="inline"
-          />
-        ) : null}
-      </div>
-
       {hasNextPage ? (
         <Button
           className="self-center"
@@ -122,7 +128,7 @@ export function HomePage() {
           variant="outline"
           onClick={loadMore}
         >
-          {isFetchingNextPage ? t('Loading...') : t('Load more')}
+          {isFetchingNextPage ? t('Loading...') : t('Show more')}
         </Button>
       ) : null}
     </PageContainer>
