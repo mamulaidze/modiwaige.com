@@ -27,7 +27,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
 
   useEffect(() => {
     function updateScrolledState() {
-      setIsScrolled(window.scrollY > 120);
+      setIsScrolled(window.scrollY > 220);
     }
 
     updateScrolledState();
