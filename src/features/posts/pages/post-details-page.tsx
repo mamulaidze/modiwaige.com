@@ -299,7 +299,7 @@ export function PostDetailsPage() {
               {post.images.map((image, index) => (
                 <button
                   aria-label={`Show image ${index + 1}`}
-                  className="focus-visible:ring-ring overflow-hidden rounded-2xl border bg-white/70 transition-transform hover:scale-[1.02] focus-visible:ring-2"
+                  className="soft-surface focus-visible:ring-ring overflow-hidden rounded-2xl transition-transform hover:scale-[1.02] focus-visible:ring-2"
                   key={image.id}
                   type="button"
                   onClick={() => setActiveImageIndex(index)}
@@ -446,7 +446,7 @@ export function PostDetailsPage() {
                 />
               ) : null}
 
-              <section className="rounded-3xl border bg-white/65 p-4">
+              <section className="soft-surface rounded-3xl p-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-muted flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
                     {post.owner?.avatarUrl ? (
@@ -478,7 +478,7 @@ export function PostDetailsPage() {
               {!isOwner &&
               post.activeReservation?.requesterId === user?.id &&
               post.owner?.phoneNumber ? (
-                <section className="border-primary/20 bg-primary/5 rounded-3xl border p-4 shadow-[0_0_32px_hsl(154_54%_34%/0.12)]">
+                <section className="primary-glow border-primary/20 bg-primary/5 rounded-3xl border p-4">
                   <h2 className="font-semibold">{t('Reservation active')}</h2>
                   <p className="text-muted-foreground mt-1 text-sm leading-6">
                     {t('Contact the owner to arrange pickup.')}
@@ -641,13 +641,13 @@ function ImageViewerModal({
     <div
       aria-label="Full image viewer"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-5"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop-strong)] p-3 backdrop-blur-sm sm:p-5"
       role="dialog"
       onClick={onClose}
     >
       <button
         aria-label="Close image"
-        className="focus-visible:ring-ring absolute top-3 right-3 flex size-10 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 focus-visible:ring-2 focus-visible:outline-none"
+        className="glass-control text-foreground focus-visible:ring-ring absolute top-3 right-3 flex size-10 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
         type="button"
         onClick={onClose}
       >
@@ -760,7 +760,7 @@ function ReportPostModal({
     <div
       aria-labelledby="report-post-title"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop)] p-4 backdrop-blur-sm"
       role="dialog"
     >
       <div className="glass-surface max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl p-4 sm:p-5">

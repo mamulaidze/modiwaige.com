@@ -270,7 +270,7 @@ export function CreatePostForm() {
         ) : null}
 
         {remainingPhotoSlots > 0 ? (
-          <label className="glass-surface flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-dashed p-4 text-center transition-all hover:-translate-y-0.5 hover:bg-white/80">
+          <label className="glass-surface flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-dashed p-4 text-center transition-all hover:-translate-y-0.5 hover:bg-[var(--theme-glass-hover)]">
             <ImagePlus
               className="text-muted-foreground size-6"
               aria-hidden="true"

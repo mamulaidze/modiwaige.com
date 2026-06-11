@@ -48,7 +48,7 @@ export function HomePage() {
   return (
     <PageContainer className="gap-7">
       <section className="relative isolate space-y-5 py-2">
-        <div className="text-primary flex w-fit items-center gap-2 rounded-full border border-white/70 bg-white/60 px-3 py-2 text-sm font-semibold shadow-[0_10px_28px_hsl(170_20%_16%/0.08),inset_0_1px_0_hsl(0_0%_100%/0.75)] backdrop-blur-xl">
+        <div className="glass-control text-primary flex w-fit items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold">
           <Sparkles className="size-4" aria-hidden="true" />
           {t('Community giving')}
         </div>
@@ -65,14 +65,14 @@ export function HomePage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <span className="text-foreground flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-3 py-2 text-sm font-medium shadow-sm backdrop-blur-xl">
+          <span className="glass-control text-foreground flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium">
             <HeartHandshake
               className="text-primary size-4"
               aria-hidden="true"
             />
             {t('Local and free')}
           </span>
-          <span className="text-foreground flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-3 py-2 text-sm font-medium shadow-sm backdrop-blur-xl">
+          <span className="glass-control text-foreground flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium">
             <MapPin className="text-primary size-4" aria-hidden="true" />
             {t('Georgia-wide')}
           </span>

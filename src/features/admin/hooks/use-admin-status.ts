@@ -11,6 +11,6 @@ export function useAdminStatus() {
     queryKey: ['admin-status', user?.id],
     queryFn: () => fetchAdminStatus(user?.id),
     enabled: isAuthenticated && Boolean(user?.id),
-    staleTime: 60_000,
+    staleTime: 0,
   });
 }

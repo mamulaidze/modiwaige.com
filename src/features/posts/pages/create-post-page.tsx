@@ -11,7 +11,7 @@ export function CreatePostPage() {
     <PageContainer className="gap-6">
       <section className="premium-card rounded-3xl p-4 sm:p-5">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="bg-primary text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-[0_10px_24px_hsl(154_54%_30%/0.24)]">
+          <div className="bg-primary text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
             <ImagePlus className="size-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">

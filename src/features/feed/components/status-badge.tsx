@@ -10,9 +10,8 @@ const statusLabels: Record<FeedStatus, string> = {
 };
 
 const statusStyles: Record<FeedStatus, string> = {
-  available:
-    'bg-primary/10 text-primary shadow-[0_0_20px_hsl(154_54%_34%/0.16)] ring-1 ring-primary/15',
-  reserved: 'bg-white/70 text-accent-foreground ring-1 ring-border',
+  available: 'primary-glow bg-primary/10 text-primary ring-1 ring-primary/15',
+  reserved: 'bg-accent/75 text-accent-foreground ring-1 ring-border',
   given: 'bg-muted/80 text-muted-foreground ring-1 ring-border',
 };
 

@@ -138,7 +138,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
           {isOpen ? (
             <div
               id={panelId}
-              className="filter-panel-enter border-t border-white/50 p-3 pt-4 sm:p-4"
+              className="filter-panel-enter border-t p-3 pt-4 sm:p-4"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-2">

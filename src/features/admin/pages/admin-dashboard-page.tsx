@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
   FileWarning,
+  Search,
   ShieldCheck,
   Trash2,
   Users,
@@ -30,6 +31,7 @@ import {
 } from '../api/admin-api';
 
 type AdminTab = 'users' | 'posts' | 'reports';
+const ADMIN_TABLE_LIMIT = 10;
 
 export function AdminDashboardPage() {
   const { t } = useI18n();
@@ -94,7 +96,7 @@ export function AdminDashboardPage() {
     <PageContainer className="gap-6">
       <section className="premium-card rounded-3xl p-5">
         <div className="flex items-start gap-3">
-          <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-2xl shadow-[0_10px_24px_hsl(154_54%_30%/0.24)]">
+          <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
             <ShieldCheck className="size-6" aria-hidden="true" />
           </div>
           <div>
@@ -216,8 +218,8 @@ function TabButton({
       className={cn(
         'rounded-2xl px-3 py-2 text-sm font-medium transition-colors',
         active
-          ? 'bg-primary text-primary-foreground shadow-[0_10px_24px_hsl(154_54%_30%/0.18)]'
-          : 'text-muted-foreground hover:bg-white/65',
+          ? 'bg-primary text-primary-foreground shadow-[0_10px_24px_var(--theme-primary-shadow)]'
+          : 'text-muted-foreground hover:bg-[var(--theme-glass-hover)]',
       )}
       type="button"
       onClick={onClick}
@@ -229,6 +231,17 @@ function TabButton({
 
 function UsersTable({ users }: { users: AdminUser[] }) {
   const { language, t } = useI18n();
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredUsers = users.filter((user) =>
+    matchesSearch(searchQuery, [
+      user.displayName,
+      user.location,
+      user.role,
+      String(user.postCount),
+      String(user.reservationCount),
+    ]),
+  );
+  const visibleUsers = filteredUsers.slice(0, ADMIN_TABLE_LIMIT);
 
   if (users.length === 0) {
     return (
@@ -240,38 +253,53 @@ function UsersTable({ users }: { users: AdminUser[] }) {
   }
 
   return (
-    <AdminTable>
-      <thead>
-        <tr>
-          <HeaderCell>{t('User')}</HeaderCell>
-          <HeaderCell>{t('Role')}</HeaderCell>
-          <HeaderCell>{t('Posts')}</HeaderCell>
-          <HeaderCell>{t('Reservations')}</HeaderCell>
-          <HeaderCell>{t('Joined')}</HeaderCell>
-        </tr>
-      </thead>
-      <tbody>
-        {users.map((user) => (
-          <tr className="border-t" key={user.id}>
-            <BodyCell>
-              <div className="flex items-center gap-2">
-                <Users className="text-muted-foreground size-4" />
-                <div>
-                  <p className="font-medium">{user.displayName}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {user.location}
-                  </p>
-                </div>
-              </div>
-            </BodyCell>
-            <BodyCell>{formatValue(user.role, t)}</BodyCell>
-            <BodyCell>{user.postCount}</BodyCell>
-            <BodyCell>{user.reservationCount}</BodyCell>
-            <BodyCell>{formatDate(user.createdAt, language)}</BodyCell>
-          </tr>
-        ))}
-      </tbody>
-    </AdminTable>
+    <section className="space-y-3">
+      <AdminSearch
+        label={t('Search users')}
+        value={searchQuery}
+        onChange={setSearchQuery}
+      />
+
+      {filteredUsers.length === 0 ? (
+        <EmptyState
+          title={t('No matching results')}
+          description={t('Try a different search.')}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr>
+              <HeaderCell>{t('User')}</HeaderCell>
+              <HeaderCell>{t('Role')}</HeaderCell>
+              <HeaderCell>{t('Posts')}</HeaderCell>
+              <HeaderCell>{t('Reservations')}</HeaderCell>
+              <HeaderCell>{t('Joined')}</HeaderCell>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleUsers.map((user) => (
+              <tr className="border-t" key={user.id}>
+                <BodyCell>
+                  <div className="flex items-center gap-2">
+                    <Users className="text-muted-foreground size-4" />
+                    <div>
+                      <p className="font-medium">{user.displayName}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {user.location}
+                      </p>
+                    </div>
+                  </div>
+                </BodyCell>
+                <BodyCell>{formatValue(user.role, t)}</BodyCell>
+                <BodyCell>{user.postCount}</BodyCell>
+                <BodyCell>{user.reservationCount}</BodyCell>
+                <BodyCell>{formatDate(user.createdAt, language)}</BodyCell>
+              </tr>
+            ))}
+          </tbody>
+        </AdminTable>
+      )}
+    </section>
   );
 }
 
@@ -288,6 +316,18 @@ function PostsTable({
 }) {
   const { language, localizedPath, t } = useI18n();
   const [confirmingPostId, setConfirmingPostId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredPosts = posts.filter((post) =>
+    matchesSearch(searchQuery, [
+      post.title,
+      post.ownerName,
+      post.location,
+      post.category,
+      post.status,
+      String(post.reportCount),
+    ]),
+  );
+  const visiblePosts = filteredPosts.slice(0, ADMIN_TABLE_LIMIT);
 
   if (posts.length === 0) {
     return (
@@ -300,67 +340,81 @@ function PostsTable({
 
   return (
     <section className="space-y-3">
-      <AdminTable>
-        <thead>
-          <tr>
-            <HeaderCell>{t('Post')}</HeaderCell>
-            <HeaderCell>{t('Owner')}</HeaderCell>
-            <HeaderCell>{t('Status')}</HeaderCell>
-            <HeaderCell>{t('Reports')}</HeaderCell>
-            <HeaderCell>{t('Expires')}</HeaderCell>
-            <HeaderCell>{t('Action')}</HeaderCell>
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map((post) => {
-            const isConfirming = confirmingPostId === post.id;
-            const isDeleting = deletingPostId === post.id;
+      <AdminSearch
+        label={t('Search posts')}
+        value={searchQuery}
+        onChange={setSearchQuery}
+      />
 
-            return (
-              <tr className="border-t" key={post.id}>
-                <BodyCell>
-                  <Link
-                    className="font-medium underline-offset-4"
-                    to={localizedPath(`/posts/${post.id}`)}
-                  >
-                    {post.title}
-                  </Link>
-                  <p className="text-muted-foreground text-xs">
-                    {t(post.location)} - {formatValue(post.category, t)}
-                  </p>
-                </BodyCell>
-                <BodyCell>{post.ownerName}</BodyCell>
-                <BodyCell>{formatValue(post.status, t)}</BodyCell>
-                <BodyCell>{post.reportCount}</BodyCell>
-                <BodyCell>{formatDate(post.expiresAt, language)}</BodyCell>
-                <BodyCell>
-                  <Button
-                    className="border-destructive text-destructive hover:bg-destructive hover:text-primary-foreground"
-                    disabled={isDeleting}
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (!isConfirming) {
-                        setConfirmingPostId(post.id);
-                        return;
-                      }
+      {filteredPosts.length === 0 ? (
+        <EmptyState
+          title={t('No matching results')}
+          description={t('Try a different search.')}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr>
+              <HeaderCell>{t('Post')}</HeaderCell>
+              <HeaderCell>{t('Owner')}</HeaderCell>
+              <HeaderCell>{t('Status')}</HeaderCell>
+              <HeaderCell>{t('Reports')}</HeaderCell>
+              <HeaderCell>{t('Expires')}</HeaderCell>
+              <HeaderCell>{t('Action')}</HeaderCell>
+            </tr>
+          </thead>
+          <tbody>
+            {visiblePosts.map((post) => {
+              const isConfirming = confirmingPostId === post.id;
+              const isDeleting = deletingPostId === post.id;
 
-                      onDelete(post.id);
-                    }}
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                    {isDeleting
-                      ? t('Deleting...')
-                      : isConfirming
-                        ? t('Confirm')
-                        : t('Delete')}
-                  </Button>
-                </BodyCell>
-              </tr>
-            );
-          })}
-        </tbody>
-      </AdminTable>
+              return (
+                <tr className="border-t" key={post.id}>
+                  <BodyCell>
+                    <Link
+                      className="font-medium underline-offset-4"
+                      to={localizedPath(`/posts/${post.id}`)}
+                    >
+                      {post.title}
+                    </Link>
+                    <p className="text-muted-foreground text-xs">
+                      {t(post.location)} - {formatValue(post.category, t)}
+                    </p>
+                  </BodyCell>
+                  <BodyCell>{post.ownerName}</BodyCell>
+                  <BodyCell>{formatValue(post.status, t)}</BodyCell>
+                  <BodyCell>{post.reportCount}</BodyCell>
+                  <BodyCell>{formatDate(post.expiresAt, language)}</BodyCell>
+                  <BodyCell>
+                    <Button
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-primary-foreground"
+                      disabled={isDeleting}
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (!isConfirming) {
+                          setConfirmingPostId(post.id);
+                          return;
+                        }
+
+                        onDelete(post.id);
+                      }}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                      {isDeleting
+                        ? t('Deleting...')
+                        : isConfirming
+                          ? t('Confirm')
+                          : t('Delete')}
+                    </Button>
+                  </BodyCell>
+                </tr>
+              );
+            })}
+          </tbody>
+        </AdminTable>
+      )}
+
       {error ? (
         <p
           className="text-destructive rounded-md border border-current p-3 text-sm"
@@ -383,6 +437,17 @@ function ReportsTable({
   updatingReportId: string | null;
 }) {
   const { language, localizedPath, t } = useI18n();
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredReports = reports.filter((report) =>
+    matchesSearch(searchQuery, [
+      report.subject,
+      report.body,
+      report.reporterName,
+      report.status,
+      report.post?.title ?? '',
+    ]),
+  );
+  const visibleReports = filteredReports.slice(0, ADMIN_TABLE_LIMIT);
 
   if (reports.length === 0) {
     return (
@@ -394,66 +459,120 @@ function ReportsTable({
   }
 
   return (
-    <AdminTable>
-      <thead>
-        <tr>
-          <HeaderCell>{t('Report')}</HeaderCell>
-          <HeaderCell>{t('Post')}</HeaderCell>
-          <HeaderCell>{t('Reporter')}</HeaderCell>
-          <HeaderCell>{t('Status')}</HeaderCell>
-          <HeaderCell>{t('Created')}</HeaderCell>
-        </tr>
-      </thead>
-      <tbody>
-        {reports.map((report) => (
-          <tr className="border-t align-top" key={report.id}>
-            <BodyCell>
-              <div className="flex items-start gap-2">
-                <FileWarning className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                <div>
-                  <p className="font-medium">{report.subject}</p>
-                  <p className="text-muted-foreground mt-1 max-w-md text-xs leading-5">
-                    {report.body}
-                  </p>
-                </div>
-              </div>
-            </BodyCell>
-            <BodyCell>
-              {report.post ? (
-                <Link
-                  className="underline-offset-4"
-                  to={localizedPath(`/posts/${report.post.id}`)}
-                >
-                  {report.post.title}
-                </Link>
-              ) : (
-                t('Deleted post')
-              )}
-            </BodyCell>
-            <BodyCell>{report.reporterName}</BodyCell>
-            <BodyCell>
-              <select
-                className="modern-input h-10 rounded-2xl px-3 text-sm outline-none"
-                disabled={updatingReportId === report.id}
-                value={report.status}
-                onChange={(event) =>
-                  onStatusChange(
-                    report.id,
-                    event.target.value as AdminReport['status'],
-                  )
-                }
-              >
-                <option value="open">{t('OpenStatus')}</option>
-                <option value="reviewing">{t('Reviewing')}</option>
-                <option value="resolved">{t('Resolved')}</option>
-                <option value="dismissed">{t('Dismissed')}</option>
-              </select>
-            </BodyCell>
-            <BodyCell>{formatDate(report.createdAt, language)}</BodyCell>
-          </tr>
-        ))}
-      </tbody>
-    </AdminTable>
+    <section className="space-y-3">
+      <AdminSearch
+        label={t('Search reports')}
+        value={searchQuery}
+        onChange={setSearchQuery}
+      />
+
+      {filteredReports.length === 0 ? (
+        <EmptyState
+          title={t('No matching results')}
+          description={t('Try a different search.')}
+        />
+      ) : (
+        <AdminTable>
+          <thead>
+            <tr>
+              <HeaderCell>{t('Report')}</HeaderCell>
+              <HeaderCell>{t('Post')}</HeaderCell>
+              <HeaderCell>{t('Reporter')}</HeaderCell>
+              <HeaderCell>{t('Status')}</HeaderCell>
+              <HeaderCell>{t('Created')}</HeaderCell>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleReports.map((report) => (
+              <tr className="border-t align-top" key={report.id}>
+                <BodyCell>
+                  <div className="flex items-start gap-2">
+                    <FileWarning className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                    <div>
+                      <p className="font-medium">{report.subject}</p>
+                      <p className="text-muted-foreground mt-1 max-w-md text-xs leading-5">
+                        {report.body}
+                      </p>
+                    </div>
+                  </div>
+                </BodyCell>
+                <BodyCell>
+                  {report.post ? (
+                    <Link
+                      className="underline-offset-4"
+                      to={localizedPath(`/posts/${report.post.id}`)}
+                    >
+                      {report.post.title}
+                    </Link>
+                  ) : (
+                    t('Deleted post')
+                  )}
+                </BodyCell>
+                <BodyCell>{report.reporterName}</BodyCell>
+                <BodyCell>
+                  <select
+                    className="modern-input h-10 rounded-2xl px-3 text-sm outline-none"
+                    disabled={updatingReportId === report.id}
+                    value={report.status}
+                    onChange={(event) =>
+                      onStatusChange(
+                        report.id,
+                        event.target.value as AdminReport['status'],
+                      )
+                    }
+                  >
+                    <option value="open">{t('OpenStatus')}</option>
+                    <option value="reviewing">{t('Reviewing')}</option>
+                    <option value="resolved">{t('Resolved')}</option>
+                    <option value="dismissed">{t('Dismissed')}</option>
+                  </select>
+                </BodyCell>
+                <BodyCell>{formatDate(report.createdAt, language)}</BodyCell>
+              </tr>
+            ))}
+          </tbody>
+        </AdminTable>
+      )}
+    </section>
+  );
+}
+
+function AdminSearch({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  return (
+    <div className="glass-surface relative rounded-3xl p-2">
+      <Search
+        className="text-muted-foreground pointer-events-none absolute top-1/2 left-5 size-4 -translate-y-1/2"
+        aria-hidden="true"
+      />
+      <input
+        aria-label={label}
+        className="modern-input h-11 w-full rounded-2xl pr-3 pl-10 text-base outline-none"
+        placeholder={label}
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
+  );
+}
+
+function matchesSearch(query: string, values: string[]) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return values.some((value) =>
+    value.toLocaleLowerCase().includes(normalizedQuery),
   );
 }
 

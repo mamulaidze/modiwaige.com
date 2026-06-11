@@ -10,9 +10,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-[0_10px_24px_hsl(154_54%_30%/0.22)] hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_14px_30px_hsl(154_54%_30%/0.28)] active:translate-y-0',
+          'bg-primary text-primary-foreground shadow-[0_10px_24px_var(--theme-primary-shadow)] hover:-translate-y-0.5 hover:bg-[var(--theme-primary-hover)] hover:shadow-[0_14px_30px_var(--theme-primary-shadow)] active:translate-y-0 active:bg-[var(--theme-primary-active)]',
         outline:
-          'glass-surface hover:-translate-y-0.5 hover:bg-white/80 hover:text-accent-foreground active:translate-y-0',
+          'glass-surface hover:-translate-y-0.5 hover:bg-[var(--theme-glass-hover)] hover:text-accent-foreground active:translate-y-0',
       },
     },
     defaultVariants: {

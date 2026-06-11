@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#256348" />
+    <meta name="theme-color" content="#f8f5ed" />
     <meta
       name="description"
       content="Gaachuqe helps people in Georgia give away useful items for free, reserve finds, and keep reusable goods out of waste."
@@ -16,16 +16,41 @@
       property="og:description"
       content="Give away useful items, browse free finds, and reserve goods from nearby members in Georgia."
     />
-    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Gaachuqe - Free giving in Georgia" />
     <meta
       name="twitter:description"
       content="Give away useful items, browse free finds, and reserve goods from nearby members in Georgia."
     />
-    <meta name="twitter:image" content="/og-image.svg" />
+    <meta name="twitter:image" content="/og-image.png" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#2fb47e" />
     <link rel="manifest" href="/site.webmanifest" />
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem('gaachuqe-theme');
+        const systemTheme = matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+        const theme =
+          savedTheme === 'light' || savedTheme === 'dark'
+            ? savedTheme
+            : systemTheme;
+
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', theme === 'dark' ? '#171c1a' : '#f8f5ed');
+      })();
+    </script>
     <title>Gaachuqe - Free giving in Georgia</title>
   </head>
   <body>

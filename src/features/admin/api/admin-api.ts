@@ -90,13 +90,23 @@ export async function fetchAdminStatus(userId?: string) {
     return false;
   }
 
-  const { data, error } = await supabase.rpc('is_admin');
+  const [
+    { data: rpcData, error: rpcError },
+    { data: profile, error: profileError },
+  ] = await Promise.all([
+    supabase.rpc('is_admin'),
+    supabase.from('profiles').select('role').eq('id', userId).single(),
+  ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (rpcError) {
+    throw new Error(rpcError.message);
   }
 
-  return Boolean(data);
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
+
+  return Boolean(rpcData) && profile.role === 'admin';
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {

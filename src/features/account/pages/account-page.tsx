@@ -9,6 +9,7 @@ import {
   Pencil,
   Phone,
   Settings,
+  ShieldCheck,
   Tag,
   Trash2,
   User,
@@ -18,6 +19,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { formatGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-number';
+import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { StatusBadge } from '@/features/feed/components/status-badge';
 import {
@@ -54,6 +56,7 @@ type ProfileTab = 'posts' | 'reserved' | 'settings';
 export function AccountPage() {
   const { user } = useAuth();
   const { localizedPath, t } = useI18n();
+  const adminStatus = useAdminStatus();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
@@ -123,7 +126,7 @@ export function AccountPage() {
       <section className="premium-card rounded-3xl p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center overflow-hidden rounded-2xl shadow-[0_10px_24px_hsl(154_54%_30%/0.24)]">
+            <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center overflow-hidden rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
               {profileQuery.data?.avatarUrl ? (
                 <img
                   className="h-full w-full object-cover"
@@ -156,6 +159,14 @@ export function AccountPage() {
                 ? t(profileQuery.data.location)
                 : t('Georgia')}
             </span>
+            {adminStatus.data ? (
+              <Button asChild className="mt-1" variant="outline">
+                <Link to={localizedPath('/admin')}>
+                  <ShieldCheck className="size-4" aria-hidden="true" />
+                  {t('Admin dashboard')}
+                </Link>
+              </Button>
+            ) : null}
           </div>
         </div>
       </section>
@@ -291,8 +302,8 @@ function TabButton({
     <button
       className={
         active
-          ? 'bg-primary text-primary-foreground rounded-2xl px-3 py-2 text-sm font-medium shadow-[0_10px_24px_hsl(154_54%_30%/0.18)]'
-          : 'text-muted-foreground rounded-2xl px-3 py-2 text-sm font-medium transition-colors hover:bg-white/65'
+          ? 'bg-primary text-primary-foreground rounded-2xl px-3 py-2 text-sm font-medium shadow-[0_10px_24px_var(--theme-primary-shadow)]'
+          : 'text-muted-foreground rounded-2xl px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--theme-glass-hover)]'
       }
       type="button"
       onClick={onClick}
@@ -490,7 +501,7 @@ function PostMetaChip({
   value: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/70 bg-white/55 px-3 py-2">
+    <div className="soft-surface flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2">
       <span className="text-muted-foreground shrink-0">{icon}</span>
       <div className="min-w-0">
         <p className="text-muted-foreground text-xs leading-4">{label}</p>
@@ -820,12 +831,12 @@ function DeleteAccountModal({
     <div
       aria-labelledby="delete-account-title"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop)] p-4 backdrop-blur-sm"
       role="dialog"
     >
       <div className="glass-surface w-full max-w-md rounded-3xl p-5">
         <div className="flex items-start gap-3">
-          <div className="bg-destructive/10 text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
+          <div className="danger-soft text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
             <Trash2 className="size-5" aria-hidden="true" />
           </div>
           <div>

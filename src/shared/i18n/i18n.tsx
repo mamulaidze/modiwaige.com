@@ -23,6 +23,8 @@ const translations: Record<string, string> = {
   'Primary navigation': 'მთავარი ნავიგაცია',
   'Mobile navigation': 'მობილური ნავიგაცია',
   'Skip to content': 'კონტენტზე გადასვლა',
+  'Switch to dark mode': 'მუქ რეჟიმზე გადართვა',
+  'Switch to light mode': 'ნათელ რეჟიმზე გადართვა',
   Language: 'ენა',
 
   'Free items in Georgia': 'ნივთების გაცემა-გაჩუქება',
@@ -81,8 +83,8 @@ const translations: Record<string, string> = {
 
   'Create Post': 'განცხადების დამატება',
   'Give away an unwanted item for free.': 'აჩუქე არასაჭირო ნივთი უფასოდ.',
-  Title: 'სათაური',
-  Description: 'აღწერა',
+  Title: 'სათაური (ნივთის დასახელება)',
+  Description: 'აღწერა (არ დაამატოთ თქვენი ნომერი აღწერაში)',
   Photos: 'ფოტოები',
   'Add photos': 'ფოტოების დამატება',
   'Create post': 'განცხადების დამატება',
@@ -236,11 +238,16 @@ const translations: Record<string, string> = {
   'No users': 'მომხმარებლები არ არის',
   'Registered users will appear here.':
     'რეგისტრირებული მომხმარებლები აქ გამოჩნდება.',
+  'Search users': 'მომხმარებლების ძიება',
   'No posts': 'განცხადებები არ არის',
   'Posts created by members will appear here.':
     'წევრების შექმნილი განცხადებები აქ გამოჩნდება.',
+  'Search posts': 'განცხადებების ძიება',
   'No reports': 'რეპორტები არ არის',
   'Member reports will appear here.': 'წევრების რეპორტები აქ გამოჩნდება.',
+  'Search reports': 'რეპორტების ძიება',
+  'No matching results': 'შედეგები ვერ მოიძებნა',
+  'Try a different search.': 'სცადეთ სხვა საძიებო სიტყვა.',
   Tbilisi: 'თბილისი',
   Batumi: 'ბათუმი',
   Kutaisi: 'ქუთაისი',

@@ -46,8 +46,7 @@ export function MobileBottomNav() {
             className={({ isActive }) =>
               cn(
                 'text-muted-foreground flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-[11px] leading-none font-medium',
-                isActive &&
-                  'bg-primary/10 text-primary shadow-[0_0_24px_hsl(154_54%_34%/0.18)]',
+                isActive && 'primary-glow bg-primary/10 text-primary',
               )
             }
             key={item.href}

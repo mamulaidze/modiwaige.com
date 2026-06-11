@@ -111,7 +111,7 @@ export function RegisterPage() {
                   aria-invalid={Boolean(errors.phoneNumber)}
                   autoComplete="tel"
                   className={cn(
-                    'modern-input h-11 w-full rounded-2xl bg-white/70 px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
+                    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
                     errors.phoneNumber &&
                       'border-destructive focus-visible:ring-destructive',
                   )}

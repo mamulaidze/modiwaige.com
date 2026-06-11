@@ -13,7 +13,7 @@ export function PostCard({ post }: PostCardProps) {
   const { language, localizedPath, t } = useI18n();
 
   return (
-    <article className="premium-card group overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_hsl(170_22%_18%/0.14)]">
+    <article className="premium-card premium-card-hover group overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1">
       <div className="bg-muted aspect-[4/3] w-full overflow-hidden">
         {post.imageUrl ? (
           <img

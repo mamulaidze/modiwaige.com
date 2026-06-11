@@ -16,7 +16,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'from-muted to-muted animate-pulse rounded-2xl bg-gradient-to-r via-white/70',
+        'from-muted to-muted via-card/70 animate-pulse rounded-2xl bg-gradient-to-r',
         className,
       )}
       aria-hidden="true"

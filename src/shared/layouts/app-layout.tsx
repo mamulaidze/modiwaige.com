@@ -56,7 +56,7 @@ function LocalizedAppLayout() {
         />
         {logoutError ? (
           <p
-            className="text-destructive mx-auto mt-2 w-full max-w-5xl rounded-2xl bg-white/75 px-4 py-3 text-sm shadow-sm backdrop-blur"
+            className="glass-surface text-destructive mx-auto mt-2 w-full max-w-5xl rounded-2xl px-4 py-3 text-sm"
             role="alert"
           >
             {logoutError}
@@ -92,7 +92,7 @@ function LogoutConfirmModal({
     <div
       aria-labelledby="logout-confirm-title"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop)] p-4 backdrop-blur-sm"
       role="dialog"
     >
       <div className="glass-surface w-full max-w-sm rounded-3xl p-5">

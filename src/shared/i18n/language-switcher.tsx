@@ -38,7 +38,7 @@ export function LanguageSwitcher() {
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label="Language"
-        className="group text-primary flex size-10 items-center justify-center rounded-full border border-white/70 bg-white/55 shadow-[0_8px_22px_hsl(170_20%_16%/0.09),inset_0_1px_0_hsl(0_0%_100%/0.75)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/70 active:translate-y-0"
+        className="glass-control group text-primary flex size-10 items-center justify-center rounded-full transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
         type="button"
         onClick={() => setIsOpen((current) => !current)}
       >
@@ -47,7 +47,7 @@ export function LanguageSwitcher() {
 
       {isOpen ? (
         <div
-          className="absolute top-12 right-0 z-50 w-40 overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-1.5 shadow-[0_18px_48px_hsl(170_24%_16%/0.16),inset_0_1px_0_hsl(0_0%_100%/0.78)] backdrop-blur-2xl"
+          className="glass-surface absolute top-12 right-0 z-50 w-40 overflow-hidden rounded-3xl p-1.5"
           role="menu"
         >
           {languageOptions.map((option) => {
@@ -58,7 +58,7 @@ export function LanguageSwitcher() {
                 className={`flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                   isActive
                     ? 'bg-primary/10 text-primary'
-                    : 'text-foreground hover:bg-white/70'
+                    : 'text-foreground hover:bg-[var(--theme-glass-hover)]'
                 }`}
                 key={option.value}
                 role="menuitem"
