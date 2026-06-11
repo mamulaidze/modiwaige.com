@@ -83,8 +83,17 @@ const translations: Record<string, string> = {
 
   'Create Post': 'განცხადების დამატება',
   'Give away an unwanted item for free.': 'აჩუქე არასაჭირო ნივთი უფასოდ.',
+  'Item details': 'ნივთის დეტალები',
+  'Use a clear title and honest condition details.':
+    'გამოიყენეთ გასაგები სათაური და აღწერეთ ნივთის მდგომარეობა.',
   Title: 'სათაური (ნივთის დასახელება)',
+  'Example: Wooden chair in good condition':
+    'მაგალითად: ხის სკამი კარგ მდგომარეობაში',
   Description: 'აღწერა (არ დაამატოთ თქვენი ნომერი აღწერაში)',
+  'Describe condition, pickup details, and what is included.':
+    'აღწერეთ მდგომარეობა, აღების დეტალები და რა შედის განცხადებაში.',
+  'Do not add your phone number here. People can contact you through the post.':
+    'აქ არ დაამატოთ ტელეფონის ნომერი. მომხმარებლები დაგიკავშირდებიან განცხადებიდან.',
   Photos: 'ფოტოები',
   'Add photos': 'ფოტოების დამატება',
   'Create post': 'განცხადების დამატება',
@@ -98,6 +107,12 @@ const translations: Record<string, string> = {
   'Remove photo': 'ფოტოს წაშლა',
   'Choose photos': 'ფოტოების არჩევა',
   'slots left': 'ადგილი დარჩა',
+  'Choose the closest category so people can find it.':
+    'აირჩიეთ ყველაზე ახლო კატეგორია, რომ ნივთი მარტივად მოიძებნოს.',
+  'Pickup city': 'აღების ქალაქი',
+  'Pick the city where the item can be collected.':
+    'აირჩიეთ ქალაქი, სადაც ნივთის აღება შეიძლება.',
+  'No matching city': 'ქალაქი ვერ მოიძებნა',
 
   'Loading item': 'ნივთი იტვირთება',
   'Gaachuqe is loading item details.': 'Gaachuqe ნივთის დეტალებს ტვირთავს.',

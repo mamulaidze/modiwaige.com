@@ -1,7 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ImagePlus, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  Check,
+  ChevronDown,
+  ImagePlus,
+  MapPin,
+  Package,
+  Search,
+  Tag,
+  Trash2,
+} from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +44,8 @@ export function CreatePostForm() {
   const queryClient = useQueryClient();
   const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
+  const [citySearch, setCitySearch] = useState('');
+  const [isCityPickerOpen, setIsCityPickerOpen] = useState(false);
 
   const {
     formState: { errors },
@@ -54,6 +65,8 @@ export function CreatePostForm() {
   });
 
   const photos = useWatch({ control, name: 'photos' });
+  const selectedCategory = useWatch({ control, name: 'category' });
+  const selectedCity = useWatch({ control, name: 'city' });
 
   const mutation = useMutation({
     mutationFn: createPost,
@@ -101,6 +114,17 @@ export function CreatePostForm() {
     () => Math.max(0, 5 - photos.length),
     [photos.length],
   );
+  const filteredCities = useMemo(() => {
+    const normalizedSearch = citySearch.trim().toLocaleLowerCase();
+
+    if (!normalizedSearch) {
+      return postCityOptions;
+    }
+
+    return postCityOptions.filter((city) =>
+      `${city} ${t(city)}`.toLocaleLowerCase().includes(normalizedSearch),
+    );
+  }, [citySearch, t]);
 
   async function handlePhotoSelection(files: FileList | null) {
     setFormError(null);
@@ -160,94 +184,223 @@ export function CreatePostForm() {
 
   return (
     <form
-      className="premium-card min-w-0 space-y-5 rounded-3xl p-4 sm:p-5"
+      className="premium-card min-w-0 space-y-6 rounded-3xl p-4 sm:p-6"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="title">
-          {t('Title')}
-        </label>
-        <input
-          aria-invalid={Boolean(errors.title)}
-          className={inputClassName(Boolean(errors.title))}
-          id="title"
-          type="text"
-          {...register('title')}
+      <section className="space-y-4">
+        <SectionTitle
+          icon={<Package className="size-4" aria-hidden="true" />}
+          title={t('Item details')}
+          description={t('Use a clear title and honest condition details.')}
         />
-        {errors.title ? (
-          <FieldError message={t(errors.title.message ?? '')} />
-        ) : null}
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="description">
-          {t('Description')}
-        </label>
-        <textarea
-          aria-invalid={Boolean(errors.description)}
-          className={cn(
-            inputClassName(Boolean(errors.description)),
-            'min-h-32 resize-y py-3',
-          )}
-          id="description"
-          {...register('description')}
-        />
-        {errors.description ? (
-          <FieldError message={t(errors.description.message ?? '')} />
-        ) : null}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="space-y-2">
-          <span className="text-sm font-medium">{t('Category')}</span>
-          <select
-            className={inputClassName(Boolean(errors.category))}
-            {...register('category')}
-          >
-            {postCategoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {t(option.label)}
-              </option>
-            ))}
-          </select>
-          {errors.category ? (
-            <FieldError message={t(errors.category.message ?? '')} />
-          ) : null}
-        </label>
-
-        <label className="space-y-2">
-          <span className="text-sm font-medium">{t('City')}</span>
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="title">
+            {t('Title')}
+          </label>
           <input
-            className={inputClassName(Boolean(errors.city))}
-            list="create-post-city-options"
-            placeholder={t('Search city')}
-            type="search"
-            {...register('city')}
+            aria-invalid={Boolean(errors.title)}
+            className={inputClassName(Boolean(errors.title))}
+            id="title"
+            placeholder={t('Example: Wooden chair in good condition')}
+            type="text"
+            {...register('title')}
           />
-          <datalist id="create-post-city-options">
-            {postCityOptions.map((city) => (
-              <option key={city} value={city} />
-            ))}
-          </datalist>
-          {errors.city ? (
-            <FieldError message={t(errors.city.message ?? '')} />
+          {errors.title ? (
+            <FieldError message={t(errors.title.message ?? '')} />
           ) : null}
-        </label>
-      </div>
+        </div>
 
-      <div className="space-y-3">
-        <div>
-          <p className="text-sm font-medium">{t('Photos')}</p>
-          <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere] break-words">
-            {t('Add 1 to 5 photos. Images are compressed before upload.')}
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="description">
+            {t('Description')}
+          </label>
+          <textarea
+            aria-invalid={Boolean(errors.description)}
+            className={cn(
+              inputClassName(Boolean(errors.description)),
+              'min-h-36 resize-y py-3 leading-6',
+            )}
+            id="description"
+            placeholder={t(
+              'Describe condition, pickup details, and what is included.',
+            )}
+            {...register('description')}
+          />
+          <p className="text-muted-foreground text-xs">
+            {t(
+              'Do not add your phone number here. People can contact you through the post.',
+            )}
           </p>
+          {errors.description ? (
+            <FieldError message={t(errors.description.message ?? '')} />
+          ) : null}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <SectionTitle
+          icon={<Tag className="size-4" aria-hidden="true" />}
+          title={t('Category')}
+          description={t('Choose the closest category so people can find it.')}
+        />
+
+        <input type="hidden" {...register('category')} />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {postCategoryOptions.map((option) => {
+            const isSelected = selectedCategory === option.value;
+
+            return (
+              <button
+                aria-pressed={isSelected}
+                className={cn(
+                  'rounded-2xl border px-3 py-3 text-left text-sm font-medium transition-all',
+                  isSelected
+                    ? 'bg-primary text-primary-foreground border-primary shadow-[0_10px_24px_var(--theme-primary-shadow)]'
+                    : 'glass-surface text-foreground hover:bg-[var(--theme-glass-hover)]',
+                )}
+                key={option.value}
+                type="button"
+                onClick={() =>
+                  setValue('category', option.value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              >
+                <span className="flex items-center justify-between gap-2">
+                  {t(option.label)}
+                  {isSelected ? (
+                    <Check className="size-4 shrink-0" aria-hidden="true" />
+                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {errors.category ? (
+          <FieldError message={t(errors.category.message ?? '')} />
+        ) : null}
+      </section>
+
+      <section className="space-y-4">
+        <SectionTitle
+          icon={<MapPin className="size-4" aria-hidden="true" />}
+          title={t('Pickup city')}
+          description={t('Pick the city where the item can be collected.')}
+        />
+
+        <input type="hidden" {...register('city')} />
+        <div className="relative">
+          <button
+            aria-expanded={isCityPickerOpen}
+            className={cn(
+              inputClassName(Boolean(errors.city)),
+              'flex items-center justify-between text-left',
+            )}
+            type="button"
+            onClick={() => setIsCityPickerOpen((current) => !current)}
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <MapPin className="text-muted-foreground size-4 shrink-0" />
+              <span className="truncate">{t(selectedCity)}</span>
+            </span>
+            <ChevronDown
+              className={cn(
+                'text-muted-foreground size-4 shrink-0 transition-transform',
+                isCityPickerOpen && 'rotate-180',
+              )}
+              aria-hidden="true"
+            />
+          </button>
+
+          {isCityPickerOpen ? (
+            <div className="glass-surface filter-panel-enter absolute top-13 right-0 left-0 z-20 overflow-hidden rounded-3xl p-2">
+              <div className="relative">
+                <Search
+                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  aria-hidden="true"
+                />
+                <input
+                  autoFocus
+                  className="modern-input h-11 w-full rounded-2xl pr-3 pl-9 text-base outline-none"
+                  placeholder={t('Search city')}
+                  type="search"
+                  value={citySearch}
+                  onChange={(event) => setCitySearch(event.target.value)}
+                />
+              </div>
+              <div className="mt-2 max-h-64 overflow-y-auto pr-1">
+                {filteredCities.length > 0 ? (
+                  filteredCities.map((city) => {
+                    const isSelected = selectedCity === city;
+
+                    return (
+                      <button
+                        className={cn(
+                          'flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                          isSelected
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-foreground hover:bg-[var(--theme-glass-hover)]',
+                        )}
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setValue('city', city, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          setCitySearch('');
+                          setIsCityPickerOpen(false);
+                        }}
+                      >
+                        <span>{t(city)}</span>
+                        {isSelected ? (
+                          <Check className="size-4" aria-hidden="true" />
+                        ) : null}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-muted-foreground px-3 py-4 text-sm">
+                    {t('No matching city')}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        {errors.city ? (
+          <FieldError message={t(errors.city.message ?? '')} />
+        ) : null}
+      </section>
+
+      <section className="space-y-3">
+        <SectionTitle
+          icon={<ImagePlus className="size-4" aria-hidden="true" />}
+          title={t('Photos')}
+          description={t(
+            'Add 1 to 5 photos. Images are compressed before upload.',
+          )}
+        />
+
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              className={cn(
+                'h-1.5 rounded-full transition-colors',
+                index < photos.length ? 'bg-primary' : 'bg-muted',
+              )}
+              key={index}
+            />
+          ))}
         </div>
 
         {photoPreviews.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:grid-cols-5">
             {photoPreviews.map((preview, index) => (
               <div
-                className="group relative overflow-hidden rounded-lg border"
+                className="group relative overflow-hidden rounded-2xl border"
                 key={preview.url}
               >
                 <img
@@ -270,12 +423,11 @@ export function CreatePostForm() {
         ) : null}
 
         {remainingPhotoSlots > 0 ? (
-          <label className="glass-surface flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-dashed p-4 text-center transition-all hover:-translate-y-0.5 hover:bg-[var(--theme-glass-hover)]">
-            <ImagePlus
-              className="text-muted-foreground size-6"
-              aria-hidden="true"
-            />
-            <span className="text-sm font-medium [overflow-wrap:anywhere] break-words">
+          <label className="glass-surface flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-dashed p-5 text-center transition-all hover:-translate-y-0.5 hover:bg-[var(--theme-glass-hover)]">
+            <span className="bg-primary/10 text-primary flex size-12 items-center justify-center rounded-2xl">
+              <ImagePlus className="size-6" aria-hidden="true" />
+            </span>
+            <span className="text-sm font-semibold [overflow-wrap:anywhere] break-words">
               {t('Choose photos')}
             </span>
             <span className="text-muted-foreground text-xs">
@@ -294,7 +446,7 @@ export function CreatePostForm() {
         ) : null}
 
         {photoError ? <FieldError message={t(photoError)} /> : null}
-      </div>
+      </section>
 
       {formError ? (
         <p
@@ -305,10 +457,40 @@ export function CreatePostForm() {
         </p>
       ) : null}
 
-      <Button className="w-full" disabled={isSubmitting} type="submit">
-        {isSubmitting ? t('Creating post...') : t('Create post')}
-      </Button>
+      <div className="bg-card/90 sticky bottom-20 z-10 -mx-4 border-t p-4 backdrop-blur-xl sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <Button
+          className="h-12 w-full rounded-2xl"
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {isSubmitting ? t('Creating post...') : t('Create post')}
+        </Button>
+      </div>
     </form>
+  );
+}
+
+function SectionTitle({
+  description,
+  icon,
+  title,
+}: {
+  description: string;
+  icon: ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <p className="text-muted-foreground mt-1 text-sm leading-5">
+          {description}
+        </p>
+      </div>
+    </div>
   );
 }
 

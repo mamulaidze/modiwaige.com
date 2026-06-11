@@ -5,6 +5,7 @@ import { AppLayout } from '@/shared/layouts/app-layout';
 import { RouteLoading } from '@/shared/components/route-loading';
 import { ProtectedRoute } from '@/features/auth/routes/protected-route';
 import { NotFoundPage } from '@/features/not-found/pages/not-found-page';
+import { CreatePostPage } from '@/features/posts/pages/create-post-page';
 
 const AccountPage = lazy(() =>
   import('@/features/account/pages/account-page').then((module) => ({
@@ -14,11 +15,6 @@ const AccountPage = lazy(() =>
 const AdminDashboardPage = lazy(() =>
   import('@/features/admin/pages/admin-dashboard-page').then((module) => ({
     default: module.AdminDashboardPage,
-  })),
-);
-const CreatePostPage = lazy(() =>
-  import('@/features/posts/pages/create-post-page').then((module) => ({
-    default: module.CreatePostPage,
   })),
 );
 const HomePage = lazy(() =>
