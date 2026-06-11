@@ -56,12 +56,7 @@ export async function fetchFeedPage({
         )
       `,
     )
-    .in(
-      'status',
-      filters.status === 'all'
-        ? ['available', 'reserved']
-        : [filters.status],
-    )
+    .in('status', filters.status === 'all' ? ['available'] : [filters.status])
     .order('created_at', { ascending: false })
     .range(from, to);
 
