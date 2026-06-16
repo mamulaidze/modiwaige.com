@@ -10,6 +10,7 @@ import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
+import { getFriendlyErrorMessage } from '@/shared/lib/errors';
 
 const initialFilters: FeedFiltersValue = {
   search: '',
@@ -95,7 +96,7 @@ export function HomePage() {
             {t('Could not load feed')}
           </h2>
           <p className="text-muted-foreground mt-2 text-sm">
-            {error instanceof Error ? error.message : t('Please try again.')}
+            {t(getFriendlyErrorMessage(error))}
           </p>
         </div>
       ) : null}

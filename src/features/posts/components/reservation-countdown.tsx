@@ -1,11 +1,14 @@
 import { Clock } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { useI18n } from '@/shared/i18n/i18n';
+
 type ReservationCountdownProps = {
   expiresAt: string;
 };
 
 export function ReservationCountdown({ expiresAt }: ReservationCountdownProps) {
+  const { t } = useI18n();
   const expiresAtMs = useMemo(() => new Date(expiresAt).getTime(), [expiresAt]);
   const [now, setNow] = useState(0);
 
@@ -25,7 +28,10 @@ export function ReservationCountdown({ expiresAt }: ReservationCountdownProps) {
     <div className="bg-accent text-accent-foreground flex items-center gap-2 rounded-md p-3 text-sm">
       <Clock className="size-4" aria-hidden="true" />
       <span>
-        Reservation expires in {hours}h {minutes}m {seconds}s
+        {t('Reservation expires in')} {hours}
+        {t('h')} {minutes}
+        {t('m')} {seconds}
+        {t('s')}
       </span>
     </div>
   );

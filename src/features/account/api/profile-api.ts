@@ -2,6 +2,7 @@ import { supabase } from '@/shared/lib/supabase';
 
 import type { FeedCategory, FeedStatus } from '@/features/feed/types/feed';
 import { normalizeGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-number';
+import type { ReservationStatus } from '@/features/posts/types/post-details';
 
 export type ProfilePost = {
   id: string;
@@ -12,11 +13,19 @@ export type ProfilePost = {
   createdAt: string;
   expiresAt: string;
   reservationCount: number;
+  reservations: Array<{
+    id: string;
+    requesterName: string;
+    requesterPhoneNumber: string | null;
+    status: ReservationStatus;
+    expiresAt: string | null;
+    createdAt: string;
+  }>;
 };
 
 export type ReservedItem = {
   id: string;
-  status: 'pending' | 'accepted' | 'declined' | 'cancelled' | 'completed';
+  status: ReservationStatus;
   expiresAt: string | null;
   createdAt: string;
   post: {
@@ -42,7 +51,16 @@ type ProfilePostRow = {
   status: FeedStatus | 'archived';
   created_at: string;
   expires_at: string;
-  reservations: Array<{ id: string }> | null;
+  reservations: Array<{
+    id: string;
+    status: ReservationStatus;
+    expires_at: string | null;
+    created_at: string;
+    requester: {
+      display_name: string;
+      phone_number: string | null;
+    } | null;
+  }> | null;
 };
 
 type ReservedItemRow = {
@@ -87,7 +105,14 @@ export async function fetchMyPosts(userId: string): Promise<ProfilePost[]> {
         created_at,
         expires_at,
         reservations (
-          id
+          id,
+          status,
+          expires_at,
+          created_at,
+          requester:profiles!reservations_requester_id_fkey (
+            display_name,
+            phone_number
+          )
         )
       `,
     )
@@ -98,16 +123,37 @@ export async function fetchMyPosts(userId: string): Promise<ProfilePost[]> {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as unknown as ProfilePostRow[]).map((post) => ({
-    id: post.id,
-    title: post.title,
-    location: post.location,
-    category: post.category,
-    status: post.status,
-    createdAt: post.created_at,
-    expiresAt: post.expires_at,
-    reservationCount: post.reservations?.length ?? 0,
-  }));
+  return ((data ?? []) as unknown as ProfilePostRow[]).map((post) => {
+    const reservations = (post.reservations ?? [])
+      .map((reservation) => ({
+        id: reservation.id,
+        requesterName: reservation.requester?.display_name ?? 'Gaachuqe member',
+        requesterPhoneNumber: reservation.requester?.phone_number ?? null,
+        status: reservation.status,
+        expiresAt: reservation.expires_at,
+        createdAt: reservation.created_at,
+      }))
+      .sort(
+        (first, second) =>
+          new Date(second.createdAt).getTime() -
+          new Date(first.createdAt).getTime(),
+      );
+
+    return {
+      id: post.id,
+      title: post.title,
+      location: post.location,
+      category: post.category,
+      status: post.status,
+      createdAt: post.created_at,
+      expiresAt: post.expires_at,
+      reservationCount: reservations.filter(
+        (reservation) =>
+          reservation.status === 'pending' || reservation.status === 'accepted',
+      ).length,
+      reservations,
+    };
+  });
 }
 
 export async function fetchReservedItems(

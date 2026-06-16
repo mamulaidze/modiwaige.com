@@ -13,6 +13,7 @@ import {
 } from '@/features/auth/validation/auth-schemas';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
+import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 export function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,7 +48,8 @@ export function LoginPage() {
       await loginWithEmail(values);
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t('Login failed.'));
+      logErrorDetails('Login failed', error);
+      setFormError(getFriendlyErrorMessage(error, 'Login failed.'));
     }
   }
 

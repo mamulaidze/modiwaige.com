@@ -1,6 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
 
-import type { PostDetails } from '../types/post-details';
+import type { PostDetails, ReservationStatus } from '../types/post-details';
 import type { CreatePostFormValues } from '../validation/create-post-schema';
 
 type PostDetailsRow = {
@@ -29,8 +29,13 @@ type PostDetailsRow = {
   reservations: Array<{
     id: string;
     requester_id: string;
-    status: 'pending' | 'accepted' | 'declined' | 'cancelled' | 'completed';
+    status: ReservationStatus;
     expires_at: string | null;
+    created_at: string;
+    requester: {
+      display_name: string;
+      phone_number: string | null;
+    } | null;
   }> | null;
 };
 
@@ -65,7 +70,12 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
           id,
           requester_id,
           status,
-          expires_at
+          expires_at,
+          created_at,
+          requester:profiles!reservations_requester_id_fkey (
+            display_name,
+            phone_number
+          )
         )
       `,
     )
@@ -94,6 +104,29 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
     })),
   );
 
+  const reservations = (row.reservations ?? [])
+    .map((reservation) => ({
+      id: reservation.id,
+      requesterId: reservation.requester_id,
+      requesterName: reservation.requester?.display_name ?? 'Gaachuqe member',
+      requesterPhoneNumber: reservation.requester?.phone_number ?? null,
+      status: reservation.status,
+      expiresAt: reservation.expires_at,
+      createdAt: reservation.created_at,
+    }))
+    .sort(
+      (first, second) =>
+        new Date(second.createdAt).getTime() -
+        new Date(first.createdAt).getTime(),
+    );
+  const activeReservation =
+    reservations.find(
+      (reservation) =>
+        (reservation.status === 'pending' ||
+          reservation.status === 'accepted') &&
+        Boolean(reservation.expiresAt),
+    ) ?? null;
+
   return {
     id: row.id,
     ownerId: row.owner_id,
@@ -115,20 +148,8 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
           phoneNumber: row.profiles.phone_number,
         }
       : null,
-    activeReservation:
-      row.reservations
-        ?.filter(
-          (reservation) =>
-            (reservation.status === 'pending' ||
-              reservation.status === 'accepted') &&
-            Boolean(reservation.expires_at),
-        )
-        .map((reservation) => ({
-          id: reservation.id,
-          requesterId: reservation.requester_id,
-          expiresAt: reservation.expires_at as string,
-          status: reservation.status as 'pending' | 'accepted',
-        }))[0] ?? null,
+    reservations,
+    activeReservation,
   };
 }
 
@@ -155,6 +176,20 @@ export async function cancelReservation(reservationId: string) {
 export async function markPostGiven(postId: string) {
   const { error } = await supabase.rpc('mark_post_given', {
     target_post_id: postId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function manageReservation(
+  reservationId: string,
+  nextStatus: 'accepted' | 'declined' | 'cancelled' | 'completed',
+) {
+  const { error } = await supabase.rpc('manage_reservation', {
+    target_reservation_id: reservationId,
+    next_status: nextStatus,
   });
 
   if (error) {

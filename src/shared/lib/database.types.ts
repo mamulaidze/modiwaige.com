@@ -448,6 +448,13 @@ export type Database = {
         };
         Returns: Database['public']['Tables']['posts']['Row'];
       };
+      manage_reservation: {
+        Args: {
+          target_reservation_id: string;
+          next_status: 'accepted' | 'declined' | 'cancelled' | 'completed';
+        };
+        Returns: Database['public']['Tables']['reservations']['Row'];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

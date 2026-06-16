@@ -27,6 +27,26 @@ const LoginPage = lazy(() =>
     default: module.LoginPage,
   })),
 );
+const ContactPage = lazy(() =>
+  import('@/features/legal/pages/legal-pages').then((module) => ({
+    default: module.ContactPage,
+  })),
+);
+const PrivacyPolicyPage = lazy(() =>
+  import('@/features/legal/pages/legal-pages').then((module) => ({
+    default: module.PrivacyPolicyPage,
+  })),
+);
+const SafetyRulesPage = lazy(() =>
+  import('@/features/legal/pages/legal-pages').then((module) => ({
+    default: module.SafetyRulesPage,
+  })),
+);
+const TermsPage = lazy(() =>
+  import('@/features/legal/pages/legal-pages').then((module) => ({
+    default: module.TermsPage,
+  })),
+);
 const PostDetailsPage = lazy(() =>
   import('@/features/posts/pages/post-details-page').then((module) => ({
     default: module.PostDetailsPage,
@@ -72,6 +92,22 @@ export const router = createBrowserRouter([
     element: <Navigate replace to="/ge/admin" />,
   },
   {
+    path: '/privacy',
+    element: <Navigate replace to="/ge/privacy" />,
+  },
+  {
+    path: '/terms',
+    element: <Navigate replace to="/ge/terms" />,
+  },
+  {
+    path: '/safety',
+    element: <Navigate replace to="/ge/safety" />,
+  },
+  {
+    path: '/contact',
+    element: <Navigate replace to="/ge/contact" />,
+  },
+  {
     path: '/posts/:postId',
     element: <Navigate replace to="/ge" />,
   },
@@ -107,6 +143,22 @@ export const router = createBrowserRouter([
       {
         path: 'posts/:postId',
         element: withSuspense(<PostDetailsPage />),
+      },
+      {
+        path: 'privacy',
+        element: withSuspense(<PrivacyPolicyPage />),
+      },
+      {
+        path: 'terms',
+        element: withSuspense(<TermsPage />),
+      },
+      {
+        path: 'safety',
+        element: withSuspense(<SafetyRulesPage />),
+      },
+      {
+        path: 'contact',
+        element: withSuspense(<ContactPage />),
       },
       {
         path: 'profile',

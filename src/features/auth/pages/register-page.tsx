@@ -15,6 +15,7 @@ import { formatGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
+import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 export function RegisterPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -45,9 +46,8 @@ export function RegisterPage() {
       await registerWithEmail(values);
       navigate(localizedPath('/profile'), { replace: true });
     } catch (error) {
-      setFormError(
-        error instanceof Error ? error.message : t('Registration failed.'),
-      );
+      logErrorDetails('Registration failed', error);
+      setFormError(getFriendlyErrorMessage(error, 'Registration failed.'));
     }
   }
 

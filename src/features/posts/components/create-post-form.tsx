@@ -1,24 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Check,
-  ChevronDown,
-  ImagePlus,
-  MapPin,
-  Package,
-  Search,
-  Tag,
-  Trash2,
-} from 'lucide-react';
+import { Check, ImagePlus, MapPin, Package, Tag, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import type { FeedPage } from '@/features/feed/api/feed-api';
 import { useAuth } from '@/features/auth/context/use-auth';
+import { CityPicker } from '@/shared/components/city-picker';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
+import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 import { createPost } from '../api/create-post-api';
 import {
@@ -44,8 +37,6 @@ export function CreatePostForm() {
   const queryClient = useQueryClient();
   const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
-  const [citySearch, setCitySearch] = useState('');
-  const [isCityPickerOpen, setIsCityPickerOpen] = useState(false);
 
   const {
     formState: { errors },
@@ -94,10 +85,9 @@ export function CreatePostForm() {
       navigate(localizedPath('/'), { replace: true });
     },
     onError: (error) => {
+      logErrorDetails('Post creation failed', error);
       setFormError(
-        error instanceof Error
-          ? error.message
-          : t('Post could not be created.'),
+        getFriendlyErrorMessage(error, 'Post could not be created.'),
       );
     },
   });
@@ -114,17 +104,10 @@ export function CreatePostForm() {
     () => Math.max(0, 5 - photos.length),
     [photos.length],
   );
-  const filteredCities = useMemo(() => {
-    const normalizedSearch = citySearch.trim().toLocaleLowerCase();
-
-    if (!normalizedSearch) {
-      return postCityOptions;
-    }
-
-    return postCityOptions.filter((city) =>
-      `${city} ${t(city)}`.toLocaleLowerCase().includes(normalizedSearch),
-    );
-  }, [citySearch, t]);
+  const cityOptions = useMemo(
+    () => postCityOptions.map((city) => ({ label: city, value: city })),
+    [],
+  );
 
   async function handlePhotoSelection(files: FileList | null) {
     setFormError(null);
@@ -150,10 +133,9 @@ export function CreatePostForm() {
         nextPhotos.map((file) => ({ file, url: URL.createObjectURL(file) })),
       );
     } catch (error) {
+      logErrorDetails('Photo processing failed', error);
       setFormError(
-        error instanceof Error
-          ? error.message
-          : t('Photos could not be processed.'),
+        getFriendlyErrorMessage(error, 'Photos could not be processed.'),
       );
     }
   }
@@ -172,7 +154,7 @@ export function CreatePostForm() {
     setFormError(null);
 
     if (!user) {
-      setFormError(t('You must be logged in to create a post.'));
+      setFormError('You must be logged in to create a post.');
       return;
     }
 
@@ -291,85 +273,18 @@ export function CreatePostForm() {
         />
 
         <input type="hidden" {...register('city')} />
-        <div className="relative">
-          <button
-            aria-expanded={isCityPickerOpen}
-            className={cn(
-              inputClassName(Boolean(errors.city)),
-              'flex items-center justify-between text-left',
-            )}
-            type="button"
-            onClick={() => setIsCityPickerOpen((current) => !current)}
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <MapPin className="text-muted-foreground size-4 shrink-0" />
-              <span className="truncate">{t(selectedCity)}</span>
-            </span>
-            <ChevronDown
-              className={cn(
-                'text-muted-foreground size-4 shrink-0 transition-transform',
-                isCityPickerOpen && 'rotate-180',
-              )}
-              aria-hidden="true"
-            />
-          </button>
-
-          {isCityPickerOpen ? (
-            <div className="glass-surface filter-panel-enter absolute top-13 right-0 left-0 z-20 overflow-hidden rounded-3xl p-2">
-              <div className="relative">
-                <Search
-                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                  aria-hidden="true"
-                />
-                <input
-                  autoFocus
-                  className="modern-input h-11 w-full rounded-2xl pr-3 pl-9 text-base outline-none"
-                  placeholder={t('Search city')}
-                  type="search"
-                  value={citySearch}
-                  onChange={(event) => setCitySearch(event.target.value)}
-                />
-              </div>
-              <div className="mt-2 max-h-64 overflow-y-auto pr-1">
-                {filteredCities.length > 0 ? (
-                  filteredCities.map((city) => {
-                    const isSelected = selectedCity === city;
-
-                    return (
-                      <button
-                        className={cn(
-                          'flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
-                          isSelected
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-foreground hover:bg-[var(--theme-glass-hover)]',
-                        )}
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setValue('city', city, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          setCitySearch('');
-                          setIsCityPickerOpen(false);
-                        }}
-                      >
-                        <span>{t(city)}</span>
-                        {isSelected ? (
-                          <Check className="size-4" aria-hidden="true" />
-                        ) : null}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <p className="text-muted-foreground px-3 py-4 text-sm">
-                    {t('No matching city')}
-                  </p>
-                )}
-              </div>
-            </div>
-          ) : null}
-        </div>
+        <CityPicker
+          error={Boolean(errors.city)}
+          options={cityOptions}
+          searchLabel={t('Search city')}
+          value={selectedCity}
+          onChange={(city) =>
+            setValue('city', city, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
         {errors.city ? (
           <FieldError message={t(errors.city.message ?? '')} />
         ) : null}

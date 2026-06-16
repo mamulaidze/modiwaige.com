@@ -27,15 +27,21 @@ import {
   deletePost,
   fetchPostDetails,
   markPostGiven,
+  manageReservation,
 } from '@/features/posts/api/post-details-api';
 import { ReservationCountdown } from '@/features/posts/components/reservation-countdown';
+import { ReservationStatusBadge } from '@/features/posts/components/reservation-status-badge';
+import { postCityOptions } from '@/features/posts/constants/post-options';
 import { markReservationNotificationsRead } from '@/features/notifications/api/notifications-api';
+import { CityPicker } from '@/shared/components/city-picker';
+import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { cn } from '@/shared/lib/cn';
+import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 import {
   deleteAccount,
@@ -52,6 +58,10 @@ import {
 } from '../validation/profile-settings-schema';
 
 type ProfileTab = 'posts' | 'reserved' | 'settings';
+const profileLocationBaseOptions = [
+  { label: 'Georgia', value: 'Georgia' },
+  ...postCityOptions.map((city) => ({ label: city, value: city })),
+];
 
 export function AccountPage() {
   const { user } = useAuth();
@@ -213,7 +223,7 @@ export function AccountPage() {
             {t('Could not load profile')}
           </h2>
           <p className="text-muted-foreground mt-2 text-sm">
-            {error instanceof Error ? error.message : t('Please try again.')}
+            {t(getFriendlyErrorMessage(error))}
           </p>
         </div>
       ) : null}
@@ -270,7 +280,7 @@ export function AccountPage() {
           className="text-destructive rounded-md border border-current p-3 text-sm"
           role="alert"
         >
-          {actionError}
+          {t(actionError)}
         </p>
       ) : null}
     </PageContainer>
@@ -325,7 +335,20 @@ function MyPostsSection({
   const { language, localizedPath, t } = useI18n();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [markingGivenId, setMarkingGivenId] = useState<string | null>(null);
+  const [managingReservationId, setManagingReservationId] = useState<
+    string | null
+  >(null);
   const [statsPostId, setStatsPostId] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<{
+    id: string;
+    type:
+      | 'delete'
+      | 'mark-given'
+      | 'accept-reservation'
+      | 'decline-reservation'
+      | 'cancel-reservation'
+      | 'complete-reservation';
+  } | null>(null);
 
   if (posts.length === 0) {
     return (
@@ -337,12 +360,6 @@ function MyPostsSection({
   }
 
   async function handleDelete(postId: string) {
-    if (
-      !window.confirm(t('Delete this post permanently? This cannot be undone.'))
-    ) {
-      return;
-    }
-
     setDeletingId(postId);
     onError(null);
 
@@ -351,23 +368,15 @@ function MyPostsSection({
       await deletePost(details);
       await onDeleted();
     } catch (error) {
-      onError(
-        error instanceof Error ? error.message : t('Could not delete post.'),
-      );
+      logErrorDetails('Profile post deletion failed', error);
+      onError(getFriendlyErrorMessage(error, 'Could not delete post.'));
     } finally {
       setDeletingId(null);
+      setConfirmation(null);
     }
   }
 
   async function handleMarkGiven(postId: string) {
-    if (
-      !window.confirm(
-        t('Mark this item as given? Active reservations will be completed.'),
-      )
-    ) {
-      return;
-    }
-
     setMarkingGivenId(postId);
     onError(null);
 
@@ -375,118 +384,340 @@ function MyPostsSection({
       await markPostGiven(postId);
       await onDeleted();
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : t('Could not mark post as given.'),
-      );
+      logErrorDetails('Profile mark post given failed', error);
+      onError(getFriendlyErrorMessage(error, 'Could not mark post as given.'));
     } finally {
       setMarkingGivenId(null);
+      setConfirmation(null);
+    }
+  }
+
+  async function handleReservationAction(
+    reservationId: string,
+    nextStatus: 'accepted' | 'declined' | 'cancelled' | 'completed',
+  ) {
+    setManagingReservationId(reservationId);
+    onError(null);
+
+    try {
+      await manageReservation(reservationId, nextStatus);
+      await onDeleted();
+    } catch (error) {
+      logErrorDetails('Reservation management failed', error);
+      onError(getFriendlyErrorMessage(error, 'Could not update reservation.'));
+    } finally {
+      setManagingReservationId(null);
+      setConfirmation(null);
     }
   }
 
   return (
-    <section className="space-y-3" aria-label="My posts">
-      {posts.map((post) => (
-        <article className="premium-card rounded-3xl p-4" key={post.id}>
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between">
-                <h2 className="min-w-0 text-lg leading-6 font-semibold tracking-tight [overflow-wrap:anywhere] break-words">
-                  {post.title}
-                </h2>
-                {post.status !== 'archived' ? (
-                  <StatusBadge status={post.status} />
-                ) : null}
+    <>
+      <section className="space-y-3" aria-label="My posts">
+        {posts.map((post) => (
+          <article className="premium-card rounded-3xl p-4" key={post.id}>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between">
+                  <h2 className="min-w-0 text-lg leading-6 font-semibold tracking-tight [overflow-wrap:anywhere] break-words">
+                    {post.title}
+                  </h2>
+                  {post.status !== 'archived' ? (
+                    <StatusBadge status={post.status} />
+                  ) : null}
+                </div>
+
+                <div className="grid gap-2 min-[420px]:grid-cols-2">
+                  <PostMetaChip
+                    icon={<MapPin className="size-4" aria-hidden="true" />}
+                    label={t('Location')}
+                    value={t(post.location)}
+                  />
+                  <PostMetaChip
+                    icon={<Tag className="size-4" aria-hidden="true" />}
+                    label={t('Category')}
+                    value={formatCategory(post.category, t)}
+                  />
+                  <PostMetaChip
+                    icon={<BarChart3 className="size-4" aria-hidden="true" />}
+                    label={t('Reservations')}
+                    value={`${post.reservationCount} ${t('reservations')}`}
+                  />
+                  <PostMetaChip
+                    icon={
+                      <CalendarDays className="size-4" aria-hidden="true" />
+                    }
+                    label={t('Expires')}
+                    value={formatDate(post.expiresAt, language)}
+                  />
+                </div>
               </div>
 
-              <div className="grid gap-2 min-[420px]:grid-cols-2">
-                <PostMetaChip
-                  icon={<MapPin className="size-4" aria-hidden="true" />}
-                  label={t('Location')}
-                  value={t(post.location)}
-                />
-                <PostMetaChip
-                  icon={<Tag className="size-4" aria-hidden="true" />}
-                  label={t('Category')}
-                  value={formatCategory(post.category, t)}
-                />
-                <PostMetaChip
-                  icon={<BarChart3 className="size-4" aria-hidden="true" />}
-                  label={t('Reservations')}
-                  value={`${post.reservationCount} ${t('reservations')}`}
-                />
-                <PostMetaChip
-                  icon={<CalendarDays className="size-4" aria-hidden="true" />}
-                  label={t('Expires')}
-                  value={formatDate(post.expiresAt, language)}
-                />
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                <Button
+                  aria-expanded={statsPostId === post.id}
+                  className="h-auto min-h-11 whitespace-normal"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setStatsPostId((current) =>
+                      current === post.id ? null : post.id,
+                    )
+                  }
+                >
+                  <BarChart3 className="size-4" aria-hidden="true" />
+                  {t('Statistics')}
+                </Button>
+                <Button
+                  asChild
+                  className="h-auto min-h-11 whitespace-normal"
+                  variant="outline"
+                >
+                  <Link to={localizedPath(`/posts/${post.id}`)}>
+                    <Eye className="size-4" aria-hidden="true" />
+                    {t('View')}
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  className="h-auto min-h-11 whitespace-normal"
+                  variant="outline"
+                >
+                  <Link to={`${localizedPath(`/posts/${post.id}`)}?edit=1`}>
+                    <Pencil className="size-4" aria-hidden="true" />
+                    {t('Edit')}
+                  </Link>
+                </Button>
+                <Button
+                  className="h-auto min-h-11 whitespace-normal"
+                  disabled={
+                    post.status === 'given' || markingGivenId === post.id
+                  }
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setConfirmation({ id: post.id, type: 'mark-given' })
+                  }
+                >
+                  {markingGivenId === post.id
+                    ? t('Saving...')
+                    : post.status === 'given'
+                      ? t('Given')
+                      : t('Mark given')}
+                </Button>
+                <Button
+                  className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground h-auto min-h-11 whitespace-normal"
+                  disabled={deletingId === post.id}
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setConfirmation({ id: post.id, type: 'delete' })
+                  }
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                  {deletingId === post.id ? t('Deleting...') : t('Delete')}
+                </Button>
               </div>
             </div>
+            {statsPostId === post.id ? <PostStatistics post={post} /> : null}
+            {post.reservations.length > 0 ? (
+              <OwnerReservationsPanel
+                managingReservationId={managingReservationId}
+                reservations={post.reservations}
+                onAction={(id, type) => setConfirmation({ id, type })}
+              />
+            ) : null}
+          </article>
+        ))}
+      </section>
 
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <Button
-                aria-expanded={statsPostId === post.id}
-                className="h-auto min-h-11 whitespace-normal"
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  setStatsPostId((current) =>
-                    current === post.id ? null : post.id,
-                  )
-                }
-              >
-                <BarChart3 className="size-4" aria-hidden="true" />
-                {t('Statistics')}
-              </Button>
-              <Button
-                asChild
-                className="h-auto min-h-11 whitespace-normal"
-                variant="outline"
-              >
-                <Link to={localizedPath(`/posts/${post.id}`)}>
-                  <Eye className="size-4" aria-hidden="true" />
-                  {t('View')}
-                </Link>
-              </Button>
-              <Button
-                asChild
-                className="h-auto min-h-11 whitespace-normal"
-                variant="outline"
-              >
-                <Link to={`${localizedPath(`/posts/${post.id}`)}?edit=1`}>
-                  <Pencil className="size-4" aria-hidden="true" />
-                  {t('Edit')}
-                </Link>
-              </Button>
-              <Button
-                className="h-auto min-h-11 whitespace-normal"
-                disabled={post.status === 'given' || markingGivenId === post.id}
-                type="button"
-                variant="outline"
-                onClick={() => void handleMarkGiven(post.id)}
-              >
-                {markingGivenId === post.id
-                  ? t('Saving...')
-                  : post.status === 'given'
-                    ? t('Given')
-                    : t('Mark given')}
-              </Button>
-              <Button
-                className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground h-auto min-h-11 whitespace-normal"
-                disabled={deletingId === post.id}
-                type="button"
-                variant="outline"
-                onClick={() => void handleDelete(post.id)}
-              >
-                <Trash2 className="size-4" aria-hidden="true" />
-                {deletingId === post.id ? t('Deleting...') : t('Delete')}
-              </Button>
+      {confirmation?.type === 'delete' ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Delete post')}
+          description={t(
+            'Delete this post permanently? This cannot be undone.',
+          )}
+          isLoading={deletingId === confirmation.id}
+          loadingLabel={t('Deleting...')}
+          title={t('Delete post?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => void handleDelete(confirmation.id)}
+        />
+      ) : null}
+
+      {confirmation?.type === 'mark-given' ? (
+        <ConfirmDialog
+          confirmLabel={t('Mark given')}
+          description={t(
+            'Mark this item as given? Active reservations will be completed.',
+          )}
+          isLoading={markingGivenId === confirmation.id}
+          loadingLabel={t('Saving...')}
+          title={t('Mark item as given?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => void handleMarkGiven(confirmation.id)}
+        />
+      ) : null}
+
+      {confirmation?.type === 'accept-reservation' ? (
+        <ConfirmDialog
+          confirmLabel={t('Accept')}
+          description={t('Accept this reservation request?')}
+          isLoading={managingReservationId === confirmation.id}
+          loadingLabel={t('Saving...')}
+          title={t('Accept reservation?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() =>
+            void handleReservationAction(confirmation.id, 'accepted')
+          }
+        />
+      ) : null}
+
+      {confirmation?.type === 'decline-reservation' ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Reject')}
+          description={t('Reject this reservation request?')}
+          isLoading={managingReservationId === confirmation.id}
+          loadingLabel={t('Saving...')}
+          title={t('Reject reservation?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() =>
+            void handleReservationAction(confirmation.id, 'declined')
+          }
+        />
+      ) : null}
+
+      {confirmation?.type === 'cancel-reservation' ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Cancel reservation')}
+          description={t('Cancel this accepted reservation?')}
+          isLoading={managingReservationId === confirmation.id}
+          loadingLabel={t('Cancelling...')}
+          title={t('Cancel reservation?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() =>
+            void handleReservationAction(confirmation.id, 'cancelled')
+          }
+        />
+      ) : null}
+
+      {confirmation?.type === 'complete-reservation' ? (
+        <ConfirmDialog
+          confirmLabel={t('Mark completed')}
+          description={t('Mark this reservation as completed?')}
+          isLoading={managingReservationId === confirmation.id}
+          loadingLabel={t('Saving...')}
+          title={t('Complete reservation?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() =>
+            void handleReservationAction(confirmation.id, 'completed')
+          }
+        />
+      ) : null}
+    </>
+  );
+}
+
+function OwnerReservationsPanel({
+  managingReservationId,
+  onAction,
+  reservations,
+}: {
+  managingReservationId: string | null;
+  onAction: (
+    id: string,
+    type:
+      | 'accept-reservation'
+      | 'decline-reservation'
+      | 'cancel-reservation'
+      | 'complete-reservation',
+  ) => void;
+  reservations: ProfilePost['reservations'];
+}) {
+  const { t } = useI18n();
+
+  return (
+    <section className="mt-4 space-y-3 border-t pt-4">
+      <h3 className="text-sm font-semibold">{t('Reservation requests')}</h3>
+      <div className="grid gap-2">
+        {reservations.map((reservation) => (
+          <div
+            className="soft-surface flex min-w-0 flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center sm:justify-between"
+            key={reservation.id}
+          >
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-medium [overflow-wrap:anywhere] break-words">
+                  {reservation.requesterName}
+                </p>
+                <ReservationStatusBadge status={reservation.status} />
+              </div>
+              {reservation.requesterPhoneNumber ? (
+                <a
+                  className="text-muted-foreground mt-1 block text-sm underline-offset-4 hover:underline"
+                  href={`tel:${reservation.requesterPhoneNumber}`}
+                >
+                  {reservation.requesterPhoneNumber}
+                </a>
+              ) : null}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {reservation.status === 'pending' ? (
+                <>
+                  <Button
+                    disabled={managingReservationId === reservation.id}
+                    type="button"
+                    onClick={() =>
+                      onAction(reservation.id, 'accept-reservation')
+                    }
+                  >
+                    {t('Accept')}
+                  </Button>
+                  <Button
+                    className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground"
+                    disabled={managingReservationId === reservation.id}
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      onAction(reservation.id, 'decline-reservation')
+                    }
+                  >
+                    {t('Reject')}
+                  </Button>
+                </>
+              ) : null}
+              {reservation.status === 'accepted' ? (
+                <>
+                  <Button
+                    disabled={managingReservationId === reservation.id}
+                    type="button"
+                    onClick={() =>
+                      onAction(reservation.id, 'complete-reservation')
+                    }
+                  >
+                    {t('Mark completed')}
+                  </Button>
+                  <Button
+                    className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground"
+                    disabled={managingReservationId === reservation.id}
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      onAction(reservation.id, 'cancel-reservation')
+                    }
+                  >
+                    {t('Cancel')}
+                  </Button>
+                </>
+              ) : null}
             </div>
           </div>
-          {statsPostId === post.id ? <PostStatistics post={post} /> : null}
-        </article>
-      ))}
+        ))}
+      </div>
     </section>
   );
 }
@@ -556,6 +787,9 @@ function ReservedItemsSection({
   const { localizedPath, t } = useI18n();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reservationToCancel, setReservationToCancel] = useState<string | null>(
+    null,
+  );
 
   if (reservations.length === 0) {
     return (
@@ -567,10 +801,6 @@ function ReservedItemsSection({
   }
 
   async function handleCancelReservation(reservationId: string) {
-    if (!window.confirm(t('Cancel your reservation for this item?'))) {
-      return;
-    }
-
     setCancellingId(reservationId);
     setErrorMessage(null);
 
@@ -578,73 +808,93 @@ function ReservedItemsSection({
       await cancelReservation(reservationId);
       await onCancelled();
     } catch (error) {
+      logErrorDetails('Profile cancel reservation failed', error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t('Could not cancel reservation.'),
+        getFriendlyErrorMessage(error, 'Could not cancel reservation.'),
       );
     } finally {
       setCancellingId(null);
+      setReservationToCancel(null);
     }
   }
 
   return (
-    <section className="space-y-3" aria-label="Reserved items">
-      {errorMessage ? (
-        <p
-          className="text-destructive rounded-md border border-current p-3 text-sm"
-          role="alert"
-        >
-          {errorMessage}
-        </p>
-      ) : null}
-      {reservations.map((reservation) => (
-        <article className="premium-card rounded-3xl p-4" key={reservation.id}>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="font-semibold">
-                {reservation.post?.title ?? t('Unavailable item')}
-              </h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                {reservation.post?.location
-                  ? t(reservation.post.location)
-                  : t('Location unavailable')}{' '}
-                - {formatCategory(reservation.status, t)}
-              </p>
-            </div>
-            {reservation.post ? (
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline">
-                  <Link to={localizedPath(`/posts/${reservation.post.id}`)}>
-                    {t('View')}
-                  </Link>
-                </Button>
-                {reservation.status === 'pending' ||
-                reservation.status === 'accepted' ? (
-                  <Button
-                    disabled={cancellingId === reservation.id}
-                    type="button"
-                    variant="outline"
-                    onClick={() => void handleCancelReservation(reservation.id)}
-                  >
-                    {cancellingId === reservation.id
-                      ? t('Cancelling...')
-                      : t('Unreserve')}
+    <>
+      <section className="space-y-3" aria-label="Reserved items">
+        {errorMessage ? (
+          <p
+            className="text-destructive rounded-md border border-current p-3 text-sm"
+            role="alert"
+          >
+            {t(errorMessage)}
+          </p>
+        ) : null}
+        {reservations.map((reservation) => (
+          <article
+            className="premium-card rounded-3xl p-4"
+            key={reservation.id}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold">
+                  {reservation.post?.title ?? t('Unavailable item')}
+                </h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {reservation.post?.location
+                    ? t(reservation.post.location)
+                    : t('Location unavailable')}
+                </p>
+                <div className="mt-2">
+                  <ReservationStatusBadge status={reservation.status} />
+                </div>
+              </div>
+              {reservation.post ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline">
+                    <Link to={localizedPath(`/posts/${reservation.post.id}`)}>
+                      {t('View')}
+                    </Link>
                   </Button>
-                ) : null}
+                  {reservation.status === 'pending' ||
+                  reservation.status === 'accepted' ? (
+                    <Button
+                      disabled={cancellingId === reservation.id}
+                      type="button"
+                      variant="outline"
+                      onClick={() => setReservationToCancel(reservation.id)}
+                    >
+                      {cancellingId === reservation.id
+                        ? t('Cancelling...')
+                        : t('Unreserve')}
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+            {reservation.expiresAt &&
+            (reservation.status === 'pending' ||
+              reservation.status === 'accepted') ? (
+              <div className="mt-3">
+                <ReservationCountdown expiresAt={reservation.expiresAt} />
               </div>
             ) : null}
-          </div>
-          {reservation.expiresAt &&
-          (reservation.status === 'pending' ||
-            reservation.status === 'accepted') ? (
-            <div className="mt-3">
-              <ReservationCountdown expiresAt={reservation.expiresAt} />
-            </div>
-          ) : null}
-        </article>
-      ))}
-    </section>
+          </article>
+        ))}
+      </section>
+
+      {reservationToCancel ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Unreserve')}
+          description={t('Cancel your reservation for this item?')}
+          isLoading={cancellingId === reservationToCancel}
+          loadingLabel={t('Cancelling...')}
+          title={t('Cancel reservation?')}
+          onCancel={() => setReservationToCancel(null)}
+          onConfirm={() => void handleCancelReservation(reservationToCancel)}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -687,10 +937,9 @@ function SettingsSection({
       await onSaved();
       setMessage(t('Settings saved.'));
     } catch (error) {
+      logErrorDetails('Profile settings save failed', error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t('Settings could not be saved.'),
+        getFriendlyErrorMessage(error, 'Settings could not be saved.'),
       );
     }
   }
@@ -736,20 +985,29 @@ function SettingsSection({
               </label>
             )}
           />
-          <label className="space-y-2">
-            <span className="text-sm font-medium">{t('Location')}</span>
-            <input
-              className={inputClassName(Boolean(errors.location))}
-              {...register('location')}
-            />
-            <FieldError message={errors.location?.message} />
-          </label>
+          <Controller
+            control={control}
+            name="location"
+            render={({ field }) => (
+              <div className="space-y-2">
+                <CityPicker
+                  error={Boolean(errors.location)}
+                  label={t('Location')}
+                  options={getProfileLocationOptions(field.value)}
+                  searchLabel={t('Search city')}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+                <FieldError message={errors.location?.message} />
+              </div>
+            )}
+          />
           {errorMessage ? (
             <p
               className="text-destructive rounded-md border border-current p-3 text-sm"
               role="alert"
             >
-              {errorMessage}
+              {t(errorMessage)}
             </p>
           ) : null}
           {message ? (
@@ -818,10 +1076,9 @@ function DeleteAccountModal({
       await deleteAccount();
       onDeleted();
     } catch (error) {
+      logErrorDetails('Account deletion failed', error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t('Account could not be deleted.'),
+        getFriendlyErrorMessage(error, 'Account could not be deleted.'),
       );
       setIsDeleting(false);
     }
@@ -868,7 +1125,7 @@ function DeleteAccountModal({
             className="text-destructive mt-4 rounded-md border border-current p-3 text-sm"
             role="alert"
           >
-            {errorMessage}
+            {t(errorMessage)}
           </p>
         ) : null}
 
@@ -905,6 +1162,17 @@ function inputClassName(hasError: boolean) {
     'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none',
     hasError && 'border-destructive focus-visible:ring-destructive',
   );
+}
+
+function getProfileLocationOptions(value: string) {
+  if (
+    !value ||
+    profileLocationBaseOptions.some((option) => option.value === value)
+  ) {
+    return profileLocationBaseOptions;
+  }
+
+  return [{ label: value, value }, ...profileLocationBaseOptions];
 }
 
 function FieldError({ message }: { message?: string }) {

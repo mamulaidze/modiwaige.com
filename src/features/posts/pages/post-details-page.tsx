@@ -12,7 +12,11 @@ import {
   User,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useForm, type UseFormRegisterReturn } from 'react-hook-form';
+import {
+  Controller,
+  useForm,
+  type UseFormRegisterReturn,
+} from 'react-hook-form';
 import {
   Link,
   Navigate,
@@ -24,17 +28,21 @@ import { z } from 'zod';
 
 import { useAuth } from '@/features/auth/context/use-auth';
 import { StatusBadge } from '@/features/feed/components/status-badge';
+import { CityPicker } from '@/shared/components/city-picker';
+import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
+import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 import {
   createPostReport,
   cancelReservation,
   deletePost,
   fetchPostDetails,
+  manageReservation,
   markPostGiven,
   reservePost,
   updatePostDetails,
@@ -44,11 +52,17 @@ import {
   postCityOptions,
 } from '../constants/post-options';
 import { ReservationCountdown } from '../components/reservation-countdown';
+import { ReservationStatusBadge } from '../components/reservation-status-badge';
 import { createPostSchema } from '../validation/create-post-schema';
+import type { PostReservation } from '../types/post-details';
 
 const editPostSchema = createPostSchema.omit({ photos: true });
 type EditPostInput = z.input<typeof editPostSchema>;
 type EditPostValues = z.output<typeof editPostSchema>;
+const postCityPickerOptions = postCityOptions.map((city) => ({
+  label: city,
+  value: city,
+}));
 
 export function PostDetailsPage() {
   const { postId } = useParams();
@@ -62,6 +76,13 @@ export function PostDetailsPage() {
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<
+    'mark-given' | 'delete' | 'cancel-reservation' | 'reserve' | null
+  >(null);
+  const [reservationConfirmation, setReservationConfirmation] = useState<{
+    id: string;
+    status: 'accepted' | 'declined' | 'cancelled' | 'completed';
+  } | null>(null);
 
   const {
     data: post,
@@ -89,7 +110,7 @@ export function PostDetailsPage() {
   const reserveMutation = useMutation({
     mutationFn: async () => {
       if (!post || !user) {
-        throw new Error(t('Log in to reserve this item.'));
+        throw new Error('Log in to reserve this item.');
       }
 
       await reservePost(post.id);
@@ -98,12 +119,12 @@ export function PostDetailsPage() {
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       setActionError(null);
+      setConfirmation(null);
     },
     onError: (mutationError) => {
+      logErrorDetails('Reserve post failed', mutationError);
       setActionError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : t('Could not reserve item.'),
+        getFriendlyErrorMessage(mutationError, 'Could not reserve item.'),
       );
     },
   });
@@ -111,7 +132,7 @@ export function PostDetailsPage() {
   const cancelReservationMutation = useMutation({
     mutationFn: async () => {
       if (!post?.activeReservation) {
-        throw new Error(t('Reservation was not found.'));
+        throw new Error('Reservation was not found.');
       }
 
       await cancelReservation(post.activeReservation.id);
@@ -121,12 +142,12 @@ export function PostDetailsPage() {
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       await queryClient.invalidateQueries({ queryKey: ['reserved-items'] });
       setActionError(null);
+      setConfirmation(null);
     },
     onError: (mutationError) => {
+      logErrorDetails('Cancel reservation failed', mutationError);
       setActionError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : t('Could not cancel reservation.'),
+        getFriendlyErrorMessage(mutationError, 'Could not cancel reservation.'),
       );
     },
   });
@@ -134,7 +155,7 @@ export function PostDetailsPage() {
   const markGivenMutation = useMutation({
     mutationFn: async () => {
       if (!post) {
-        throw new Error(t('Post was not found.'));
+        throw new Error('Post was not found.');
       }
 
       await markPostGiven(post.id);
@@ -144,12 +165,12 @@ export function PostDetailsPage() {
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
       setActionError(null);
+      setConfirmation(null);
     },
     onError: (mutationError) => {
+      logErrorDetails('Mark post given failed', mutationError);
       setActionError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : t('Could not mark item as given.'),
+        getFriendlyErrorMessage(mutationError, 'Could not mark item as given.'),
       );
     },
   });
@@ -157,20 +178,20 @@ export function PostDetailsPage() {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!post) {
-        throw new Error(t('Post was not found.'));
+        throw new Error('Post was not found.');
       }
 
       await deletePost(post);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
+      setConfirmation(null);
       navigate(localizedPath('/'), { replace: true });
     },
     onError: (mutationError) => {
+      logErrorDetails('Delete post failed', mutationError);
       setActionError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : t('Could not delete item.'),
+        getFriendlyErrorMessage(mutationError, 'Could not delete item.'),
       );
     },
   });
@@ -178,7 +199,7 @@ export function PostDetailsPage() {
   const updateMutation = useMutation({
     mutationFn: (values: EditPostValues) => {
       if (!post) {
-        throw new Error(t('Post was not found.'));
+        throw new Error('Post was not found.');
       }
 
       return updatePostDetails(post.id, values);
@@ -191,10 +212,9 @@ export function PostDetailsPage() {
       setActionError(null);
     },
     onError: (mutationError) => {
+      logErrorDetails('Update post failed', mutationError);
       setActionError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : t('Could not update item.'),
+        getFriendlyErrorMessage(mutationError, 'Could not update item.'),
       );
     },
   });
@@ -202,7 +222,7 @@ export function PostDetailsPage() {
   const reportMutation = useMutation({
     mutationFn: (values: { body: string; subject: string }) => {
       if (!post || !user) {
-        throw new Error(t('Log in to report this item.'));
+        throw new Error('Log in to report this item.');
       }
 
       return createPostReport({
@@ -217,10 +237,29 @@ export function PostDetailsPage() {
       setActionError(null);
     },
     onError: (mutationError) => {
+      logErrorDetails('Submit report failed', mutationError);
       setActionError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : t('Could not submit report.'),
+        getFriendlyErrorMessage(mutationError, 'Could not submit report.'),
+      );
+    },
+  });
+
+  const manageReservationMutation = useMutation({
+    mutationFn: (input: {
+      reservationId: string;
+      nextStatus: 'accepted' | 'declined' | 'cancelled' | 'completed';
+    }) => manageReservation(input.reservationId, input.nextStatus),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      await queryClient.invalidateQueries({ queryKey: ['feed'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
+      setReservationConfirmation(null);
+      setActionError(null);
+    },
+    onError: (mutationError) => {
+      logErrorDetails('Manage reservation failed', mutationError);
+      setActionError(
+        getFriendlyErrorMessage(mutationError, 'Could not update reservation.'),
       );
     },
   });
@@ -246,11 +285,9 @@ export function PostDetailsPage() {
       <PageContainer>
         <EmptyState
           title={t('Item not found')}
-          description={
-            error instanceof Error
-              ? error.message
-              : t('This item could not be loaded.')
-          }
+          description={t(
+            getFriendlyErrorMessage(error, 'This item could not be loaded.'),
+          )}
         />
       </PageContainer>
     );
@@ -260,6 +297,10 @@ export function PostDetailsPage() {
   const isEditing =
     isOwner && (isEditingManually || searchParams.get('edit') === '1');
   const activeImage = post.images[activeImageIndex];
+  const viewerActiveReservation =
+    !isOwner && post.activeReservation?.requesterId === user?.id
+      ? post.activeReservation
+      : null;
 
   return (
     <PageContainer className="gap-6">
@@ -364,24 +405,25 @@ export function PostDetailsPage() {
                     ))}
                   </select>
                 </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium">{t('City')}</span>
-                  <input
-                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
-                    list="edit-post-city-options"
-                    placeholder={t('Search city')}
-                    type="search"
-                    {...editForm.register('city')}
-                  />
-                  <datalist id="edit-post-city-options">
-                    {postCityOptions.map((city) => (
-                      <option key={city} value={city} />
-                    ))}
-                  </datalist>
-                  <FieldError
-                    message={editForm.formState.errors.city?.message}
-                  />
-                </label>
+                <Controller
+                  control={editForm.control}
+                  name="city"
+                  render={({ field }) => (
+                    <div className="space-y-2">
+                      <CityPicker
+                        error={Boolean(editForm.formState.errors.city)}
+                        label={t('City')}
+                        options={postCityPickerOptions}
+                        searchLabel={t('Search city')}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                      <FieldError
+                        message={editForm.formState.errors.city?.message}
+                      />
+                    </div>
+                  )}
+                />
               </div>
               <div className="grid gap-2 sm:flex">
                 <Button
@@ -440,9 +482,22 @@ export function PostDetailsPage() {
                 />
               </dl>
 
-              {post.activeReservation ? (
+              {post.activeReservation?.expiresAt ? (
                 <ReservationCountdown
                   expiresAt={post.activeReservation.expiresAt}
+                />
+              ) : null}
+
+              {isOwner && post.reservations.length > 0 ? (
+                <OwnerReservationRequests
+                  isPending={manageReservationMutation.isPending}
+                  pendingReservationId={
+                    manageReservationMutation.variables?.reservationId ?? null
+                  }
+                  reservations={post.reservations}
+                  onAction={(id, status) =>
+                    setReservationConfirmation({ id, status })
+                  }
                 />
               ) : null}
 
@@ -475,19 +530,24 @@ export function PostDetailsPage() {
                 </div>
               </section>
 
-              {!isOwner &&
-              post.activeReservation?.requesterId === user?.id &&
-              post.owner?.phoneNumber ? (
+              {viewerActiveReservation ? (
                 <section className="primary-glow border-primary/20 bg-primary/5 rounded-3xl border p-4">
                   <h2 className="font-semibold">{t('Reservation active')}</h2>
+                  <div className="mt-2">
+                    <ReservationStatusBadge
+                      status={viewerActiveReservation.status}
+                    />
+                  </div>
                   <p className="text-muted-foreground mt-1 text-sm leading-6">
                     {t('Contact the owner to arrange pickup.')}
                   </p>
-                  <Button asChild className="mt-3 w-full">
-                    <a href={`tel:${post.owner.phoneNumber}`}>
-                      {t('Call')} {post.owner.phoneNumber}
-                    </a>
-                  </Button>
+                  {post.owner?.phoneNumber ? (
+                    <Button asChild className="mt-3 w-full">
+                      <a href={`tel:${post.owner.phoneNumber}`}>
+                        {t('Call')} {post.owner.phoneNumber}
+                      </a>
+                    </Button>
+                  ) : null}
                 </section>
               ) : null}
 
@@ -496,7 +556,7 @@ export function PostDetailsPage() {
                   className="text-destructive rounded-md border border-current p-3 text-sm"
                   role="alert"
                 >
-                  {actionError}
+                  {t(actionError)}
                 </p>
               ) : null}
 
@@ -521,17 +581,7 @@ export function PostDetailsPage() {
                     }
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          t(
-                            'Mark this item as given? Active reservations will be completed.',
-                          ),
-                        )
-                      ) {
-                        markGivenMutation.mutate();
-                      }
-                    }}
+                    onClick={() => setConfirmation('mark-given')}
                   >
                     {markGivenMutation.isPending
                       ? t('Saving...')
@@ -544,17 +594,7 @@ export function PostDetailsPage() {
                     disabled={deleteMutation.isPending}
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          t(
-                            'Delete this post permanently? This cannot be undone.',
-                          ),
-                        )
-                      ) {
-                        deleteMutation.mutate();
-                      }
-                    }}
+                    onClick={() => setConfirmation('delete')}
                   >
                     <Trash2 className="size-4" aria-hidden="true" />
                     {deleteMutation.isPending ? t('Deleting...') : t('Delete')}
@@ -572,24 +612,8 @@ export function PostDetailsPage() {
                       post.activeReservation?.requesterId === user?.id
                     }
                     isCancelling={cancelReservationMutation.isPending}
-                    onCancel={() => {
-                      if (
-                        window.confirm(
-                          t('Cancel your reservation for this item?'),
-                        )
-                      ) {
-                        cancelReservationMutation.mutate();
-                      }
-                    }}
-                    onReserve={() => {
-                      if (
-                        window.confirm(
-                          t('Reserve this item? The owner will be notified.'),
-                        )
-                      ) {
-                        reserveMutation.mutate();
-                      }
-                    }}
+                    onCancel={() => setConfirmation('cancel-reservation')}
+                    onReserve={() => setConfirmation('reserve')}
                   />
                   {isAuthenticated ? (
                     <Button
@@ -617,6 +641,87 @@ export function PostDetailsPage() {
         />
       ) : null}
 
+      {confirmation === 'mark-given' ? (
+        <ConfirmDialog
+          confirmLabel={t('Mark given')}
+          description={t(
+            'Mark this item as given? Active reservations will be completed.',
+          )}
+          isLoading={markGivenMutation.isPending}
+          loadingLabel={t('Saving...')}
+          title={t('Mark item as given?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => markGivenMutation.mutate()}
+        />
+      ) : null}
+
+      {confirmation === 'delete' ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Delete post')}
+          description={t(
+            'Delete this post permanently? This cannot be undone.',
+          )}
+          isLoading={deleteMutation.isPending}
+          loadingLabel={t('Deleting...')}
+          title={t('Delete post?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => deleteMutation.mutate()}
+        />
+      ) : null}
+
+      {confirmation === 'cancel-reservation' ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Unreserve')}
+          description={t('Cancel your reservation for this item?')}
+          isLoading={cancelReservationMutation.isPending}
+          loadingLabel={t('Cancelling...')}
+          title={t('Cancel reservation?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => cancelReservationMutation.mutate()}
+        />
+      ) : null}
+
+      {confirmation === 'reserve' ? (
+        <ConfirmDialog
+          confirmLabel={t('Reserve')}
+          description={t('Reserve this item? The owner will be notified.')}
+          isLoading={reserveMutation.isPending}
+          loadingLabel={t('Reserving...')}
+          title={t('Reserve item?')}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => reserveMutation.mutate()}
+        />
+      ) : null}
+
+      {reservationConfirmation ? (
+        <ConfirmDialog
+          danger={
+            reservationConfirmation.status === 'declined' ||
+            reservationConfirmation.status === 'cancelled'
+          }
+          confirmLabel={getReservationActionLabel(
+            reservationConfirmation.status,
+            t,
+          )}
+          description={getReservationActionDescription(
+            reservationConfirmation.status,
+            t,
+          )}
+          isLoading={manageReservationMutation.isPending}
+          loadingLabel={t('Saving...')}
+          title={getReservationActionTitle(reservationConfirmation.status, t)}
+          onCancel={() => setReservationConfirmation(null)}
+          onConfirm={() =>
+            manageReservationMutation.mutate({
+              reservationId: reservationConfirmation.id,
+              nextStatus: reservationConfirmation.status,
+            })
+          }
+        />
+      ) : null}
+
       {isImageViewerOpen && activeImage?.url ? (
         <ImageViewerModal
           imageUrl={activeImage.url}
@@ -626,6 +731,129 @@ export function PostDetailsPage() {
       ) : null}
     </PageContainer>
   );
+}
+
+function OwnerReservationRequests({
+  isPending,
+  onAction,
+  pendingReservationId,
+  reservations,
+}: {
+  isPending: boolean;
+  pendingReservationId: string | null;
+  onAction: (
+    id: string,
+    status: 'accepted' | 'declined' | 'cancelled' | 'completed',
+  ) => void;
+  reservations: PostReservation[];
+}) {
+  const { t } = useI18n();
+
+  return (
+    <section className="soft-surface rounded-3xl p-4">
+      <h2 className="font-semibold">{t('Reservation requests')}</h2>
+      <div className="mt-3 grid gap-2">
+        {reservations.map((reservation) => (
+          <div className="rounded-2xl border p-3" key={reservation.id}>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium [overflow-wrap:anywhere] break-words">
+                    {reservation.requesterName}
+                  </p>
+                  <ReservationStatusBadge status={reservation.status} />
+                </div>
+                {reservation.requesterPhoneNumber ? (
+                  <a
+                    className="text-muted-foreground mt-1 block text-sm underline-offset-4 hover:underline"
+                    href={`tel:${reservation.requesterPhoneNumber}`}
+                  >
+                    {reservation.requesterPhoneNumber}
+                  </a>
+                ) : null}
+              </div>
+
+              <ReservationOwnerActions
+                disabled={isPending && pendingReservationId === reservation.id}
+                reservation={reservation}
+                onAction={onAction}
+              />
+            </div>
+            {reservation.expiresAt &&
+            (reservation.status === 'pending' ||
+              reservation.status === 'accepted') ? (
+              <div className="mt-3">
+                <ReservationCountdown expiresAt={reservation.expiresAt} />
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReservationOwnerActions({
+  disabled,
+  onAction,
+  reservation,
+}: {
+  disabled: boolean;
+  onAction: (
+    id: string,
+    status: 'accepted' | 'declined' | 'cancelled' | 'completed',
+  ) => void;
+  reservation: PostReservation;
+}) {
+  const { t } = useI18n();
+
+  if (reservation.status === 'pending') {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <Button
+          disabled={disabled}
+          type="button"
+          onClick={() => onAction(reservation.id, 'accepted')}
+        >
+          {t('Accept')}
+        </Button>
+        <Button
+          className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground"
+          disabled={disabled}
+          type="button"
+          variant="outline"
+          onClick={() => onAction(reservation.id, 'declined')}
+        >
+          {t('Reject')}
+        </Button>
+      </div>
+    );
+  }
+
+  if (reservation.status === 'accepted') {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <Button
+          disabled={disabled}
+          type="button"
+          onClick={() => onAction(reservation.id, 'completed')}
+        >
+          {t('Mark completed')}
+        </Button>
+        <Button
+          className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground"
+          disabled={disabled}
+          type="button"
+          variant="outline"
+          onClick={() => onAction(reservation.id, 'cancelled')}
+        >
+          {t('Cancel')}
+        </Button>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function ImageViewerModal({
@@ -898,6 +1126,48 @@ function formatCategory(value: string, t: (text: string) => string) {
     .replace(/^\w/, (letter) => letter.toUpperCase());
 
   return t(label);
+}
+
+function getReservationActionLabel(
+  status: 'accepted' | 'declined' | 'cancelled' | 'completed',
+  t: (text: string) => string,
+) {
+  const labels = {
+    accepted: 'Accept',
+    declined: 'Reject',
+    cancelled: 'Cancel reservation',
+    completed: 'Mark completed',
+  };
+
+  return t(labels[status]);
+}
+
+function getReservationActionTitle(
+  status: 'accepted' | 'declined' | 'cancelled' | 'completed',
+  t: (text: string) => string,
+) {
+  const labels = {
+    accepted: 'Accept reservation?',
+    declined: 'Reject reservation?',
+    cancelled: 'Cancel reservation?',
+    completed: 'Complete reservation?',
+  };
+
+  return t(labels[status]);
+}
+
+function getReservationActionDescription(
+  status: 'accepted' | 'declined' | 'cancelled' | 'completed',
+  t: (text: string) => string,
+) {
+  const labels = {
+    accepted: 'Accept this reservation request?',
+    declined: 'Reject this reservation request?',
+    cancelled: 'Cancel this accepted reservation?',
+    completed: 'Mark this reservation as completed?',
+  };
+
+  return t(labels[status]);
 }
 
 function normalizeCity(value: string): EditPostValues['city'] {

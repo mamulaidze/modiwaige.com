@@ -14,6 +14,23 @@ export type PostOwner = {
   phoneNumber: string | null;
 };
 
+export type ReservationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'cancelled'
+  | 'completed';
+
+export type PostReservation = {
+  id: string;
+  requesterId: string;
+  requesterName: string;
+  requesterPhoneNumber: string | null;
+  status: ReservationStatus;
+  expiresAt: string | null;
+  createdAt: string;
+};
+
 export type PostDetails = {
   id: string;
   ownerId: string;
@@ -27,10 +44,6 @@ export type PostDetails = {
   expiresAt: string;
   images: PostDetailsImage[];
   owner: PostOwner | null;
-  activeReservation: {
-    id: string;
-    requesterId: string;
-    expiresAt: string;
-    status: 'pending' | 'accepted';
-  } | null;
+  reservations: PostReservation[];
+  activeReservation: PostReservation | null;
 };

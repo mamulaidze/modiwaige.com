@@ -10,12 +10,14 @@ import {
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { cn } from '@/shared/lib/cn';
+import { getFriendlyErrorMessage } from '@/shared/lib/errors';
 
 import {
   deleteAdminPost,
@@ -144,7 +146,7 @@ export function AdminDashboardPage() {
             {t('Could not load admin tools')}
           </h2>
           <p className="text-muted-foreground mt-2 text-sm">
-            {error instanceof Error ? error.message : t('Please try again.')}
+            {t(getFriendlyErrorMessage(error))}
           </p>
         </div>
       ) : null}
@@ -365,7 +367,6 @@ function PostsTable({
           </thead>
           <tbody>
             {visiblePosts.map((post) => {
-              const isConfirming = confirmingPostId === post.id;
               const isDeleting = deletingPostId === post.id;
 
               return (
@@ -391,21 +392,10 @@ function PostsTable({
                       disabled={isDeleting}
                       type="button"
                       variant="outline"
-                      onClick={() => {
-                        if (!isConfirming) {
-                          setConfirmingPostId(post.id);
-                          return;
-                        }
-
-                        onDelete(post.id);
-                      }}
+                      onClick={() => setConfirmingPostId(post.id)}
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
-                      {isDeleting
-                        ? t('Deleting...')
-                        : isConfirming
-                          ? t('Confirm')
-                          : t('Delete')}
+                      {isDeleting ? t('Deleting...') : t('Delete')}
                     </Button>
                   </BodyCell>
                 </tr>
@@ -420,8 +410,25 @@ function PostsTable({
           className="text-destructive rounded-md border border-current p-3 text-sm"
           role="alert"
         >
-          {error instanceof Error ? error.message : t('Could not delete post.')}
+          {t(getFriendlyErrorMessage(error, 'Could not delete post.'))}
         </p>
+      ) : null}
+
+      {confirmingPostId ? (
+        <ConfirmDialog
+          danger
+          confirmLabel={t('Delete post')}
+          description={t(
+            'Delete this post permanently? This cannot be undone.',
+          )}
+          loadingLabel={t('Deleting...')}
+          title={t('Delete post?')}
+          onCancel={() => setConfirmingPostId(null)}
+          onConfirm={() => {
+            onDelete(confirmingPostId);
+            setConfirmingPostId(null);
+          }}
+        />
       ) : null}
     </section>
   );
@@ -438,6 +445,10 @@ function ReportsTable({
 }) {
   const { language, localizedPath, t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    reportId: string;
+    status: AdminReport['status'];
+  } | null>(null);
   const filteredReports = reports.filter((report) =>
     matchesSearch(searchQuery, [
       report.subject,
@@ -515,10 +526,10 @@ function ReportsTable({
                     disabled={updatingReportId === report.id}
                     value={report.status}
                     onChange={(event) =>
-                      onStatusChange(
-                        report.id,
-                        event.target.value as AdminReport['status'],
-                      )
+                      setPendingStatusChange({
+                        reportId: report.id,
+                        status: event.target.value as AdminReport['status'],
+                      })
                     }
                   >
                     <option value="open">{t('OpenStatus')}</option>
@@ -533,6 +544,24 @@ function ReportsTable({
           </tbody>
         </AdminTable>
       )}
+
+      {pendingStatusChange ? (
+        <ConfirmDialog
+          confirmLabel={t('Change status')}
+          description={t('Update this report status?')}
+          isLoading={updatingReportId === pendingStatusChange.reportId}
+          loadingLabel={t('Saving...')}
+          title={t('Update report status?')}
+          onCancel={() => setPendingStatusChange(null)}
+          onConfirm={() => {
+            onStatusChange(
+              pendingStatusChange.reportId,
+              pendingStatusChange.status,
+            );
+            setPendingStatusChange(null);
+          }}
+        />
+      ) : null}
     </section>
   );
 }
