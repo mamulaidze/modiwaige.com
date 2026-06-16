@@ -1,7 +1,8 @@
-import { Gift, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useAuth } from '@/features/auth/context/use-auth';
+import { BrandLogo } from '@/shared/components/brand-logo';
 import { Button } from '@/shared/components/ui/button';
 import { LanguageSwitcher } from '@/shared/i18n/language-switcher';
 import { useI18n } from '@/shared/i18n/i18n';
@@ -22,8 +23,8 @@ export function MobileHeader({ isLoggingOut, onLogout }: MobileHeaderProps) {
         className="group focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-[18px] transition-transform duration-200 outline-none focus-visible:ring-2 active:scale-[0.99]"
         to={localizedPath('/')}
       >
-        <div className="brand-mark text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-[17px] ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
-          <Gift className="size-[18px]" aria-hidden="true" />
+        <div className="brand-mark flex size-10 shrink-0 items-center justify-center rounded-[17px] ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
+          <BrandLogo className="size-7" />
         </div>
         <div className="min-w-0">
           <p className="text-foreground truncate text-base leading-none font-semibold tracking-tight">

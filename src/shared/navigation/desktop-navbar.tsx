@@ -1,9 +1,9 @@
-import { Gift } from 'lucide-react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
 import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { useUnreadReservationNotifications } from '@/features/notifications/hooks/use-unread-reservation-notifications';
+import { BrandLogo } from '@/shared/components/brand-logo';
 import { Button } from '@/shared/components/ui/button';
 import { LanguageSwitcher } from '@/shared/i18n/language-switcher';
 import { useI18n } from '@/shared/i18n/i18n';
@@ -49,8 +49,8 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
         className="group focus-visible:ring-ring flex min-w-0 items-center gap-3 rounded-[20px] transition-transform duration-200 outline-none focus-visible:ring-2 active:scale-[0.99]"
         to={localizedPath('/')}
       >
-        <div className="brand-mark text-primary-foreground flex size-12 shrink-0 items-center justify-center rounded-[20px] ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
-          <Gift className="size-5" aria-hidden="true" />
+        <div className="brand-mark flex size-12 shrink-0 items-center justify-center rounded-[20px] ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
+          <BrandLogo className="size-8" />
         </div>
         <div className="min-w-0">
           <p className="text-foreground truncate text-lg leading-none font-semibold tracking-tight">

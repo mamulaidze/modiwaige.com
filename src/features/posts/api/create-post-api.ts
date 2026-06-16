@@ -32,7 +32,7 @@ export async function createPost(input: CreatePostInput): Promise<FeedPost> {
 
   try {
     for (const [index, photo] of input.photos.entries()) {
-      const storagePath = `${post.id}/${crypto.randomUUID()}-${photo.name}`;
+      const storagePath = `${input.ownerId}/${post.id}/${crypto.randomUUID()}-${photo.name}`;
       const { error: uploadError } = await supabase.storage
         .from('post-images')
         .upload(storagePath, photo, {

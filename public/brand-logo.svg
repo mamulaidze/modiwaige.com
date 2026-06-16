@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#f8f5ed" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Gaachuqe logo</title>
   <path fill="#2f6f49" d="M247 50h34v86h-34z" />
   <path fill="#2f6f49" d="m174 88 24-24 73 73-24 24z" />
   <path fill="#2f6f49" d="m333 64 24 24-73 73-24-24z" />

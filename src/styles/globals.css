@@ -261,12 +261,25 @@ a {
   }
 
   .brand-mark {
-    background: linear-gradient(
-      135deg,
-      var(--theme-primary-active),
-      theme(--color-primary)
-    );
+    background: hsl(44 36% 97%);
     box-shadow: 0 14px 30px var(--theme-primary-shadow);
+  }
+
+  .city-picker-popover {
+    border: 1px solid color-mix(in srgb, theme(--color-ring) 34%, transparent);
+    background: color-mix(in srgb, theme(--color-card) 96%, black 4%);
+    color: theme(--color-card-foreground);
+    box-shadow:
+      0 26px 68px var(--theme-surface-shadow),
+      0 0 0 1px var(--theme-inset-highlight);
+  }
+
+  :root[data-theme='dark'] .city-picker-popover {
+    border-color: color-mix(in srgb, theme(--color-ring) 42%, transparent);
+    background: hsl(160 12% 13%);
+    box-shadow:
+      0 30px 76px hsl(160 28% 4% / 0.72),
+      0 0 0 1px hsl(44 22% 96% / 0.1);
   }
 
   .primary-glow {

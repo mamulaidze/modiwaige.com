@@ -1,8 +1,16 @@
-import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import {
+  Check,
+  ChevronDown,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
+import { cn } from '@/shared/lib/cn';
 import { categoryOptions, cityOptions } from '../constants/feed-filters';
 import type { FeedFilters as FeedFiltersValue } from '../types/feed';
 
@@ -12,11 +20,16 @@ type FeedFiltersProps = {
 };
 
 export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isCityPickerOpen, setIsCityPickerOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const cityPickerRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
-  const selectedCity = filters.city === 'all' ? '' : filters.city;
+  const allCitiesLabel = language === 'ge' ? 'ყველა ქალაქი' : 'All cities';
+  const selectedCityLabel =
+    filters.city === 'all' ? allCitiesLabel : t(filters.city);
   const activeFilterCount = [
     filters.search.trim(),
     filters.category !== 'all',
@@ -24,6 +37,19 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
   ].filter(Boolean).length;
   const hasActiveFilters = activeFilterCount > 0;
   const isCollapsed = isScrolled && !isOpen;
+  const filteredCities = useMemo(() => {
+    const normalizedSearch = citySearch.trim().toLocaleLowerCase();
+
+    if (!normalizedSearch) {
+      return cityOptions;
+    }
+
+    return cityOptions.filter((option) =>
+      `${option.value} ${t(option.label)}`
+        .toLocaleLowerCase()
+        .includes(normalizedSearch),
+    );
+  }, [citySearch, t]);
 
   useEffect(() => {
     function updateScrolledState() {
@@ -36,6 +62,25 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
     return () => window.removeEventListener('scroll', updateScrolledState);
   }, []);
 
+  useEffect(() => {
+    if (!isCityPickerOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !cityPickerRef.current?.contains(event.target)
+      ) {
+        setIsCityPickerOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isCityPickerOpen]);
+
   function clearFilters() {
     onChange({
       ...filters,
@@ -43,6 +88,8 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
       category: 'all',
       city: 'all',
     });
+    setCitySearch('');
+    setIsCityPickerOpen(false);
   }
 
   return (
@@ -50,9 +97,12 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
       className={`sticky top-20 z-20 transition-all duration-500 ease-out sm:top-24 ${
         isCollapsed
           ? 'ml-auto w-fit'
-          : 'filter-card-enter glass-surface overflow-hidden rounded-3xl'
+          : cn(
+              'filter-card-enter glass-surface rounded-3xl',
+              isCityPickerOpen ? 'overflow-visible' : 'overflow-hidden',
+            )
       }`}
-      aria-label="Feed filters"
+      aria-label={t('Feed filters')}
     >
       {isCollapsed ? (
         <Button
@@ -164,30 +214,113 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                   </select>
                 </label>
 
-                <label className="space-y-2">
+                <div className="space-y-2" ref={cityPickerRef}>
                   <span className="text-muted-foreground text-xs font-medium uppercase">
                     {t('City')}
                   </span>
-                  <input
-                    aria-label={t('Search by city')}
-                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
-                    list="feed-city-options"
-                    placeholder={t('Search city')}
-                    type="search"
-                    value={selectedCity}
-                    onChange={(event) =>
-                      onChange({
-                        ...filters,
-                        city: event.target.value.trim() || 'all',
-                      })
-                    }
-                  />
-                  <datalist id="feed-city-options">
-                    {cityOptions.slice(1).map((option) => (
-                      <option key={option.value} value={option.value} />
-                    ))}
-                  </datalist>
-                </label>
+                  <div className="relative">
+                    <button
+                      aria-controls={`${panelId}-city-list`}
+                      aria-expanded={isCityPickerOpen}
+                      aria-label={t('Search by city')}
+                      className="modern-input flex h-11 w-full items-center justify-between gap-3 rounded-2xl px-3 text-left text-base outline-none"
+                      type="button"
+                      onClick={() =>
+                        setIsCityPickerOpen((current) => !current)
+                      }
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <MapPin
+                          className="text-muted-foreground size-4 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{selectedCityLabel}</span>
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          'text-muted-foreground size-4 shrink-0 transition-transform',
+                          isCityPickerOpen && 'rotate-180',
+                        )}
+                        aria-hidden="true"
+                      />
+                    </button>
+
+                    {isCityPickerOpen ? (
+                      <div className="city-picker-popover filter-panel-enter absolute top-13 right-0 left-0 z-30 overflow-hidden rounded-3xl p-2 shadow-[0_22px_58px_var(--theme-surface-shadow)]">
+                        <div className="relative">
+                          <Search
+                            className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                            aria-hidden="true"
+                          />
+                          <input
+                            autoFocus
+                            aria-label={t('Search city')}
+                            className="modern-input h-11 w-full rounded-2xl pr-3 pl-9 text-base outline-none"
+                            placeholder={t('Search city')}
+                            type="search"
+                            value={citySearch}
+                            onChange={(event) =>
+                              setCitySearch(event.target.value)
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === 'Escape') {
+                                setIsCityPickerOpen(false);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        <div
+                          className="mt-2 max-h-72 overflow-y-auto pr-1"
+                          id={`${panelId}-city-list`}
+                        >
+                          {filteredCities.length > 0 ? (
+                            filteredCities.map((option) => {
+                              const isSelected = filters.city === option.value;
+
+                              return (
+                                <button
+                                  className={cn(
+                                    'flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                                    isSelected
+                                      ? 'bg-primary/10 text-primary'
+                                      : 'text-foreground hover:bg-[var(--theme-glass-hover)]',
+                                  )}
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    onChange({
+                                      ...filters,
+                                      city: option.value,
+                                    });
+                                    setCitySearch('');
+                                    setIsCityPickerOpen(false);
+                                  }}
+                                >
+                                  <span className="min-w-0 truncate">
+                                    {option.value === 'all'
+                                      ? allCitiesLabel
+                                      : t(option.label)}
+                                  </span>
+                                  {isSelected ? (
+                                    <Check
+                                      className="size-4 shrink-0"
+                                      aria-hidden="true"
+                                    />
+                                  ) : null}
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <p className="text-muted-foreground px-3 py-4 text-sm">
+                              {t('No matching city')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}

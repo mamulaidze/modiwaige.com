@@ -49,6 +49,7 @@ const translations: Record<string, string> = {
   'Free item feed': 'უფასო ნივთების სია',
 
   Filters: 'ფილტრები',
+  'Feed filters': 'განცხადებების ფილტრები',
   Clear: 'გასუფთავება',
   Open: 'გახსნა',
   Close: 'დახურვა',
@@ -63,6 +64,7 @@ const translations: Record<string, string> = {
   'Search by city': 'ქალაქით ძიება',
   'Search city': 'ქალაქის ძიება',
   'All categories': 'ყველა კატეგორია',
+  'All cities': 'ყველა ქალაქი',
   Clothing: 'ტანსაცმელი',
   Electronics: 'ელექტრონიკა',
   Books: 'წიგნები',
