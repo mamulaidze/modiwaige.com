@@ -43,19 +43,19 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
     );
 
   return (
-    <div className="glass-surface mx-auto hidden min-h-18 w-full max-w-5xl items-center justify-between gap-6 rounded-[24px] px-5 py-3 md:flex lg:px-6">
+    <div className="glass-surface mx-auto hidden min-h-14 w-full max-w-[1280px] items-center justify-between gap-4 rounded-2xl px-4 py-2 md:flex lg:px-5">
       <Link
-        className="group focus-visible:ring-ring flex min-w-0 items-center gap-3 rounded-[20px] transition-transform duration-200 outline-none focus-visible:ring-2 active:scale-[0.99]"
+        className="group focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-xl transition-transform duration-200 outline-none focus-visible:ring-2 active:scale-[0.99]"
         to={localizedPath('/')}
       >
-        <div className="brand-mark flex size-12 shrink-0 items-center justify-center rounded-[20px] ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
-          <BrandLogo className="size-8" />
+        <div className="brand-mark flex size-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
+          <BrandLogo className="size-6" />
         </div>
         <div className="min-w-0">
-          <p className="text-foreground truncate text-lg leading-none font-semibold tracking-tight">
+          <p className="text-foreground truncate text-base leading-none font-semibold tracking-tight">
             Gaachuqe
           </p>
-          <p className="text-muted-foreground mt-1 max-w-56 truncate text-xs">
+          <p className="text-muted-foreground mt-0.5 max-w-64 truncate text-xs">
             {t('Free giving in Georgia')}
           </p>
         </div>
@@ -66,11 +66,16 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
         className="flex min-w-0 items-center gap-1.5"
       >
         {visibleItems.map((item) => (
-          <Button asChild key={item.href} variant="outline">
+          <Button
+            asChild
+            className="h-9 rounded-lg px-3"
+            key={item.href}
+            variant="outline"
+          >
             <NavLink
               className={({ isActive }) =>
                 cn(
-                  'rounded-xl transition-transform duration-200 active:scale-[0.98]',
+                  'rounded-lg transition-transform duration-200 active:scale-[0.98]',
                   isActive && 'primary-glow bg-primary/10 text-primary',
                 )
               }
@@ -82,7 +87,12 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
           </Button>
         ))}
         {!isLoading && isAuthenticated ? (
-          <Button disabled={isLoggingOut} type="button" onClick={onLogout}>
+          <Button
+            className="h-9 rounded-lg px-3"
+            disabled={isLoggingOut}
+            type="button"
+            onClick={onLogout}
+          >
             {isLoggingOut ? t('Logging out...') : t('Log out')}
           </Button>
         ) : null}

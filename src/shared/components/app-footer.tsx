@@ -14,15 +14,15 @@ export function AppFooter() {
   const { localizedPath, t } = useI18n();
 
   return (
-    <footer className="px-4 pb-24 sm:px-6 md:pb-8 lg:px-8">
-      <div className="glass-surface mx-auto flex w-full max-w-5xl flex-col gap-4 rounded-3xl px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="brand-mark flex size-10 shrink-0 items-center justify-center rounded-2xl ring-1 ring-[var(--theme-glass-border)]">
-            <BrandLogo className="size-7" />
+    <footer className="px-4 pb-24 sm:px-6 md:pb-6 lg:px-8">
+      <div className="glass-surface mx-auto flex w-full max-w-[1280px] flex-col gap-3 rounded-2xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="brand-mark flex size-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-[var(--theme-glass-border)]">
+            <BrandLogo className="size-5" />
           </span>
           <div className="min-w-0">
-            <p className="font-semibold">Gaachuqe</p>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm leading-none font-semibold">Gaachuqe</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
               {t('Legal and trust')}
             </p>
           </div>
@@ -30,11 +30,11 @@ export function AppFooter() {
 
         <nav
           aria-label={t('Legal and trust')}
-          className="flex flex-wrap gap-2 text-sm"
+          className="flex flex-wrap gap-x-3 gap-y-1 text-sm"
         >
           {footerLinks.map((link) => (
             <Link
-              className="text-muted-foreground hover:text-foreground rounded-md px-1 py-1 font-medium transition-colors"
+              className="text-muted-foreground hover:text-foreground rounded-md py-1 font-medium transition-colors"
               key={link.href}
               to={localizedPath(link.href)}
             >

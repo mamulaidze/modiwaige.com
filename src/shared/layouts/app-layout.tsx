@@ -48,7 +48,7 @@ function LocalizedAppLayout() {
       <a className="skip-link" href="#main-content">
         {t('Skip to content')}
       </a>
-      <header className="sticky top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-4">
+      <header className="sticky top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-4 md:pt-[calc(env(safe-area-inset-top)+0.5rem)]">
         <DesktopNavbar
           isLoggingOut={isLoggingOut}
           onLogout={() => setIsLogoutConfirmOpen(true)}
