@@ -12,6 +12,7 @@ import {
   type RegisterFormValues,
 } from '@/features/auth/validation/auth-schemas';
 import { formatGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-number';
+import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
@@ -19,7 +20,7 @@ import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 export function RegisterPage() {
   const { isAuthenticated, isLoading } = useAuth();
-  const { localizedPath, t } = useI18n();
+  const { language, localizedPath, t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -57,6 +58,15 @@ export function RegisterPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
+      <Seo
+        noindex
+        title={language === 'ge' ? 'რეგისტრაცია' : 'Create account'}
+        description={
+          language === 'ge'
+            ? 'შექმენით Gaachuqe-ის ანგარიში, რომ გააჩუქოთ ნივთები და დაჯავშნოთ უფასო განცხადებები.'
+            : 'Create a Gaachuqe account to give away useful items and reserve free local finds.'
+        }
+      />
       <div className="glass-surface rounded-[28px] p-5 sm:p-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">

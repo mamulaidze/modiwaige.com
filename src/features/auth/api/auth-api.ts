@@ -14,6 +14,15 @@ type LoginInput = {
   password: string;
 };
 
+type ResetPasswordInput = {
+  redirectTo: string;
+  email: string;
+};
+
+type UpdatePasswordInput = {
+  password: string;
+};
+
 export async function registerWithEmail({
   email,
   firstName,
@@ -50,6 +59,29 @@ export async function loginWithEmail({ email, password }: LoginInput) {
     email,
     password,
   });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+export async function sendPasswordResetEmail({
+  email,
+  redirectTo,
+}: ResetPasswordInput) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updatePassword({ password }: UpdatePasswordInput) {
+  const { data, error } = await supabase.auth.updateUser({ password });
 
   if (error) {
     throw new Error(error.message);

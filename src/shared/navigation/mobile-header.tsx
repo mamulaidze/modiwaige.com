@@ -2,6 +2,7 @@ import { LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useAuth } from '@/features/auth/context/use-auth';
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { BrandLogo } from '@/shared/components/brand-logo';
 import { Button } from '@/shared/components/ui/button';
 import { LanguageSwitcher } from '@/shared/i18n/language-switcher';
@@ -36,6 +37,7 @@ export function MobileHeader({ isLoggingOut, onLogout }: MobileHeaderProps) {
         </div>
       </Link>
       <div className="flex shrink-0 items-center gap-2">
+        <NotificationBell />
         <ThemeToggle />
         <LanguageSwitcher />
         {!isLoading && isAuthenticated ? (

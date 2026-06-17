@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 
 import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
-import { useUnreadReservationNotifications } from '@/features/notifications/hooks/use-unread-reservation-notifications';
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { BrandLogo } from '@/shared/components/brand-logo';
 import { Button } from '@/shared/components/ui/button';
 import { LanguageSwitcher } from '@/shared/i18n/language-switcher';
@@ -19,7 +19,6 @@ type DesktopNavbarProps = {
 export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const adminStatus = useAdminStatus();
-  const unreadReservations = useUnreadReservationNotifications();
   const location = useLocation();
   const { localizedPath, t } = useI18n();
   const currentPath = normalizePath(location.pathname);
@@ -77,16 +76,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
               }
               to={localizedPath(item.href)}
             >
-              <span className="relative">
-                <item.icon className="size-4" aria-hidden="true" />
-                {item.href === '/profile' &&
-                Number(unreadReservations.data ?? 0) > 0 ? (
-                  <span
-                    aria-label={t('New reservation activity')}
-                    className="bg-destructive absolute -top-1 -right-1 size-2 rounded-full"
-                  />
-                ) : null}
-              </span>
+              <item.icon className="size-4" aria-hidden="true" />
               {t(item.labelKey)}
             </NavLink>
           </Button>
@@ -96,6 +86,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
             {isLoggingOut ? t('Logging out...') : t('Log out')}
           </Button>
         ) : null}
+        <NotificationBell />
         <ThemeToggle variant="segmented" />
         <LanguageSwitcher />
       </nav>

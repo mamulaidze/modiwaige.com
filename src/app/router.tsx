@@ -5,11 +5,15 @@ import { AppLayout } from '@/shared/layouts/app-layout';
 import { RouteLoading } from '@/shared/components/route-loading';
 import { ProtectedRoute } from '@/features/auth/routes/protected-route';
 import { NotFoundPage } from '@/features/not-found/pages/not-found-page';
-import { CreatePostPage } from '@/features/posts/pages/create-post-page';
 
 const AccountPage = lazy(() =>
   import('@/features/account/pages/account-page').then((module) => ({
     default: module.AccountPage,
+  })),
+);
+const CreatePostPage = lazy(() =>
+  import('@/features/posts/pages/create-post-page').then((module) => ({
+    default: module.CreatePostPage,
   })),
 );
 const AdminDashboardPage = lazy(() =>
@@ -20,6 +24,11 @@ const AdminDashboardPage = lazy(() =>
 const HomePage = lazy(() =>
   import('@/features/home/pages/home-page').then((module) => ({
     default: module.HomePage,
+  })),
+);
+const ForgotPasswordPage = lazy(() =>
+  import('@/features/auth/pages/forgot-password-page').then((module) => ({
+    default: module.ForgotPasswordPage,
   })),
 );
 const LoginPage = lazy(() =>
@@ -57,6 +66,11 @@ const RegisterPage = lazy(() =>
     default: module.RegisterPage,
   })),
 );
+const ResetPasswordPage = lazy(() =>
+  import('@/features/auth/pages/reset-password-page').then((module) => ({
+    default: module.ResetPasswordPage,
+  })),
+);
 
 function withSuspense(element: ReactNode) {
   return <Suspense fallback={<RouteLoading />}>{element}</Suspense>;
@@ -74,6 +88,14 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <Navigate replace to="/ge/login" />,
+  },
+  {
+    path: '/forgot-password',
+    element: <Navigate replace to="/ge/forgot-password" />,
+  },
+  {
+    path: '/reset-password',
+    element: <Navigate replace to="/ge/reset-password" />,
   },
   {
     path: '/register',
@@ -127,6 +149,14 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: withSuspense(<LoginPage />),
+      },
+      {
+        path: 'forgot-password',
+        element: withSuspense(<ForgotPasswordPage />),
+      },
+      {
+        path: 'reset-password',
+        element: withSuspense(<ResetPasswordPage />),
       },
       {
         path: 'register',

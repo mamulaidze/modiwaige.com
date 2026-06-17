@@ -14,7 +14,7 @@ import {
   Trash2,
   User,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -32,12 +32,13 @@ import {
 import { ReservationCountdown } from '@/features/posts/components/reservation-countdown';
 import { ReservationStatusBadge } from '@/features/posts/components/reservation-status-badge';
 import { postCityOptions } from '@/features/posts/constants/post-options';
-import { markReservationNotificationsRead } from '@/features/notifications/api/notifications-api';
 import { CityPicker } from '@/shared/components/city-picker';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
+import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { cn } from '@/shared/lib/cn';
@@ -65,7 +66,7 @@ const profileLocationBaseOptions = [
 
 export function AccountPage() {
   const { user } = useAuth();
-  const { localizedPath, t } = useI18n();
+  const { language, localizedPath, t } = useI18n();
   const adminStatus = useAdminStatus();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -119,20 +120,17 @@ export function AccountPage() {
   const error =
     profileQuery.error ?? postsQuery.error ?? reservationsQuery.error;
 
-  useEffect(() => {
-    if (!user?.id) {
-      return;
-    }
-
-    void markReservationNotificationsRead(user.id).then(() =>
-      queryClient.invalidateQueries({
-        queryKey: ['unread-reservation-notifications', user.id],
-      }),
-    );
-  }, [queryClient, user?.id]);
-
   return (
     <PageContainer className="gap-6">
+      <Seo
+        noindex
+        title={language === 'ge' ? 'პროფილი' : 'Profile'}
+        description={
+          language === 'ge'
+            ? 'მართეთ თქვენი Gaachuqe-ის პროფილი, განცხადებები, ჯავშნები და ანგარიშის პარამეტრები.'
+            : 'Manage your Gaachuqe profile, posts, reservations, and account settings.'
+        }
+      />
       <section className="premium-card rounded-3xl p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
@@ -1059,10 +1057,17 @@ function DeleteAccountModal({
   onDeleted: () => void;
 }) {
   const { t } = useI18n();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const [confirmation, setConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isConfirmed = confirmation === 'DELETE';
+
+  useDialogFocusTrap(dialogRef, {
+    initialFocusRef: cancelButtonRef,
+    onEscape: isDeleting ? undefined : onClose,
+  });
 
   async function handleDelete() {
     if (!isConfirmed || isDeleting) {
@@ -1090,8 +1095,13 @@ function DeleteAccountModal({
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop)] p-4 backdrop-blur-sm"
       role="dialog"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isDeleting) {
+          onClose();
+        }
+      }}
     >
-      <div className="glass-surface w-full max-w-md rounded-3xl p-5">
+      <div className="glass-surface w-full max-w-md rounded-3xl p-5" ref={dialogRef}>
         <div className="flex items-start gap-3">
           <div className="danger-soft text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
             <Trash2 className="size-5" aria-hidden="true" />
@@ -1113,6 +1123,7 @@ function DeleteAccountModal({
             {t('Type DELETE to confirm')}
           </span>
           <input
+            aria-label={t('Type DELETE to confirm')}
             className={inputClassName(false)}
             disabled={isDeleting}
             value={confirmation}
@@ -1132,6 +1143,7 @@ function DeleteAccountModal({
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             disabled={isDeleting}
+            ref={cancelButtonRef}
             type="button"
             variant="outline"
             onClick={onClose}

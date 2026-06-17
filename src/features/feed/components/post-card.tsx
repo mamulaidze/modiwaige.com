@@ -11,10 +11,15 @@ type PostCardProps = {
 
 export function PostCard({ post }: PostCardProps) {
   const { language, localizedPath, t } = useI18n();
+  const postUrl = localizedPath(`/posts/${post.id}`);
 
   return (
     <article className="premium-card premium-card-hover group overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1">
-      <div className="bg-muted aspect-[4/3] w-full overflow-hidden">
+      <Link
+        aria-label={post.title}
+        className="bg-muted focus-visible:ring-ring block aspect-[4/3] w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset"
+        to={postUrl}
+      >
         {post.imageUrl ? (
           <img
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"
@@ -27,14 +32,14 @@ export function PostCard({ post }: PostCardProps) {
             <ImageIcon className="size-9" aria-hidden="true" />
           </div>
         )}
-      </div>
+      </Link>
 
       <div className="relative space-y-3 p-4">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <h2 className="line-clamp-2 text-base leading-6 font-semibold tracking-tight">
             <Link
               className="focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2"
-              to={localizedPath(`/posts/${post.id}`)}
+              to={postUrl}
             >
               <span className="absolute inset-0" aria-hidden="true" />
               {post.title}

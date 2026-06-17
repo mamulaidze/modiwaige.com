@@ -45,7 +45,20 @@ type AdminReportRow = {
   posts: {
     id: string;
     title: string;
+    location: string;
+    status: string;
   } | null;
+};
+
+export type AdminListParams = {
+  page: number;
+  pageSize: number;
+  search?: string;
+};
+
+export type AdminListResult<T> = {
+  items: T[];
+  total: number;
 };
 
 export type AdminStats = Omit<AdminStatsRow, 'error'>;
@@ -82,6 +95,8 @@ export type AdminReport = {
   post: {
     id: string;
     title: string;
+    location: string;
+    status: string;
   } | null;
 };
 
@@ -131,8 +146,14 @@ export async function fetchAdminStats(): Promise<AdminStats> {
   };
 }
 
-export async function fetchAdminUsers(): Promise<AdminUser[]> {
-  const { data, error } = await supabase
+export async function fetchAdminUsers({
+  page,
+  pageSize,
+  search,
+}: AdminListParams): Promise<AdminListResult<AdminUser>> {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  const query = supabase
     .from('profiles')
     .select(
       `
@@ -148,27 +169,51 @@ export async function fetchAdminUsers(): Promise<AdminUser[]> {
           id
         )
       `,
+      { count: 'exact' },
     )
     .order('created_at', { ascending: false })
-    .limit(50);
+    .range(from, to);
+
+  const normalizedSearch = normalizeAdminSearch(search);
+
+  if (normalizedSearch) {
+    query.or(
+      [
+        `display_name.ilike.%${normalizedSearch}%`,
+        `location.ilike.%${normalizedSearch}%`,
+        `role.ilike.%${normalizedSearch}%`,
+      ].join(','),
+    );
+  }
+
+  const { count, data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as unknown as AdminProfileRow[]).map((user) => ({
-    id: user.id,
-    displayName: user.display_name,
-    location: user.location,
-    role: user.role,
-    createdAt: user.created_at,
-    postCount: user.posts?.length ?? 0,
-    reservationCount: user.reservations?.length ?? 0,
-  }));
+  return {
+    items: ((data ?? []) as unknown as AdminProfileRow[]).map((user) => ({
+      id: user.id,
+      displayName: user.display_name,
+      location: user.location,
+      role: user.role,
+      createdAt: user.created_at,
+      postCount: user.posts?.length ?? 0,
+      reservationCount: user.reservations?.length ?? 0,
+    })),
+    total: count ?? 0,
+  };
 }
 
-export async function fetchAdminPosts(): Promise<AdminPost[]> {
-  const { data, error } = await supabase
+export async function fetchAdminPosts({
+  page,
+  pageSize,
+  search,
+}: AdminListParams): Promise<AdminListResult<AdminPost>> {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  const query = supabase
     .from('posts')
     .select(
       `
@@ -186,29 +231,54 @@ export async function fetchAdminPosts(): Promise<AdminPost[]> {
           id
         )
       `,
+      { count: 'exact' },
     )
     .order('created_at', { ascending: false })
-    .limit(50);
+    .range(from, to);
+
+  const normalizedSearch = normalizeAdminSearch(search);
+
+  if (normalizedSearch) {
+    query.or(
+      [
+        `title.ilike.%${normalizedSearch}%`,
+        `location.ilike.%${normalizedSearch}%`,
+        `category.ilike.%${normalizedSearch}%`,
+        `status.ilike.%${normalizedSearch}%`,
+      ].join(','),
+    );
+  }
+
+  const { count, data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as unknown as AdminPostRow[]).map((post) => ({
-    id: post.id,
-    title: post.title,
-    category: post.category,
-    location: post.location,
-    status: post.status,
-    createdAt: post.created_at,
-    expiresAt: post.expires_at,
-    ownerName: post.profiles?.display_name ?? 'Unknown member',
-    reportCount: post.reports?.length ?? 0,
-  }));
+  return {
+    items: ((data ?? []) as unknown as AdminPostRow[]).map((post) => ({
+      id: post.id,
+      title: post.title,
+      category: post.category,
+      location: post.location,
+      status: post.status,
+      createdAt: post.created_at,
+      expiresAt: post.expires_at,
+      ownerName: post.profiles?.display_name ?? 'Unknown member',
+      reportCount: post.reports?.length ?? 0,
+    })),
+    total: count ?? 0,
+  };
 }
 
-export async function fetchAdminReports(): Promise<AdminReport[]> {
-  const { data, error } = await supabase
+export async function fetchAdminReports({
+  page,
+  pageSize,
+  search,
+}: AdminListParams): Promise<AdminListResult<AdminReport>> {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  const query = supabase
     .from('reports')
     .select(
       `
@@ -222,26 +292,46 @@ export async function fetchAdminReports(): Promise<AdminReport[]> {
         ),
         posts (
           id,
-          title
+          title,
+          location,
+          status
         )
       `,
+      { count: 'exact' },
     )
     .order('created_at', { ascending: false })
-    .limit(50);
+    .range(from, to);
+
+  const normalizedSearch = normalizeAdminSearch(search);
+
+  if (normalizedSearch) {
+    query.or(
+      [
+        `subject.ilike.%${normalizedSearch}%`,
+        `body.ilike.%${normalizedSearch}%`,
+        `status.ilike.%${normalizedSearch}%`,
+      ].join(','),
+    );
+  }
+
+  const { count, data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as unknown as AdminReportRow[]).map((report) => ({
-    id: report.id,
-    subject: report.subject,
-    body: report.body,
-    status: report.status,
-    createdAt: report.created_at,
-    reporterName: report.profiles?.display_name ?? 'Unknown member',
-    post: report.posts,
-  }));
+  return {
+    items: ((data ?? []) as unknown as AdminReportRow[]).map((report) => ({
+      id: report.id,
+      subject: report.subject,
+      body: report.body,
+      status: report.status,
+      createdAt: report.created_at,
+      reporterName: report.profiles?.display_name ?? 'Unknown member',
+      post: report.posts,
+    })),
+    total: count ?? 0,
+  };
 }
 
 export async function deleteAdminPost(postId: string) {
@@ -267,4 +357,10 @@ export async function updateReportStatus(
   if (error) {
     throw new Error(error.message);
   }
+}
+
+function normalizeAdminSearch(value: string | undefined) {
+  const normalized = value?.trim().replaceAll('%', '').replaceAll(',', '');
+
+  return normalized || null;
 }

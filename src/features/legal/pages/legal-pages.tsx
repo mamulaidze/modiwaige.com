@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n, type Language } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
@@ -289,6 +290,7 @@ function LegalPage({ pageKey }: { pageKey: LegalPageKey }) {
 
   return (
     <PageContainer className="gap-6">
+      <Seo title={page.title} description={page.intro} />
       <section className="space-y-4">
         <div className="glass-control text-primary w-fit rounded-full px-3 py-2 text-sm font-semibold">
           {t('Legal and trust')}

@@ -11,7 +11,7 @@ import {
   Trash2,
   User,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Controller,
   useForm,
@@ -32,7 +32,9 @@ import { CityPicker } from '@/shared/components/city-picker';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
+import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
@@ -297,6 +299,7 @@ export function PostDetailsPage() {
   const isEditing =
     isOwner && (isEditingManually || searchParams.get('edit') === '1');
   const activeImage = post.images[activeImageIndex];
+  const postDescription = post.description.replace(/\s+/g, ' ').trim();
   const viewerActiveReservation =
     !isOwner && post.activeReservation?.requesterId === user?.id
       ? post.activeReservation
@@ -304,6 +307,16 @@ export function PostDetailsPage() {
 
   return (
     <PageContainer className="gap-6">
+      <Seo
+        title={post.title}
+        description={
+          postDescription.length > 155
+            ? `${postDescription.slice(0, 152)}...`
+            : postDescription
+        }
+        type="article"
+      />
+
       <Button asChild className="w-fit" variant="outline">
         <Link to={localizedPath('/')}>
           <ArrowLeft className="size-4" aria-hidden="true" />
@@ -865,6 +878,14 @@ function ImageViewerModal({
   onClose: () => void;
   title: string;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useDialogFocusTrap(dialogRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onClose,
+  });
+
   return (
     <div
       aria-label="Full image viewer"
@@ -872,10 +893,12 @@ function ImageViewerModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop-strong)] p-3 backdrop-blur-sm sm:p-5"
       role="dialog"
       onClick={onClose}
+      ref={dialogRef}
     >
       <button
         aria-label="Close image"
         className="glass-control text-foreground focus-visible:ring-ring absolute top-3 right-3 flex size-10 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+        ref={closeButtonRef}
         type="button"
         onClick={onClose}
       >
@@ -976,6 +999,8 @@ function ReportPostModal({
   onSubmit: (values: { body: string; subject: string }) => void;
 }) {
   const { t } = useI18n();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const canSubmit =
@@ -984,14 +1009,28 @@ function ReportPostModal({
     body.trim().length >= 2 &&
     body.trim().length <= 1000;
 
+  useDialogFocusTrap(dialogRef, {
+    initialFocusRef: cancelButtonRef,
+    onEscape: isSubmitting ? undefined : onClose,
+  });
+
   return (
     <div
+      aria-describedby="report-post-description"
       aria-labelledby="report-post-title"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop)] p-4 backdrop-blur-sm"
       role="dialog"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isSubmitting) {
+          onClose();
+        }
+      }}
     >
-      <div className="glass-surface max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl p-4 sm:p-5">
+      <div
+        className="glass-surface max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl p-4 sm:p-5"
+        ref={dialogRef}
+      >
         <div className="flex min-w-0 items-start gap-3">
           <div className="bg-destructive/10 text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
             <FileWarning className="size-5" aria-hidden="true" />
@@ -1000,7 +1039,10 @@ function ReportPostModal({
             <h2 className="text-lg font-semibold" id="report-post-title">
               {t('Report item')}
             </h2>
-            <p className="text-muted-foreground mt-2 text-sm leading-6 [overflow-wrap:anywhere] break-words">
+            <p
+              className="text-muted-foreground mt-2 text-sm leading-6 [overflow-wrap:anywhere] break-words"
+              id="report-post-description"
+            >
               {t(
                 'Reports are reviewed by admins and help keep the marketplace safe.',
               )}
@@ -1032,6 +1074,7 @@ function ReportPostModal({
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             disabled={isSubmitting}
+            ref={cancelButtonRef}
             type="button"
             variant="outline"
             onClick={onClose}

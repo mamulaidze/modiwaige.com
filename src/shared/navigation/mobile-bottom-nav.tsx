@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom';
 
 import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
-import { useUnreadReservationNotifications } from '@/features/notifications/hooks/use-unread-reservation-notifications';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 import { navigationItems } from './navigation-items';
@@ -10,7 +9,6 @@ import { navigationItems } from './navigation-items';
 export function MobileBottomNav() {
   const { isAuthenticated } = useAuth();
   const adminStatus = useAdminStatus();
-  const unreadReservations = useUnreadReservationNotifications();
   const { localizedPath, t } = useI18n();
   const visibleItems = navigationItems.filter((item) => {
     if (item.adminOnly) {
@@ -52,16 +50,7 @@ export function MobileBottomNav() {
             key={item.href}
             to={localizedPath(item.href)}
           >
-            <span className="relative">
-              <item.icon className="size-[18px]" aria-hidden="true" />
-              {item.href === '/profile' &&
-              Number(unreadReservations.data ?? 0) > 0 ? (
-                <span
-                  aria-label={t('New reservation activity')}
-                  className="bg-destructive absolute -top-1 -right-1 size-2.5 rounded-full"
-                />
-              ) : null}
-            </span>
+            <item.icon className="size-[18px]" aria-hidden="true" />
             {t(item.labelKey)}
           </NavLink>
         ))}

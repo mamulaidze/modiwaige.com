@@ -1,7 +1,8 @@
 import { AlertTriangle } from 'lucide-react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
+import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 
@@ -17,15 +18,6 @@ type ConfirmDialogProps = {
   onCancel: () => void;
   onConfirm: () => void;
 };
-
-const focusableSelector = [
-  'button:not([disabled])',
-  '[href]',
-  'input:not([disabled])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',');
 
 export function ConfirmDialog({
   cancelLabel,
@@ -45,57 +37,10 @@ export function ConfirmDialog({
   const titleId = 'confirm-dialog-title';
   const descriptionId = 'confirm-dialog-description';
 
-  useEffect(() => {
-    const previousActiveElement = document.activeElement;
-    cancelButtonRef.current?.focus();
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        if (!isLoading) {
-          onCancel();
-        }
-        return;
-      }
-
-      if (event.key !== 'Tab') {
-        return;
-      }
-
-      const focusableElements = Array.from(
-        dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ??
-          [],
-      );
-
-      if (focusableElements.length === 0) {
-        return;
-      }
-
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
-
-      if (event.shiftKey && document.activeElement === firstElement) {
-        event.preventDefault();
-        lastElement.focus();
-        return;
-      }
-
-      if (!event.shiftKey && document.activeElement === lastElement) {
-        event.preventDefault();
-        firstElement.focus();
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-
-      if (previousActiveElement instanceof HTMLElement) {
-        previousActiveElement.focus();
-      }
-    };
-  }, [isLoading, onCancel]);
+  useDialogFocusTrap(dialogRef, {
+    initialFocusRef: cancelButtonRef,
+    onEscape: isLoading ? undefined : onCancel,
+  });
 
   return (
     <div

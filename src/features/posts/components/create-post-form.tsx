@@ -181,6 +181,7 @@ export function CreatePostForm() {
             {t('Title')}
           </label>
           <input
+            aria-describedby={errors.title ? 'title-error' : undefined}
             aria-invalid={Boolean(errors.title)}
             className={inputClassName(Boolean(errors.title))}
             id="title"
@@ -189,7 +190,7 @@ export function CreatePostForm() {
             {...register('title')}
           />
           {errors.title ? (
-            <FieldError message={t(errors.title.message ?? '')} />
+            <FieldError id="title-error" message={t(errors.title.message ?? '')} />
           ) : null}
         </div>
 
@@ -198,6 +199,9 @@ export function CreatePostForm() {
             {t('Description')}
           </label>
           <textarea
+            aria-describedby={
+              errors.description ? 'description-error' : undefined
+            }
             aria-invalid={Boolean(errors.description)}
             className={cn(
               inputClassName(Boolean(errors.description)),
@@ -215,7 +219,10 @@ export function CreatePostForm() {
             )}
           </p>
           {errors.description ? (
-            <FieldError message={t(errors.description.message ?? '')} />
+            <FieldError
+              id="description-error"
+              message={t(errors.description.message ?? '')}
+            />
           ) : null}
         </div>
       </section>
@@ -261,7 +268,10 @@ export function CreatePostForm() {
           })}
         </div>
         {errors.category ? (
-          <FieldError message={t(errors.category.message ?? '')} />
+          <FieldError
+            id="category-error"
+            message={t(errors.category.message ?? '')}
+          />
         ) : null}
       </section>
 
@@ -274,6 +284,7 @@ export function CreatePostForm() {
 
         <input type="hidden" {...register('city')} />
         <CityPicker
+          errorMessageId={errors.city ? 'city-error' : undefined}
           error={Boolean(errors.city)}
           options={cityOptions}
           searchLabel={t('Search city')}
@@ -286,7 +297,7 @@ export function CreatePostForm() {
           }
         />
         {errors.city ? (
-          <FieldError message={t(errors.city.message ?? '')} />
+          <FieldError id="city-error" message={t(errors.city.message ?? '')} />
         ) : null}
       </section>
 
@@ -349,6 +360,8 @@ export function CreatePostForm() {
               {remainingPhotoSlots} {t('slots left')}
             </span>
             <input
+              aria-describedby={photoError ? 'photos-error' : undefined}
+              aria-invalid={Boolean(photoError)}
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
               multiple
@@ -360,7 +373,9 @@ export function CreatePostForm() {
           </label>
         ) : null}
 
-        {photoError ? <FieldError message={t(photoError)} /> : null}
+        {photoError ? (
+          <FieldError id="photos-error" message={t(photoError)} />
+        ) : null}
       </section>
 
       {formError ? (
@@ -416,10 +431,14 @@ function inputClassName(hasError: boolean) {
   );
 }
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ id, message }: { id?: string; message?: string }) {
   if (!message) {
     return null;
   }
 
-  return <p className="text-destructive text-sm">{message}</p>;
+  return (
+    <p className="text-destructive text-sm" id={id}>
+      {message}
+    </p>
+  );
 }

@@ -1,19 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
+  Eye,
   FileWarning,
   Search,
   ShieldCheck,
   Trash2,
   Users,
+  X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
+import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
 import { useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { cn } from '@/shared/lib/cn';
@@ -33,11 +37,15 @@ import {
 } from '../api/admin-api';
 
 type AdminTab = 'users' | 'posts' | 'reports';
-const ADMIN_TABLE_LIMIT = 10;
+const ADMIN_PAGE_SIZE = 10;
+const initialTableState = { page: 0, search: '' };
 
 export function AdminDashboardPage() {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
+  const [usersState, setUsersState] = useState(initialTableState);
+  const [postsState, setPostsState] = useState(initialTableState);
+  const [reportsState, setReportsState] = useState(initialTableState);
   const queryClient = useQueryClient();
 
   const statsQuery = useQuery({
@@ -46,18 +54,33 @@ export function AdminDashboardPage() {
   });
 
   const usersQuery = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: fetchAdminUsers,
+    queryKey: ['admin-users', usersState.page, usersState.search],
+    queryFn: () =>
+      fetchAdminUsers({
+        page: usersState.page,
+        pageSize: ADMIN_PAGE_SIZE,
+        search: usersState.search,
+      }),
   });
 
   const postsQuery = useQuery({
-    queryKey: ['admin-posts'],
-    queryFn: fetchAdminPosts,
+    queryKey: ['admin-posts', postsState.page, postsState.search],
+    queryFn: () =>
+      fetchAdminPosts({
+        page: postsState.page,
+        pageSize: ADMIN_PAGE_SIZE,
+        search: postsState.search,
+      }),
   });
 
   const reportsQuery = useQuery({
-    queryKey: ['admin-reports'],
-    queryFn: fetchAdminReports,
+    queryKey: ['admin-reports', reportsState.page, reportsState.search],
+    queryFn: () =>
+      fetchAdminReports({
+        page: reportsState.page,
+        pageSize: ADMIN_PAGE_SIZE,
+        search: reportsState.search,
+      }),
   });
 
   const deletePostMutation = useMutation({
@@ -96,6 +119,15 @@ export function AdminDashboardPage() {
 
   return (
     <PageContainer className="gap-6">
+      <Seo
+        noindex
+        title={language === 'ge' ? 'ადმინ პანელი' : 'Admin dashboard'}
+        description={
+          language === 'ge'
+            ? 'Gaachuqe-ის ადმინისტრირების პანელი მომხმარებლების, განცხადებების და რეპორტების სამართავად.'
+            : 'Gaachuqe admin dashboard for users, posts, reports, and moderation.'
+        }
+      />
       <section className="premium-card rounded-3xl p-5">
         <div className="flex items-start gap-3">
           <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
@@ -152,22 +184,51 @@ export function AdminDashboardPage() {
       ) : null}
 
       {!isLoading && !error && activeTab === 'users' ? (
-        <UsersTable users={usersQuery.data ?? []} />
+        <UsersTable
+          page={usersState.page}
+          searchQuery={usersState.search}
+          total={usersQuery.data?.total ?? 0}
+          users={usersQuery.data?.items ?? []}
+          onPageChange={(page) =>
+            setUsersState((state) => ({ ...state, page }))
+          }
+          onSearchChange={(search) =>
+            setUsersState({ page: 0, search })
+          }
+        />
       ) : null}
 
       {!isLoading && !error && activeTab === 'posts' ? (
         <PostsTable
           deletingPostId={deletePostMutation.variables ?? null}
           error={deletePostMutation.error}
-          posts={postsQuery.data ?? []}
+          page={postsState.page}
+          posts={postsQuery.data?.items ?? []}
+          searchQuery={postsState.search}
+          total={postsQuery.data?.total ?? 0}
           onDelete={(postId) => deletePostMutation.mutate(postId)}
+          onPageChange={(page) =>
+            setPostsState((state) => ({ ...state, page }))
+          }
+          onSearchChange={(search) =>
+            setPostsState({ page: 0, search })
+          }
         />
       ) : null}
 
       {!isLoading && !error && activeTab === 'reports' ? (
         <ReportsTable
-          reports={reportsQuery.data ?? []}
+          page={reportsState.page}
+          reports={reportsQuery.data?.items ?? []}
+          searchQuery={reportsState.search}
+          total={reportsQuery.data?.total ?? 0}
           updatingReportId={reportStatusMutation.variables?.reportId ?? null}
+          onPageChange={(page) =>
+            setReportsState((state) => ({ ...state, page }))
+          }
+          onSearchChange={(search) =>
+            setReportsState({ page: 0, search })
+          }
           onStatusChange={(reportId, status) =>
             reportStatusMutation.mutate({ reportId, status })
           }
@@ -231,21 +292,24 @@ function TabButton({
   );
 }
 
-function UsersTable({ users }: { users: AdminUser[] }) {
+function UsersTable({
+  onPageChange,
+  onSearchChange,
+  page,
+  searchQuery,
+  total,
+  users,
+}: {
+  onPageChange: (page: number) => void;
+  onSearchChange: (query: string) => void;
+  page: number;
+  searchQuery: string;
+  total: number;
+  users: AdminUser[];
+}) {
   const { language, t } = useI18n();
-  const [searchQuery, setSearchQuery] = useState('');
-  const filteredUsers = users.filter((user) =>
-    matchesSearch(searchQuery, [
-      user.displayName,
-      user.location,
-      user.role,
-      String(user.postCount),
-      String(user.reservationCount),
-    ]),
-  );
-  const visibleUsers = filteredUsers.slice(0, ADMIN_TABLE_LIMIT);
 
-  if (users.length === 0) {
+  if (users.length === 0 && !searchQuery) {
     return (
       <EmptyState
         title={t('No users')}
@@ -259,10 +323,10 @@ function UsersTable({ users }: { users: AdminUser[] }) {
       <AdminSearch
         label={t('Search users')}
         value={searchQuery}
-        onChange={setSearchQuery}
+        onChange={onSearchChange}
       />
 
-      {filteredUsers.length === 0 ? (
+      {users.length === 0 ? (
         <EmptyState
           title={t('No matching results')}
           description={t('Try a different search.')}
@@ -279,7 +343,7 @@ function UsersTable({ users }: { users: AdminUser[] }) {
             </tr>
           </thead>
           <tbody>
-            {visibleUsers.map((user) => (
+            {users.map((user) => (
               <tr className="border-t" key={user.id}>
                 <BodyCell>
                   <div className="flex items-center gap-2">
@@ -301,6 +365,13 @@ function UsersTable({ users }: { users: AdminUser[] }) {
           </tbody>
         </AdminTable>
       )}
+
+      <PaginationControls
+        page={page}
+        pageSize={ADMIN_PAGE_SIZE}
+        total={total}
+        onPageChange={onPageChange}
+      />
     </section>
   );
 }
@@ -309,29 +380,27 @@ function PostsTable({
   deletingPostId,
   error,
   onDelete,
+  onPageChange,
+  onSearchChange,
+  page,
   posts,
+  searchQuery,
+  total,
 }: {
   deletingPostId: string | null;
   error: unknown;
   onDelete: (postId: string) => void;
+  onPageChange: (page: number) => void;
+  onSearchChange: (query: string) => void;
+  page: number;
   posts: AdminPost[];
+  searchQuery: string;
+  total: number;
 }) {
   const { language, localizedPath, t } = useI18n();
   const [confirmingPostId, setConfirmingPostId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const filteredPosts = posts.filter((post) =>
-    matchesSearch(searchQuery, [
-      post.title,
-      post.ownerName,
-      post.location,
-      post.category,
-      post.status,
-      String(post.reportCount),
-    ]),
-  );
-  const visiblePosts = filteredPosts.slice(0, ADMIN_TABLE_LIMIT);
 
-  if (posts.length === 0) {
+  if (posts.length === 0 && !searchQuery) {
     return (
       <EmptyState
         title={t('No posts')}
@@ -345,10 +414,10 @@ function PostsTable({
       <AdminSearch
         label={t('Search posts')}
         value={searchQuery}
-        onChange={setSearchQuery}
+        onChange={onSearchChange}
       />
 
-      {filteredPosts.length === 0 ? (
+      {posts.length === 0 ? (
         <EmptyState
           title={t('No matching results')}
           description={t('Try a different search.')}
@@ -366,7 +435,7 @@ function PostsTable({
             </tr>
           </thead>
           <tbody>
-            {visiblePosts.map((post) => {
+            {posts.map((post) => {
               const isDeleting = deletingPostId === post.id;
 
               return (
@@ -405,6 +474,13 @@ function PostsTable({
         </AdminTable>
       )}
 
+      <PaginationControls
+        page={page}
+        pageSize={ADMIN_PAGE_SIZE}
+        total={total}
+        onPageChange={onPageChange}
+      />
+
       {error ? (
         <p
           className="text-destructive rounded-md border border-current p-3 text-sm"
@@ -436,31 +512,33 @@ function PostsTable({
 
 function ReportsTable({
   onStatusChange,
+  onPageChange,
+  onSearchChange,
+  page,
   reports,
+  searchQuery,
+  total,
   updatingReportId,
 }: {
+  onPageChange: (page: number) => void;
+  onSearchChange: (query: string) => void;
   onStatusChange: (reportId: string, status: AdminReport['status']) => void;
+  page: number;
   reports: AdminReport[];
+  searchQuery: string;
+  total: number;
   updatingReportId: string | null;
 }) {
   const { language, localizedPath, t } = useI18n();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedReport, setSelectedReport] = useState<AdminReport | null>(
+    null,
+  );
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     reportId: string;
     status: AdminReport['status'];
   } | null>(null);
-  const filteredReports = reports.filter((report) =>
-    matchesSearch(searchQuery, [
-      report.subject,
-      report.body,
-      report.reporterName,
-      report.status,
-      report.post?.title ?? '',
-    ]),
-  );
-  const visibleReports = filteredReports.slice(0, ADMIN_TABLE_LIMIT);
 
-  if (reports.length === 0) {
+  if (reports.length === 0 && !searchQuery) {
     return (
       <EmptyState
         title={t('No reports')}
@@ -474,10 +552,10 @@ function ReportsTable({
       <AdminSearch
         label={t('Search reports')}
         value={searchQuery}
-        onChange={setSearchQuery}
+        onChange={onSearchChange}
       />
 
-      {filteredReports.length === 0 ? (
+      {reports.length === 0 ? (
         <EmptyState
           title={t('No matching results')}
           description={t('Try a different search.')}
@@ -491,10 +569,11 @@ function ReportsTable({
               <HeaderCell>{t('Reporter')}</HeaderCell>
               <HeaderCell>{t('Status')}</HeaderCell>
               <HeaderCell>{t('Created')}</HeaderCell>
+              <HeaderCell>{t('Action')}</HeaderCell>
             </tr>
           </thead>
           <tbody>
-            {visibleReports.map((report) => (
+            {reports.map((report) => (
               <tr className="border-t align-top" key={report.id}>
                 <BodyCell>
                   <div className="flex items-start gap-2">
@@ -522,6 +601,7 @@ function ReportsTable({
                 <BodyCell>{report.reporterName}</BodyCell>
                 <BodyCell>
                   <select
+                    aria-label={t('Report status')}
                     className="modern-input h-10 rounded-2xl px-3 text-sm outline-none"
                     disabled={updatingReportId === report.id}
                     value={report.status}
@@ -539,11 +619,28 @@ function ReportsTable({
                   </select>
                 </BodyCell>
                 <BodyCell>{formatDate(report.createdAt, language)}</BodyCell>
+                <BodyCell>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSelectedReport(report)}
+                  >
+                    <Eye className="size-4" aria-hidden="true" />
+                    {t('Details')}
+                  </Button>
+                </BodyCell>
               </tr>
             ))}
           </tbody>
         </AdminTable>
       )}
+
+      <PaginationControls
+        page={page}
+        pageSize={ADMIN_PAGE_SIZE}
+        total={total}
+        onPageChange={onPageChange}
+      />
 
       {pendingStatusChange ? (
         <ConfirmDialog
@@ -560,6 +657,13 @@ function ReportsTable({
             );
             setPendingStatusChange(null);
           }}
+        />
+      ) : null}
+
+      {selectedReport ? (
+        <ReportDetailModal
+          report={selectedReport}
+          onClose={() => setSelectedReport(null)}
         />
       ) : null}
     </section>
@@ -593,15 +697,160 @@ function AdminSearch({
   );
 }
 
-function matchesSearch(query: string, values: string[]) {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
+function PaginationControls({
+  onPageChange,
+  page,
+  pageSize,
+  total,
+}: {
+  onPageChange: (page: number) => void;
+  page: number;
+  pageSize: number;
+  total: number;
+}) {
+  const { t } = useI18n();
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const from = total === 0 ? 0 : page * pageSize + 1;
+  const to = Math.min(total, (page + 1) * pageSize);
 
-  if (!normalizedQuery) {
-    return true;
-  }
+  return (
+    <div className="flex flex-col gap-3 rounded-3xl border border-border/70 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-muted-foreground">
+        {from}-{to} {t('of')} {total}
+      </p>
+      <div className="flex items-center gap-2">
+        <Button
+          disabled={page === 0}
+          type="button"
+          variant="outline"
+          onClick={() => onPageChange(Math.max(0, page - 1))}
+        >
+          {t('Previous')}
+        </Button>
+        <span className="text-muted-foreground px-2">
+          {page + 1} / {pageCount}
+        </span>
+        <Button
+          disabled={page + 1 >= pageCount}
+          type="button"
+          variant="outline"
+          onClick={() => onPageChange(page + 1)}
+        >
+          {t('Next')}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
-  return values.some((value) =>
-    value.toLocaleLowerCase().includes(normalizedQuery),
+function ReportDetailModal({
+  onClose,
+  report,
+}: {
+  onClose: () => void;
+  report: AdminReport;
+}) {
+  const { localizedPath, t } = useI18n();
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useDialogFocusTrap(dialogRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onClose,
+  });
+
+  return (
+    <div
+      aria-labelledby="report-detail-title"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end bg-black/55 p-3 backdrop-blur-sm sm:items-center sm:justify-center"
+      role="dialog"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <section
+        className="premium-card max-h-[90svh] w-full max-w-2xl overflow-y-auto rounded-3xl p-5 shadow-2xl"
+        ref={dialogRef}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-muted-foreground text-xs font-semibold uppercase">
+              {t('Report details')}
+            </p>
+            <h2
+              className="mt-1 text-xl font-semibold"
+              id="report-detail-title"
+            >
+              {report.subject}
+            </h2>
+          </div>
+          <Button
+            aria-label={t('Close')}
+            className="size-10 rounded-full p-0"
+            ref={closeButtonRef}
+            type="button"
+            variant="outline"
+            onClick={onClose}
+          >
+            <X className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
+
+        <div className="mt-5 grid gap-4">
+          <DetailBlock label={t('Reason')} value={report.subject} />
+          <DetailBlock label={t('Report text')} value={report.body} />
+          <DetailBlock label={t('Reporter')} value={report.reporterName} />
+          <DetailBlock label={t('Status')} value={formatValue(report.status, t)} />
+
+          <div className="rounded-2xl border border-border/70 p-4">
+            <p className="text-muted-foreground text-xs font-semibold uppercase">
+              {t('Post context')}
+            </p>
+            {report.post ? (
+              <div className="mt-2 space-y-2">
+                <Link
+                  className="font-medium underline-offset-4 hover:underline"
+                  to={localizedPath(`/posts/${report.post.id}`)}
+                >
+                  {report.post.title}
+                </Link>
+                <p className="text-muted-foreground text-sm">
+                  {t(report.post.location)} - {formatValue(report.post.status, t)}
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground mt-2 text-sm">
+                {t('Deleted post')}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-border/80 p-4">
+            <p className="text-muted-foreground text-xs font-semibold uppercase">
+              {t('Status history')}
+            </p>
+            <p className="text-muted-foreground mt-2 text-sm">
+              {t('Status history is not available yet.')}
+            </p>
+            {/* TODO: Load report status history here after an admin audit log table is added. */}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function DetailBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border/70 p-4">
+      <p className="text-muted-foreground text-xs font-semibold uppercase">
+        {label}
+      </p>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{value}</p>
+    </div>
   );
 }
 

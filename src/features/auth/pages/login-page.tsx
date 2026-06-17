@@ -11,13 +11,14 @@ import {
   loginSchema,
   type LoginFormValues,
 } from '@/features/auth/validation/auth-schemas';
+import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 export function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
-  const { localizedPath, t } = useI18n();
+  const { language, localizedPath, t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,6 +60,15 @@ export function LoginPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8">
+      <Seo
+        noindex
+        title={language === 'ge' ? 'შესვლა' : 'Log in'}
+        description={
+          language === 'ge'
+            ? 'შედით Gaachuqe-ის ანგარიშში განცხადებების, ჯავშნების და პროფილის სამართავად.'
+            : 'Log in to Gaachuqe to manage posts, reservations, and your profile.'
+        }
+      />
       <div className="glass-surface rounded-[28px] p-5 sm:p-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -88,6 +98,14 @@ export function LoginPage() {
             registration={register('password')}
             type="password"
           />
+          <div className="text-right">
+            <Link
+              className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+              to={localizedPath('/forgot-password')}
+            >
+              {t('Forgot password?')}
+            </Link>
+          </div>
 
           {formError ? (
             <p

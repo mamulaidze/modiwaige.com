@@ -29,6 +29,7 @@ type CityPickerProps = {
   className?: string;
   disabled?: boolean;
   error?: boolean;
+  errorMessageId?: string;
 };
 
 export function CityPicker({
@@ -37,6 +38,7 @@ export function CityPicker({
   clearLabel,
   disabled = false,
   error = false,
+  errorMessageId,
   label,
   noResultsLabel,
   onChange,
@@ -179,6 +181,7 @@ export function CityPicker({
       ) : null}
       <div className="relative">
         <button
+          aria-describedby={errorMessageId}
           aria-controls={`${id}-listbox`}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
