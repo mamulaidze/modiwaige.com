@@ -6,7 +6,8 @@ import { localizePath, useOptionalI18n } from '@/shared/i18n/i18n';
 export function NotFoundPage() {
   const i18n = useOptionalI18n();
   const t = i18n?.t ?? ((text: string) => text);
-  const homePath = i18n?.localizedPath('/') ?? localizePath('/', 'ge');
+  const homePath =
+    i18n?.localizedPath('/homepage') ?? localizePath('/homepage', 'ge');
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col items-start justify-center gap-4 px-4">

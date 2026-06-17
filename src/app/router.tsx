@@ -79,7 +79,7 @@ function withSuspense(element: ReactNode) {
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate replace to="/ge" />,
+    element: <Navigate replace to="/ge/homepage" />,
   },
   {
     path: '/homepage',
@@ -140,7 +140,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: withSuspense(<HomePage />),
+        element: <Navigate replace to="homepage" />,
       },
       {
         path: 'homepage',
