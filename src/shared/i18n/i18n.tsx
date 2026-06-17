@@ -541,6 +541,13 @@ const ruTranslations: Record<string, string> = {
   Declined: 'Отклонено',
   Completed: 'Завершено',
   Cancelled: 'Отменено',
+  Cancel: 'Отмена',
+  Confirm: 'Подтвердить',
+  Back: 'Назад',
+  Delete: 'Удалить',
+  'Saving...': 'Сохранение...',
+  'Deleting...': 'Удаление...',
+  'Cancelling...': 'Отмена...',
   Expires: 'Истекает',
 
   'Create Post': 'Добавить объявление',
