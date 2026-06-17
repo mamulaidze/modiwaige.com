@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import {
   Bike,
   BookOpen,
@@ -9,6 +9,7 @@ import {
   Laptop,
   Leaf,
   MapPin,
+  Megaphone,
   Search,
   Shirt,
   Sparkles,
@@ -23,7 +24,7 @@ import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
-import { useI18n } from '@/shared/i18n/i18n';
+import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { getFriendlyErrorMessage } from '@/shared/lib/errors';
 
@@ -171,17 +172,17 @@ export function HomePage() {
         <HomeStat
           icon={<Gift className="size-5" aria-hidden="true" />}
           label={t('items currently showing')}
-          value={posts.length.toLocaleString(language === 'ge' ? 'ka-GE' : 'en')}
+          value={posts.length.toLocaleString(getLanguageLocale(language))}
         />
         <HomeStat
           icon={<Users className="size-5" aria-hidden="true" />}
           label={t('ways to give')}
-          value={visibleCategoryCount.toLocaleString(language === 'ge' ? 'ka-GE' : 'en')}
+          value={visibleCategoryCount.toLocaleString(getLanguageLocale(language))}
         />
         <HomeStat
           icon={<Globe2 className="size-5" aria-hidden="true" />}
           label={t('cities across Georgia')}
-          value={visibleCityCount.toLocaleString(language === 'ge' ? 'ka-GE' : 'en')}
+          value={visibleCityCount.toLocaleString(getLanguageLocale(language))}
         />
       </section>
 
@@ -252,8 +253,14 @@ export function HomePage() {
             </span>
           </div>
           <div className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 lg:gap-5">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+            <AdPlaceholder slotNumber={1} />
+            {posts.map((post, index) => (
+              <Fragment key={post.id}>
+                <PostCard post={post} />
+                {shouldShowAdAfterPost(index, posts.length) ? (
+                  <AdPlaceholder slotNumber={Math.ceil((index + 1) / 6) + 1} />
+                ) : null}
+              </Fragment>
             ))}
           </div>
         </section>
@@ -276,6 +283,40 @@ export function HomePage() {
   function onChangeFilter(nextFilters: Partial<FeedFiltersValue>) {
     setFilters((current) => ({ ...current, ...nextFilters }));
   }
+}
+
+function shouldShowAdAfterPost(index: number, totalPosts: number) {
+  const postPosition = index + 1;
+
+  return postPosition % 6 === 0 && index < totalPosts - 1;
+}
+
+function AdPlaceholder({ slotNumber }: { slotNumber: number }) {
+  return (
+    <aside
+      aria-label={`Sponsored placement ${slotNumber}`}
+      className="premium-card col-span-1 overflow-hidden rounded-3xl border-dashed border-primary/35 bg-primary/5 p-5 min-[430px]:col-span-2 sm:col-span-3"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+            <Megaphone className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-muted-foreground text-xs font-semibold tracking-[0.16em] uppercase">
+              რეკლამა
+            </p>
+            <p className="mt-1 text-lg leading-7 font-semibold tracking-tight [overflow-wrap:anywhere]">
+              აქ შეიძლება იყოს თქვენი რეკლამა
+            </p>
+          </div>
+        </div>
+        <span className="text-muted-foreground rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold">
+          Sponsor
+        </span>
+      </div>
+    </aside>
+  );
 }
 
 function HomeStat({

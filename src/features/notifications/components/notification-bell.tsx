@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 import { useAuth } from '@/features/auth/context/use-auth';
 import { Button } from '@/shared/components/ui/button';
-import { useI18n } from '@/shared/i18n/i18n';
+import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 
 import {
@@ -246,7 +246,7 @@ function getNotificationBody(
 }
 
 function formatNotificationTime(value: string, language: string) {
-  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
+  return new Intl.DateTimeFormat(getLanguageLocale(language), {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',

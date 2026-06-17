@@ -10,6 +10,7 @@ const languageOptions: Array<{
 }> = [
   { label: 'ქართული', value: 'ge' },
   { label: 'English', value: 'en' },
+  { label: 'Русский', value: 'ru' },
 ];
 
 export function LanguageSwitcher() {

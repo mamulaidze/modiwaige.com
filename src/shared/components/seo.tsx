@@ -1,7 +1,12 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { useI18n, type Language } from '@/shared/i18n/i18n';
+import {
+  getLanguageLocale,
+  getOpenGraphLocale,
+  useI18n,
+  type Language,
+} from '@/shared/i18n/i18n';
 
 type SeoProps = {
   title: string;
@@ -46,12 +51,8 @@ export function Seo({
     setMeta('property', 'og:image:type', 'image/png');
     setMeta('property', 'og:image:width', '1200');
     setMeta('property', 'og:image:height', '630');
-    setMeta('property', 'og:locale', language === 'ge' ? 'ka_GE' : 'en_US');
-    setMeta(
-      'property',
-      'og:locale:alternate',
-      language === 'ge' ? 'en_US' : 'ka_GE',
-    );
+    setMeta('property', 'og:locale', getOpenGraphLocale(language));
+    setMeta('property', 'og:locale:alternate', getAlternateOpenGraphLocale(language));
     setMeta('name', 'twitter:card', 'summary_large_image');
     setMeta('name', 'twitter:title', fullTitle);
     setMeta('name', 'twitter:description', description);
@@ -126,7 +127,7 @@ function setAlternateLinks(pathname: string, search: string) {
 
   removeAlternateLinks();
 
-  const normalizedPath = pathname.replace(/^\/(ge|en)(?=\/|$)/, '') || '/';
+  const normalizedPath = pathname.replace(/^\/(ge|en|ru)(?=\/|$)/, '') || '/';
   const alternates: Array<{ hrefLang: string; path: string }> = [
     {
       hrefLang: 'ka-GE',
@@ -135,6 +136,10 @@ function setAlternateLinks(pathname: string, search: string) {
     {
       hrefLang: 'en',
       path: `/en${normalizedPath === '/' ? '' : normalizedPath}`,
+    },
+    {
+      hrefLang: 'ru-RU',
+      path: `/ru${normalizedPath === '/' ? '' : normalizedPath}`,
     },
     {
       hrefLang: 'x-default',
@@ -167,5 +172,13 @@ function normalizeSiteUrl(value: unknown) {
 }
 
 function languageToHtmlLang(language: Language) {
-  return language === 'ge' ? 'ka-GE' : 'en';
+  return getLanguageLocale(language);
+}
+
+function getAlternateOpenGraphLocale(language: Language) {
+  if (language === 'ge') {
+    return 'en_US';
+  }
+
+  return 'ka_GE';
 }

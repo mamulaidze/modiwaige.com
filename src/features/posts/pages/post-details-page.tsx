@@ -35,7 +35,7 @@ import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
 import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
-import { useI18n } from '@/shared/i18n/i18n';
+import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
@@ -1152,7 +1152,7 @@ function formatDate(value: string, language: string) {
     return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
   }
 
-  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
+  return new Intl.DateTimeFormat(getLanguageLocale(language), {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

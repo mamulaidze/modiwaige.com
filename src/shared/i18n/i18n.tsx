@@ -1,9 +1,9 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
-export type Language = 'ge' | 'en';
+export type Language = 'ge' | 'en' | 'ru';
 
-const languages: Language[] = ['ge', 'en'];
+const languages: Language[] = ['ge', 'en', 'ru'];
 const defaultLanguage: Language = 'ge';
 
 const translations: Record<string, string> = {
@@ -431,6 +431,211 @@ const translations: Record<string, string> = {
   'Go home': 'მთავარზე დაბრუნება',
 };
 
+const ruTranslations: Record<string, string> = {
+  'Free giving in Georgia': 'Бесплатные вещи в Грузии',
+  Home: 'Главная',
+  Create: 'Добавить',
+  Profile: 'Профиль',
+  Admin: 'Админ',
+  Login: 'Войти',
+  Register: 'Регистрация',
+  Privacy: 'Конфиденциальность',
+  Terms: 'Условия',
+  Safety: 'Безопасность',
+  Contact: 'Контакты',
+  'Legal and trust': 'Правовая информация и доверие',
+  'Log out': 'Выйти',
+  'Log out?': 'Выйти?',
+  'Do you really want to log out of your account?':
+    'Вы действительно хотите выйти из аккаунта?',
+  'Logging out...': 'Выход...',
+  Notifications: 'Уведомления',
+  unread: 'непрочитано',
+  'No unread notifications': 'Нет непрочитанных уведомлений',
+  'Mark all read': 'Отметить все как прочитанные',
+  'Loading notifications': 'Уведомления загружаются',
+  'Could not load notifications': 'Не удалось загрузить уведомления',
+  'No notifications yet': 'Уведомлений пока нет',
+  'New reservation request': 'Новый запрос на бронь',
+  'Reservation accepted': 'Бронь подтверждена',
+  'Reservation declined': 'Бронь отклонена',
+  'Reservation cancelled': 'Бронь отменена',
+  'Reservation completed': 'Бронь завершена',
+  'Someone reserved one of your items.': 'Кто-то забронировал вашу вещь.',
+  'Your reservation request was accepted.': 'Ваш запрос на бронь подтвержден.',
+  'Your reservation request was declined.': 'Ваш запрос на бронь отклонен.',
+  'A reservation was cancelled.': 'Бронь была отменена.',
+  'The item was marked as given.': 'Вещь отмечена как отданная.',
+  'Primary navigation': 'Основная навигация',
+  'Mobile navigation': 'Мобильная навигация',
+  'Skip to content': 'Перейти к содержимому',
+  'Switch to dark mode': 'Включить темную тему',
+  'Switch to light mode': 'Включить светлую тему',
+  Language: 'Язык',
+
+  'Free items in Georgia': 'Бесплатные вещи в Грузии',
+  'Community giving': 'Обмен в сообществе',
+  'Local and free': 'Локально и бесплатно',
+  'Georgia-wide': 'По всей Грузии',
+  'Find unwanted items people are giving away and help keep useful things out of waste.':
+    'Находите вещи, которые люди отдают бесплатно, и помогайте им получить вторую жизнь.',
+  'Loading free items': 'Бесплатные вещи загружаются',
+  'Gaachuqe is loading the latest posts.': 'Gaachuqe загружает новые объявления.',
+  'Could not load feed': 'Не удалось загрузить ленту',
+  'Please try again.': 'Попробуйте еще раз.',
+  'No free items found': 'Бесплатные вещи не найдены',
+  'Try changing your search or filters to see more available items.':
+    'Попробуйте изменить поиск или фильтры.',
+  'Loading more items': 'Загружаются еще вещи',
+  'More free items are being loaded.': 'Загружаются еще бесплатные вещи.',
+  'Loading...': 'Загрузка...',
+  'Load more': 'Загрузить еще',
+  'Show more': 'Показать еще',
+  'Free item feed': 'Лента бесплатных вещей',
+  'Give freely. Build community.': 'Отдавайте бесплатно. Создавайте сообщество.',
+  'Free things, shared kindly.': 'Бесплатные вещи, которыми делятся по-доброму.',
+  'A community marketplace for giving away what you no longer need across Georgia.':
+    'Площадка для вещей, которые больше не нужны вам, но могут пригодиться другим в Грузии.',
+  'Search free items near you...': 'Искать бесплатные вещи рядом...',
+  Search: 'Поиск',
+  'All Georgia': 'Вся Грузия',
+  'Home statistics': 'Статистика главной страницы',
+  'items currently showing': 'вещей сейчас показано',
+  'ways to give': 'категорий',
+  'cities across Georgia': 'городов в Грузии',
+  'Trending categories': 'Популярные категории',
+  'Recently added': 'Недавно добавлено',
+  available: 'доступно',
+
+  Filters: 'Фильтры',
+  'Feed filters': 'Фильтры ленты',
+  Clear: 'Очистить',
+  Open: 'Открыть',
+  Close: 'Закрыть',
+  'Search, category, city, and status': 'Поиск, категория, город и статус',
+  'Search, category, and city': 'Поиск, категория и город',
+  active: 'активно',
+  'Search free items': 'Искать бесплатные вещи',
+  Category: 'Категория',
+  City: 'Город',
+  Status: 'Статус',
+  'Search by city': 'Поиск по городу',
+  'Search city': 'Искать город',
+  'All categories': 'Все категории',
+  'All cities': 'Все города',
+  Clothing: 'Одежда',
+  Electronics: 'Электроника',
+  Books: 'Книги',
+  Children: 'Дети',
+  Sports: 'Спорт',
+  Other: 'Другое',
+  HomeCategory: 'Дом',
+  'Any status': 'Любой статус',
+  Available: 'Доступно',
+  Reserved: 'Забронировано',
+  Given: 'Отдано',
+  Archived: 'В архиве',
+  OpenStatus: 'Открыто',
+  Pending: 'В ожидании',
+  Accepted: 'Принято',
+  Declined: 'Отклонено',
+  Completed: 'Завершено',
+  Cancelled: 'Отменено',
+  Expires: 'Истекает',
+
+  'Create Post': 'Добавить объявление',
+  'Give away an unwanted item for free.': 'Отдайте ненужную вещь бесплатно.',
+  'Item details': 'Детали вещи',
+  'Use a clear title and honest condition details.':
+    'Используйте понятное название и честно опишите состояние.',
+  Title: 'Название',
+  'Example: Wooden chair in good condition':
+    'Например: деревянный стул в хорошем состоянии',
+  Description: 'Описание',
+  'Describe condition, pickup details, and what is included.':
+    'Опишите состояние, детали передачи и что входит в объявление.',
+  'Do not add your phone number here. People can contact you through the post.':
+    'Не добавляйте номер телефона здесь. Пользователи смогут связаться через объявление.',
+  Photos: 'Фото',
+  'Add photos': 'Добавить фото',
+  'Create post': 'Создать объявление',
+  'Creating post...': 'Создание объявления...',
+  'Post could not be created.': 'Не удалось создать объявление.',
+  'Photos could not be processed.': 'Не удалось обработать фото.',
+  'You must be logged in to create a post.':
+    'Чтобы создать объявление, нужно войти.',
+
+  'Log in': 'Войти',
+  'Logging in...': 'Вход...',
+  'Create account': 'Создать аккаунт',
+  'Creating account...': 'Создание аккаунта...',
+  'Display name': 'Имя',
+  'Phone number': 'Номер телефона',
+  'First name': 'Имя',
+  'Last name': 'Фамилия',
+  'Already registered?': 'Уже зарегистрированы?',
+  'Registration failed.': 'Регистрация не удалась.',
+  'Email or password is incorrect.': 'Неверный email или пароль.',
+  'An account with this email already exists.':
+    'Аккаунт с таким email уже существует.',
+  'Use a stronger password.': 'Используйте более надежный пароль.',
+  'Confirm your email before logging in.': 'Подтвердите email перед входом.',
+  'This link has expired. Please request a new one.':
+    'Ссылка устарела. Запросите новую.',
+  'You do not have permission to do that.':
+    'У вас нет разрешения на это действие.',
+  'Upload failed. Please try again.': 'Загрузка не удалась. Попробуйте еще раз.',
+  'The selected file is too large.': 'Выбранный файл слишком большой.',
+  'Check your internet connection and try again.':
+    'Проверьте интернет-соединение и попробуйте еще раз.',
+  'Fill in all required fields.': 'Заполните все обязательные поля.',
+  'Something went wrong. Please try again.':
+    'Что-то пошло не так. Попробуйте еще раз.',
+  'Logout failed.': 'Не удалось выйти.',
+
+  'Loading profile': 'Профиль загружается',
+  'Gaachuqe is loading your account.': 'Gaachuqe загружает ваш аккаунт.',
+  'Could not load profile': 'Не удалось загрузить профиль',
+  'Phone unavailable': 'Телефон недоступен',
+  'Profile statistics': 'Статистика профиля',
+  'Total posts': 'Всего объявлений',
+  'Reserved posts': 'Забронированные объявления',
+  'My reservations': 'Мои брони',
+  'My Posts': 'Мои объявления',
+  'Reserved Items': 'Забронированные вещи',
+  Settings: 'Настройки',
+  'No posts yet': 'Объявлений пока нет',
+  'Create a post when you have an item to give away.':
+    'Создайте объявление, когда у вас есть вещь, которую можно отдать.',
+  Statistics: 'Статистика',
+  View: 'Открыть',
+  'No reserved items': 'Забронированных вещей нет',
+  'Reserved items will appear here.': 'Забронированные вещи появятся здесь.',
+  'Account settings': 'Настройки аккаунта',
+  'Save settings': 'Сохранить настройки',
+  'Settings saved.': 'Настройки сохранены.',
+  'Delete account': 'Удалить аккаунт',
+  'Your account': 'Ваш аккаунт',
+  Location: 'Локация',
+  reservations: 'брони',
+
+  Tbilisi: 'Тбилиси',
+  Batumi: 'Батуми',
+  Kutaisi: 'Кутаиси',
+  Rustavi: 'Рустави',
+  Zugdidi: 'Зугдиди',
+  Gori: 'Гори',
+  Poti: 'Поти',
+  Kobuleti: 'Кобулети',
+  Telavi: 'Телави',
+  Georgia: 'Грузия',
+
+  'Page not found': 'Страница не найдена',
+  'The page you requested does not exist in Gaachuqe.':
+    'Запрошенной страницы в Gaachuqe не существует.',
+  'Go home': 'На главную',
+};
+
 type I18nContextValue = {
   language: Language;
   t: (text: string) => string;
@@ -451,7 +656,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     <I18nContext.Provider
       value={{
         language,
-        t: (text) => (language === 'ge' ? (translations[text] ?? text) : text),
+        t: (text) => getTranslation(text, language),
         localizedPath: (path) => localizePath(path, language),
       }}
     >
@@ -490,6 +695,30 @@ export function localizePath(path: string, language: Language) {
   return `/${language}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+export function getLanguageLocale(language: Language | string) {
+  if (language === 'ge') {
+    return 'ka-GE';
+  }
+
+  if (language === 'ru') {
+    return 'ru-RU';
+  }
+
+  return 'en';
+}
+
+export function getOpenGraphLocale(language: Language | string) {
+  if (language === 'ge') {
+    return 'ka_GE';
+  }
+
+  if (language === 'ru') {
+    return 'ru_RU';
+  }
+
+  return 'en_US';
+}
+
 export function switchLanguagePath(pathname: string, nextLanguage: Language) {
   const parts = pathname.split('/');
 
@@ -499,4 +728,16 @@ export function switchLanguagePath(pathname: string, nextLanguage: Language) {
   }
 
   return `/${nextLanguage}`;
+}
+
+function getTranslation(text: string, language: Language) {
+  if (language === 'ge') {
+    return translations[text] ?? text;
+  }
+
+  if (language === 'ru') {
+    return ruTranslations[text] ?? text;
+  }
+
+  return text;
 }

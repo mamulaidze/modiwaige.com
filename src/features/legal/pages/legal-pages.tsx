@@ -19,7 +19,10 @@ type LegalPageContent = {
   sections: LegalSection[];
 };
 
-const content: Record<LegalPageKey, Record<Language, LegalPageContent>> = {
+const content: Record<
+  LegalPageKey,
+  Partial<Record<Language, LegalPageContent>> & { en: LegalPageContent }
+> = {
   privacy: {
     en: {
       title: 'Privacy Policy',
@@ -286,7 +289,7 @@ export function ContactPage() {
 
 function LegalPage({ pageKey }: { pageKey: LegalPageKey }) {
   const { language, localizedPath, t } = useI18n();
-  const page = content[pageKey][language];
+  const page = content[pageKey][language] ?? content[pageKey].en;
 
   return (
     <PageContainer className="gap-6">

@@ -1,7 +1,7 @@
 import { CalendarDays, ImageIcon, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { useI18n } from '@/shared/i18n/i18n';
+import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import type { FeedPost } from '../types/feed';
 import { StatusBadge } from './status-badge';
 
@@ -85,7 +85,7 @@ export function PostCard({ post }: PostCardProps) {
 }
 
 function formatDate(value: string, language: string) {
-  return new Intl.DateTimeFormat(language === 'ge' ? 'ka-GE' : 'en', {
+  return new Intl.DateTimeFormat(getLanguageLocale(language), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
