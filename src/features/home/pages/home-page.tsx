@@ -2,14 +2,15 @@ import { Fragment, useCallback, useMemo, useState } from 'react';
 import {
   Bike,
   BookOpen,
+  ExternalLink,
   Gift,
   Globe2,
+  GraduationCap,
   HeartHandshake,
   Home,
   Laptop,
   Leaf,
   MapPin,
-  Megaphone,
   Search,
   Shirt,
   Sparkles,
@@ -253,12 +254,15 @@ export function HomePage() {
             </span>
           </div>
           <div className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 lg:gap-5">
-            <AdPlaceholder slotNumber={1} />
+            <SponsoredAd language={language} slotNumber={1} />
             {posts.map((post, index) => (
               <Fragment key={post.id}>
                 <PostCard post={post} />
                 {shouldShowAdAfterPost(index, posts.length) ? (
-                  <AdPlaceholder slotNumber={Math.ceil((index + 1) / 6) + 1} />
+                  <SponsoredAd
+                    language={language}
+                    slotNumber={Math.ceil((index + 1) / 6) + 1}
+                  />
                 ) : null}
               </Fragment>
             ))}
@@ -291,34 +295,90 @@ function shouldShowAdAfterPost(index: number, totalPosts: number) {
   return postPosition % 6 === 0 && index < totalPosts - 1;
 }
 
-function AdPlaceholder({ slotNumber }: { slotNumber: number }) {
+function SponsoredAd({
+  language,
+  slotNumber,
+}: {
+  language: 'ge' | 'en' | 'ru';
+  slotNumber: number;
+}) {
+  const copy = {
+    ge: {
+      label: '\u10E0\u10D4\u10D9\u10DA\u10D0\u10DB\u10D0',
+      headline:
+        '\u10D2\u10D0\u10DC\u10D0\u10D7\u10DA\u10D4\u10D1\u10D0, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10E8\u10D4\u10DC\u10D7\u10D0\u10DC \u10D4\u10E0\u10D7\u10D0\u10D3 \u10D8\u10D6\u10E0\u10D3\u10D4\u10D1\u10D0',
+      description:
+        '\u10D0\u10E6\u10DB\u10DD\u10D0\u10E9\u10D8\u10DC\u10D4 \u10E1\u10D0\u10E1\u10EC\u10D0\u10D5\u10DA\u10DD \u10E0\u10D4\u10E1\u10E3\u10E0\u10E1\u10D4\u10D1\u10D8 \u10D3\u10D0 \u10D2\u10D0\u10DC\u10D0\u10D5\u10D8\u10D7\u10D0\u10E0\u10D4 \u10E8\u10D4\u10DC\u10D8 \u10E8\u10D4\u10E1\u10D0\u10EB\u10DA\u10D4\u10D1\u10DA\u10DD\u10D1\u10D4\u10D1\u10D8.',
+      action: '\u10D0\u10EE\u10DA\u10D0\u10D5\u10D4 \u10D3\u10D0\u10D8\u10EC\u10E7\u10D4',
+    },
+    en: {
+      label: 'Advertisement',
+      headline: 'Education that grows with you',
+      description:
+        'Discover learning resources and develop skills that move you forward.',
+      action: 'Start learning',
+    },
+    ru: {
+      label: '\u0420\u0435\u043A\u043B\u0430\u043C\u0430',
+      headline:
+        '\u041E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435, \u043A\u043E\u0442\u043E\u0440\u043E\u0435 \u0440\u0430\u0441\u0442\u0435\u0442 \u0432\u043C\u0435\u0441\u0442\u0435 \u0441 \u0432\u0430\u043C\u0438',
+      description:
+        '\u041E\u0442\u043A\u0440\u044B\u0432\u0430\u0439\u0442\u0435 \u0443\u0447\u0435\u0431\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0442\u0435 \u043D\u0430\u0432\u044B\u043A\u0438 \u0434\u043B\u044F \u0431\u0443\u0434\u0443\u0449\u0435\u0433\u043E.',
+      action: '\u041D\u0430\u0447\u0430\u0442\u044C \u0443\u0447\u0438\u0442\u044C\u0441\u044F',
+    },
+  }[language];
+
   return (
     <aside
       aria-label={`Sponsored placement ${slotNumber}`}
-      className="premium-card col-span-1 overflow-hidden rounded-3xl border-dashed border-primary/35 bg-primary/5 p-5 min-[430px]:col-span-2 sm:col-span-3"
+      className="col-span-1 overflow-hidden rounded-lg border border-emerald-300/20 bg-[#071a13] shadow-[0_22px_60px_hsl(160_30%_4%/.38)] min-[430px]:col-span-2 sm:col-span-3"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-            <Megaphone className="size-5" aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-muted-foreground text-xs font-semibold tracking-[0.16em] uppercase">
-              რეკლამა
-            </p>
-            <p className="mt-1 text-lg leading-7 font-semibold tracking-tight [overflow-wrap:anywhere]">
-              აქ შეიძლება იყოს თქვენი რეკლამა
+      <a
+        className="group relative isolate flex min-h-72 overflow-hidden p-6 text-white sm:min-h-80 sm:p-8 lg:min-h-72 lg:p-10"
+        href="https://kartserluxi.com"
+        rel="noopener noreferrer sponsored"
+        target="_blank"
+      >
+        <img
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 size-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.025] sm:object-right"
+          src="/kartser-luxi-campaign.png"
+        />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,hsl(158_45%_6%/.97)_0%,hsl(158_45%_7%/.9)_38%,hsl(158_45%_7%/.48)_68%,hsl(158_45%_7%/.12)_100%),linear-gradient(180deg,transparent_45%,hsl(158_45%_5%/.56)_100%)]" />
+
+        <div className="flex w-full max-w-xl flex-col justify-between gap-8">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="flex size-11 items-center justify-center rounded-lg border border-white/18 bg-white/10 text-sm font-black shadow-lg backdrop-blur-md">
+                KL
+              </span>
+              <div>
+                <p className="text-xs font-semibold text-emerald-300 uppercase">
+                  {copy.label}
+                </p>
+                <p className="mt-0.5 text-lg font-semibold">Kartser Luxi</p>
+              </div>
+            </div>
+
+            <h3 className="mt-7 max-w-lg text-3xl leading-tight font-semibold text-balance sm:text-4xl">
+              {copy.headline}
+            </h3>
+            <p className="mt-3 max-w-md text-sm leading-6 text-white/72 sm:text-base">
+              {copy.description}
             </p>
           </div>
+
+          <span className="flex w-fit items-center gap-2 rounded-lg bg-emerald-400 px-5 py-3 text-sm font-bold text-emerald-950 shadow-[0_12px_30px_hsl(155_70%_35%/.35)] transition-transform group-hover:-translate-y-0.5">
+            <GraduationCap className="size-4" aria-hidden="true" />
+            {copy.action}
+            <ExternalLink className="size-4" aria-hidden="true" />
+          </span>
         </div>
-        <span className="text-muted-foreground rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold">
-          Sponsor
-        </span>
-      </div>
+      </a>
     </aside>
   );
 }
-
 function HomeStat({
   icon,
   label,
