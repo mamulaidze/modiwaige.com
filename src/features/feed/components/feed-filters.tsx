@@ -22,6 +22,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
     filters.search.trim(),
     filters.category !== 'all',
     filters.city !== 'all',
+    filters.boostedOnly,
   ].filter(Boolean).length;
   const hasActiveFilters = activeFilterCount > 0;
   const isCollapsed = isScrolled && !isOpen;
@@ -42,6 +43,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
       search: '',
       category: 'all',
       city: 'all',
+      boostedOnly: false,
     });
   }
 
@@ -177,6 +179,22 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                     })
                   }
                 />
+                <label className="flex items-center gap-3 rounded-2xl border p-3 sm:col-span-2">
+                  <input
+                    checked={filters.boostedOnly}
+                    className="size-4 accent-[var(--primary)]"
+                    type="checkbox"
+                    onChange={(event) =>
+                      onChange({
+                        ...filters,
+                        boostedOnly: event.target.checked,
+                      })
+                    }
+                  />
+                  <span className="text-sm font-medium">
+                    {t('Boosted posts only')}
+                  </span>
+                </label>
               </div>
             </div>
           ) : null}

@@ -7,6 +7,7 @@ import {
   ImageIcon,
   MapPin,
   Pencil,
+  Rocket,
   X,
   Trash2,
   User,
@@ -50,11 +51,17 @@ import {
   updatePostDetails,
 } from '../api/post-details-api';
 import {
+  activateDemoPostBoost,
+  type PostBoostPlan,
+} from '../api/post-boost-api';
+import {
   postCategoryOptions,
   postCityOptions,
 } from '../constants/post-options';
 import { ReservationCountdown } from '../components/reservation-countdown';
 import { ReservationStatusBadge } from '../components/reservation-status-badge';
+import { BoostBadge } from '../components/boost-badge';
+import { BoostPostDialog } from '../components/boost-post-dialog';
 import { createPostSchema } from '../validation/create-post-schema';
 import type { PostReservation } from '../types/post-details';
 
@@ -77,6 +84,7 @@ export function PostDetailsPage() {
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isBoostDialogOpen, setIsBoostDialogOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<
     'mark-given' | 'delete' | 'cancel-reservation' | 'reserve' | null
@@ -262,6 +270,29 @@ export function PostDetailsPage() {
       logErrorDetails('Manage reservation failed', mutationError);
       setActionError(
         getFriendlyErrorMessage(mutationError, 'Could not update reservation.'),
+      );
+    },
+  });
+
+  const boostMutation = useMutation({
+    mutationFn: (plan: PostBoostPlan) => {
+      if (!post) {
+        throw new Error('Post was not found.');
+      }
+
+      return activateDemoPostBoost(post.id, plan);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      await queryClient.invalidateQueries({ queryKey: ['feed'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
+      setIsBoostDialogOpen(false);
+      setActionError(null);
+    },
+    onError: (mutationError) => {
+      logErrorDetails('Boost post failed', mutationError);
+      setActionError(
+        getFriendlyErrorMessage(mutationError, 'Could not boost post.'),
       );
     },
   });
@@ -466,7 +497,10 @@ export function PostDetailsPage() {
                   <h1 className="min-w-0 text-xl leading-7 font-semibold [overflow-wrap:anywhere] break-words sm:flex-1 sm:text-2xl sm:leading-tight lg:text-3xl">
                     {post.title}
                   </h1>
-                  <StatusBadge status={post.status} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    {post.isBoosted ? <BoostBadge /> : null}
+                    <StatusBadge status={post.status} />
+                  </div>
                 </div>
                 <p className="text-muted-foreground leading-7 [overflow-wrap:anywhere] break-words whitespace-pre-line">
                   {post.description}
@@ -493,6 +527,13 @@ export function PostDetailsPage() {
                   value={formatDate(post.expiresAt, language)}
                   icon={<CalendarDays className="size-4" />}
                 />
+                {post.isBoosted && post.boostExpiresAt ? (
+                  <DetailRow
+                    label={t('Boost expires')}
+                    value={formatDateTime(post.boostExpiresAt, language)}
+                    icon={<Rocket className="size-4" />}
+                  />
+                ) : null}
               </dl>
 
               {post.activeReservation?.expiresAt ? (
@@ -576,6 +617,17 @@ export function PostDetailsPage() {
               {isOwner ? (
                 <div className="grid gap-2">
                   <Button
+                    className="h-auto min-h-11 w-full bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300"
+                    disabled={
+                      post.status !== 'available' || boostMutation.isPending
+                    }
+                    type="button"
+                    onClick={() => setIsBoostDialogOpen(true)}
+                  >
+                    <Rocket className="size-4" aria-hidden="true" />
+                    {post.isBoosted ? t('Extend boost') : t('Boost post')}
+                  </Button>
+                  <Button
                     className="h-auto min-h-11 w-full whitespace-normal"
                     type="button"
                     variant="outline"
@@ -651,6 +703,14 @@ export function PostDetailsPage() {
           isSubmitting={reportMutation.isPending}
           onClose={() => setIsReportOpen(false)}
           onSubmit={(values) => reportMutation.mutate(values)}
+        />
+      ) : null}
+
+      {isBoostDialogOpen ? (
+        <BoostPostDialog
+          isLoading={boostMutation.isPending}
+          onCancel={() => setIsBoostDialogOpen(false)}
+          onConfirm={(plan) => boostMutation.mutate(plan)}
         />
       ) : null}
 
@@ -1156,6 +1216,13 @@ function formatDate(value: string, language: string) {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+  }).format(new Date(value));
+}
+
+function formatDateTime(value: string, language: string) {
+  return new Intl.DateTimeFormat(getLanguageLocale(language), {
+    dateStyle: 'medium',
+    timeStyle: 'short',
   }).format(new Date(value));
 }
 

@@ -91,16 +91,10 @@ export function CityPicker({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
+    if (isOpen) {
+      window.setTimeout(() => searchInputRef.current?.focus(), 0);
     }
-
-    const selectedIndex = filteredOptions.findIndex(
-      (option) => option.value === value,
-    );
-    setActiveIndex(Math.max(0, selectedIndex));
-    window.setTimeout(() => searchInputRef.current?.focus(), 0);
-  }, [filteredOptions, isOpen, value]);
+  }, [isOpen]);
 
   useEffect(() => {
     optionRefs.current[activeIndex]?.scrollIntoView({ block: 'nearest' });
@@ -110,6 +104,12 @@ export function CityPicker({
     setIsOpen(false);
     setSearch('');
     setActiveIndex(0);
+  }
+
+  function openPicker() {
+    const selectedIndex = options.findIndex((option) => option.value === value);
+    setActiveIndex(Math.max(0, selectedIndex));
+    setIsOpen(true);
   }
 
   function selectOption(nextValue: string) {
@@ -126,7 +126,7 @@ export function CityPicker({
         event.key === ' ')
     ) {
       event.preventDefault();
-      setIsOpen(true);
+      openPicker();
       return;
     }
 
@@ -195,7 +195,13 @@ export function CityPicker({
           disabled={disabled}
           id={`${id}-trigger`}
           type="button"
-          onClick={() => setIsOpen((current) => !current)}
+          onClick={() => {
+            if (isOpen) {
+              closePicker();
+            } else {
+              openPicker();
+            }
+          }}
           onKeyDown={handleKeyDown}
         >
           <span className="flex min-w-0 items-center gap-2">

@@ -480,7 +480,8 @@ const ruTranslations: Record<string, string> = {
   'Find unwanted items people are giving away and help keep useful things out of waste.':
     'Находите вещи, которые люди отдают бесплатно, и помогайте им получить вторую жизнь.',
   'Loading free items': 'Бесплатные вещи загружаются',
-  'Gaachuqe is loading the latest posts.': 'Gaachuqe загружает новые объявления.',
+  'Gaachuqe is loading the latest posts.':
+    'Gaachuqe загружает новые объявления.',
   'Could not load feed': 'Не удалось загрузить ленту',
   'Please try again.': 'Попробуйте еще раз.',
   'No free items found': 'Бесплатные вещи не найдены',
@@ -492,8 +493,10 @@ const ruTranslations: Record<string, string> = {
   'Load more': 'Загрузить еще',
   'Show more': 'Показать еще',
   'Free item feed': 'Лента бесплатных вещей',
-  'Give freely. Build community.': 'Отдавайте бесплатно. Создавайте сообщество.',
-  'Free things, shared kindly.': 'Бесплатные вещи, которыми делятся по-доброму.',
+  'Give freely. Build community.':
+    'Отдавайте бесплатно. Создавайте сообщество.',
+  'Free things, shared kindly.':
+    'Бесплатные вещи, которыми делятся по-доброму.',
   'A community marketplace for giving away what you no longer need across Georgia.':
     'Площадка для вещей, которые больше не нужны вам, но могут пригодиться другим в Грузии.',
   'Search free items near you...': 'Искать бесплатные вещи рядом...',
@@ -591,7 +594,8 @@ const ruTranslations: Record<string, string> = {
     'Ссылка устарела. Запросите новую.',
   'You do not have permission to do that.':
     'У вас нет разрешения на это действие.',
-  'Upload failed. Please try again.': 'Загрузка не удалась. Попробуйте еще раз.',
+  'Upload failed. Please try again.':
+    'Загрузка не удалась. Попробуйте еще раз.',
   'The selected file is too large.': 'Выбранный файл слишком большой.',
   'Check your internet connection and try again.':
     'Проверьте интернет-соединение и попробуйте еще раз.',
@@ -642,6 +646,44 @@ const ruTranslations: Record<string, string> = {
     'Запрошенной страницы в Gaachuqe не существует.',
   'Go home': 'На главную',
 };
+
+Object.assign(translations, {
+  Boosted: 'ტოპ',
+  'Boosted only': 'მხოლოდ ტოპ განცხადებები',
+  'Boosted posts only': 'მხოლოდ ტოპ განცხადებები',
+  'Boost post': 'აბუსთვა',
+  'Extend boost': 'ვადის გაგრძელება',
+  'Boost expires': 'აბუსთულია ვადამდე',
+  'Activate demo boost': 'აბუსთვა',
+  'Activating boost...': 'იწევა ტოპში...',
+  'Boosted posts appear before regular posts until the boost expires.':
+    'ტოპ განცხადება ვადის ამოწურვამდე სიის დასაწყისში გამოჩნდება.',
+  'Demo only — no payment will be charged.':
+    'დემო რეჟიმი — თანხა არ ჩამოგეჭრებათ.',
+  '24 hours': '24 საათი',
+  '3 days': '3 დღე',
+  '7 days': '7 დღე',
+  'Could not boost post.': 'განცხადების ტოპში აწევა ვერ მოხერხდა.',
+});
+
+Object.assign(ruTranslations, {
+  Boosted: 'Продвигается',
+  'Boosted only': 'Только продвигаемые',
+  'Boosted posts only': 'Только продвигаемые объявления',
+  'Boost post': 'Продвинуть объявление',
+  'Extend boost': 'Продлить продвижение',
+  'Boost expires': 'Продвижение закончится',
+  'Activate demo boost': 'Активировать демо-продвижение',
+  'Activating boost...': 'Продвижение активируется...',
+  'Boosted posts appear before regular posts until the boost expires.':
+    'Продвигаемые объявления показываются перед обычными до окончания срока.',
+  'Demo only — no payment will be charged.':
+    'Только демо — оплата не будет списана.',
+  '24 hours': '24 часа',
+  '3 days': '3 дня',
+  '7 days': '7 дней',
+  'Could not boost post.': 'Не удалось продвинуть объявление.',
+});
 
 type I18nContextValue = {
   language: Language;

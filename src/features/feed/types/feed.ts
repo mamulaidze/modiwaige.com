@@ -14,6 +14,7 @@ export type FeedFilters = {
   category: FeedCategory | 'all';
   city: string | 'all';
   status: FeedStatus | 'all';
+  boostedOnly: boolean;
 };
 
 export type FeedPost = {
@@ -25,5 +26,7 @@ export type FeedPost = {
   category: FeedCategory;
   createdAt: string;
   expiresAt: string;
+  boostExpiresAt: string | null;
+  isBoosted: boolean;
   imageUrl: string | null;
 };

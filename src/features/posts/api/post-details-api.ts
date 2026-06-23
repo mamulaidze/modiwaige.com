@@ -14,6 +14,7 @@ type PostDetailsRow = {
   status: PostDetails['status'] | 'archived';
   created_at: string;
   expires_at: string;
+  boost_expires_at: string | null;
   profiles: {
     id: string;
     display_name: string;
@@ -54,6 +55,7 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
         status,
         created_at,
         expires_at,
+        boost_expires_at,
         profiles (
           id,
           display_name,
@@ -138,6 +140,10 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
     status: row.status,
     createdAt: row.created_at,
     expiresAt: row.expires_at,
+    boostExpiresAt: row.boost_expires_at,
+    isBoosted:
+      Boolean(row.boost_expires_at) &&
+      new Date(row.boost_expires_at ?? 0).getTime() > Date.now(),
     images,
     owner: row.profiles
       ? {

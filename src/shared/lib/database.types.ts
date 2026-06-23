@@ -167,8 +167,66 @@ export type Database = {
           },
         ];
       };
+      post_boosts: {
+        Row: {
+          amount_tetri: number;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          owner_id: string;
+          payment_provider: string | null;
+          payment_reference: string | null;
+          plan: 'day' | 'three_days' | 'week';
+          post_id: string;
+          starts_at: string;
+          status: 'pending' | 'demo_paid' | 'paid' | 'failed' | 'refunded';
+        };
+        Insert: {
+          amount_tetri: number;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          owner_id: string;
+          payment_provider?: string | null;
+          payment_reference?: string | null;
+          plan: 'day' | 'three_days' | 'week';
+          post_id: string;
+          starts_at?: string;
+          status?: 'pending' | 'demo_paid' | 'paid' | 'failed' | 'refunded';
+        };
+        Update: {
+          amount_tetri?: number;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          owner_id?: string;
+          payment_provider?: string | null;
+          payment_reference?: string | null;
+          plan?: 'day' | 'three_days' | 'week';
+          post_id?: string;
+          starts_at?: string;
+          status?: 'pending' | 'demo_paid' | 'paid' | 'failed' | 'refunded';
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'post_boosts_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'post_boosts_owner_id_fkey';
+            columns: ['owner_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       posts: {
         Row: {
+          boost_expires_at: string | null;
           category:
             | 'clothing'
             | 'home'
@@ -193,6 +251,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          boost_expires_at?: string | null;
           category:
             | 'clothing'
             | 'home'
@@ -217,6 +276,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          boost_expires_at?: string | null;
           category?:
             | 'clothing'
             | 'home'
@@ -404,6 +464,13 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      activate_demo_post_boost: {
+        Args: {
+          selected_plan: string;
+          target_post_id: string;
+        };
+        Returns: Database['public']['Tables']['posts']['Row'];
+      };
       admin_dashboard_stats: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
@@ -411,6 +478,28 @@ export type Database = {
       create_profile_for_new_user: {
         Args: Record<PropertyKey, never>;
         Returns: unknown;
+      };
+      get_feed_posts: {
+        Args: {
+          boosted_only?: boolean;
+          category_filter?: string;
+          city_filter?: string;
+          page_limit?: number;
+          page_offset?: number;
+          search_query?: string;
+        };
+        Returns: Array<{
+          boost_expires_at: string | null;
+          category: string;
+          created_at: string;
+          description: string;
+          expires_at: string;
+          first_image_storage_path: string | null;
+          id: string;
+          location: string;
+          status: string;
+          title: string;
+        }>;
       };
       set_updated_at: {
         Args: Record<PropertyKey, never>;

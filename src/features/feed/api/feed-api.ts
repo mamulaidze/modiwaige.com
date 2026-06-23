@@ -4,11 +4,6 @@ import type { FeedFilters, FeedPost } from '../types/feed';
 
 const PAGE_SIZE = 12;
 
-type PostImageRow = {
-  storage_path: string;
-  sort_order: number;
-};
-
 type FeedPostRow = {
   id: string;
   title: string;
@@ -18,7 +13,8 @@ type FeedPostRow = {
   category: FeedPost['category'];
   created_at: string;
   expires_at: string;
-  post_images: PostImageRow[] | null;
+  boost_expires_at: string | null;
+  first_image_storage_path: string | null;
 };
 
 type FetchFeedPageInput = {
@@ -35,45 +31,14 @@ export async function fetchFeedPage({
   pageParam,
   filters,
 }: FetchFeedPageInput): Promise<FeedPage> {
-  const from = pageParam * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
-
-  let query = supabase
-    .from('posts')
-    .select(
-      `
-        id,
-        title,
-        description,
-        location,
-        status,
-        category,
-        created_at,
-        expires_at,
-        post_images (
-          storage_path,
-          sort_order
-        )
-      `,
-    )
-    .in('status', filters.status === 'all' ? ['available'] : [filters.status])
-    .order('created_at', { ascending: false })
-    .range(from, to);
-
-  if (filters.search) {
-    const search = escapeSearchPattern(filters.search);
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-  }
-
-  if (filters.category !== 'all') {
-    query = query.eq('category', filters.category);
-  }
-
-  if (filters.city !== 'all') {
-    query = query.ilike('location', `%${escapeSearchPattern(filters.city)}%`);
-  }
-
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc('get_feed_posts', {
+    page_offset: pageParam * PAGE_SIZE,
+    page_limit: PAGE_SIZE,
+    search_query: filters.search,
+    category_filter: filters.category,
+    city_filter: filters.city,
+    boosted_only: filters.boostedOnly,
+  });
 
   if (error) {
     throw new Error(error.message);
@@ -89,10 +54,6 @@ export async function fetchFeedPage({
 }
 
 async function mapFeedPost(post: FeedPostRow): Promise<FeedPost> {
-  const firstImage = [...(post.post_images ?? [])].sort(
-    (first, second) => first.sort_order - second.sort_order,
-  )[0];
-
   return {
     id: post.id,
     title: post.title,
@@ -102,7 +63,13 @@ async function mapFeedPost(post: FeedPostRow): Promise<FeedPost> {
     category: post.category,
     createdAt: post.created_at,
     expiresAt: post.expires_at,
-    imageUrl: firstImage ? await createImageUrl(firstImage.storage_path) : null,
+    boostExpiresAt: post.boost_expires_at,
+    isBoosted:
+      Boolean(post.boost_expires_at) &&
+      new Date(post.boost_expires_at ?? 0).getTime() > Date.now(),
+    imageUrl: post.first_image_storage_path
+      ? await createImageUrl(post.first_image_storage_path)
+      : null,
   };
 }
 
@@ -117,8 +84,4 @@ async function createImageUrl(storagePath: string) {
   }
 
   return data.signedUrl;
-}
-
-function escapeSearchPattern(value: string) {
-  return value.replaceAll('%', '\\%').replaceAll('_', '\\_').trim();
 }

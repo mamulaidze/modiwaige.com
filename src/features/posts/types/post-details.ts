@@ -42,6 +42,8 @@ export type PostDetails = {
   status: FeedStatus;
   createdAt: string;
   expiresAt: string;
+  boostExpiresAt: string | null;
+  isBoosted: boolean;
   images: PostDetailsImage[];
   owner: PostOwner | null;
   reservations: PostReservation[];

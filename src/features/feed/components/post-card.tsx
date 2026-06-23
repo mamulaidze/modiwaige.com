@@ -2,6 +2,7 @@ import { CalendarDays, ImageIcon, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
+import { BoostBadge } from '@/features/posts/components/boost-badge';
 import type { FeedPost } from '../types/feed';
 import { StatusBadge } from './status-badge';
 
@@ -14,7 +15,12 @@ export function PostCard({ post }: PostCardProps) {
   const postUrl = localizedPath(`/posts/${post.id}`);
 
   return (
-    <article className="premium-card premium-card-hover group overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1">
+    <article className="premium-card premium-card-hover group relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1">
+      {post.isBoosted ? (
+        <div className="absolute top-3 left-3 z-10">
+          <BoostBadge />
+        </div>
+      ) : null}
       <Link
         aria-label={post.title}
         className="bg-muted focus-visible:ring-ring block aspect-[4/3] w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset"

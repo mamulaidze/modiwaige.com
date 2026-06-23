@@ -10,6 +10,7 @@ import {
   Phone,
   Settings,
   ShieldCheck,
+  Rocket,
   Tag,
   Trash2,
   User,
@@ -31,6 +32,12 @@ import {
 } from '@/features/posts/api/post-details-api';
 import { ReservationCountdown } from '@/features/posts/components/reservation-countdown';
 import { ReservationStatusBadge } from '@/features/posts/components/reservation-status-badge';
+import { BoostBadge } from '@/features/posts/components/boost-badge';
+import { BoostPostDialog } from '@/features/posts/components/boost-post-dialog';
+import {
+  activateDemoPostBoost,
+  type PostBoostPlan,
+} from '@/features/posts/api/post-boost-api';
 import { postCityOptions } from '@/features/posts/constants/post-options';
 import { CityPicker } from '@/shared/components/city-picker';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
@@ -337,6 +344,10 @@ function MyPostsSection({
     string | null
   >(null);
   const [statsPostId, setStatsPostId] = useState<string | null>(null);
+  const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
+  const [boostDialogPostId, setBoostDialogPostId] = useState<string | null>(
+    null,
+  );
   const [confirmation, setConfirmation] = useState<{
     id: string;
     type:
@@ -409,6 +420,22 @@ function MyPostsSection({
     }
   }
 
+  async function handleBoost(postId: string, plan: PostBoostPlan) {
+    setBoostingPostId(postId);
+    onError(null);
+
+    try {
+      await activateDemoPostBoost(postId, plan);
+      await onDeleted();
+      setBoostDialogPostId(null);
+    } catch (error) {
+      logErrorDetails('Profile boost post failed', error);
+      onError(getFriendlyErrorMessage(error, 'Could not boost post.'));
+    } finally {
+      setBoostingPostId(null);
+    }
+  }
+
   return (
     <>
       <section className="space-y-3" aria-label="My posts">
@@ -420,9 +447,12 @@ function MyPostsSection({
                   <h2 className="min-w-0 text-lg leading-6 font-semibold tracking-tight [overflow-wrap:anywhere] break-words">
                     {post.title}
                   </h2>
-                  {post.status !== 'archived' ? (
-                    <StatusBadge status={post.status} />
-                  ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {post.isBoosted ? <BoostBadge /> : null}
+                    {post.status !== 'archived' ? (
+                      <StatusBadge status={post.status} />
+                    ) : null}
+                  </div>
                 </div>
 
                 <div className="grid gap-2 min-[420px]:grid-cols-2">
@@ -452,6 +482,17 @@ function MyPostsSection({
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                <Button
+                  className="h-auto min-h-11 bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300"
+                  disabled={
+                    post.status !== 'available' || boostingPostId === post.id
+                  }
+                  type="button"
+                  onClick={() => setBoostDialogPostId(post.id)}
+                >
+                  <Rocket className="size-4" aria-hidden="true" />
+                  {post.isBoosted ? t('Extend boost') : t('Boost post')}
+                </Button>
                 <Button
                   aria-expanded={statsPostId === post.id}
                   className="h-auto min-h-11 whitespace-normal"
@@ -541,6 +582,14 @@ function MyPostsSection({
           title={t('Delete post?')}
           onCancel={() => setConfirmation(null)}
           onConfirm={() => void handleDelete(confirmation.id)}
+        />
+      ) : null}
+
+      {boostDialogPostId ? (
+        <BoostPostDialog
+          isLoading={boostingPostId === boostDialogPostId}
+          onCancel={() => setBoostDialogPostId(null)}
+          onConfirm={(plan) => void handleBoost(boostDialogPostId, plan)}
         />
       ) : null}
 
@@ -1101,7 +1150,10 @@ function DeleteAccountModal({
         }
       }}
     >
-      <div className="glass-surface w-full max-w-md rounded-3xl p-5" ref={dialogRef}>
+      <div
+        className="glass-surface w-full max-w-md rounded-3xl p-5"
+        ref={dialogRef}
+      >
         <div className="flex items-start gap-3">
           <div className="danger-soft text-destructive flex size-10 shrink-0 items-center justify-center rounded-md">
             <Trash2 className="size-5" aria-hidden="true" />

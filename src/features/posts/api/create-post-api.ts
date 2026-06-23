@@ -75,6 +75,8 @@ export async function createPost(input: CreatePostInput): Promise<FeedPost> {
     category: post.category,
     createdAt: post.created_at,
     expiresAt: post.expires_at,
+    boostExpiresAt: null,
+    isBoosted: false,
     imageUrl,
   };
 }

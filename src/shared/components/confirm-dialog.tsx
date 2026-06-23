@@ -15,6 +15,7 @@ type ConfirmDialogProps = {
   isLoading?: boolean;
   loadingLabel?: string;
   children?: ReactNode;
+  icon?: ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
 };
@@ -26,6 +27,7 @@ export function ConfirmDialog({
   danger = false,
   description,
   isLoading = false,
+  icon,
   loadingLabel,
   onCancel,
   onConfirm,
@@ -68,7 +70,7 @@ export function ConfirmDialog({
                 : 'bg-primary/10 text-primary',
             )}
           >
-            <AlertTriangle className="size-5" aria-hidden="true" />
+            {icon ?? <AlertTriangle className="size-5" aria-hidden="true" />}
           </span>
           <div className="min-w-0">
             <h2 className="text-xl font-semibold tracking-tight" id={titleId}>
@@ -85,8 +87,9 @@ export function ConfirmDialog({
 
         {children ? <div className="mt-4">{children}</div> : null}
 
-        <div className="mt-5 grid grid-cols-2 gap-2">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
           <Button
+            className="h-auto min-h-12 py-3 leading-5 whitespace-normal"
             disabled={isLoading}
             ref={cancelButtonRef}
             type="button"
@@ -97,6 +100,7 @@ export function ConfirmDialog({
           </Button>
           <Button
             className={cn(
+              'h-auto min-h-12 py-3 text-center leading-5 whitespace-normal',
               danger &&
                 'bg-destructive text-primary-foreground hover:bg-destructive/90 shadow-none hover:shadow-none',
             )}

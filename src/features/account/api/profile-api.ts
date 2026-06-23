@@ -12,6 +12,8 @@ export type ProfilePost = {
   status: FeedStatus | 'archived';
   createdAt: string;
   expiresAt: string;
+  boostExpiresAt: string | null;
+  isBoosted: boolean;
   reservationCount: number;
   reservations: Array<{
     id: string;
@@ -51,6 +53,7 @@ type ProfilePostRow = {
   status: FeedStatus | 'archived';
   created_at: string;
   expires_at: string;
+  boost_expires_at: string | null;
   reservations: Array<{
     id: string;
     status: ReservationStatus;
@@ -104,6 +107,7 @@ export async function fetchMyPosts(userId: string): Promise<ProfilePost[]> {
         status,
         created_at,
         expires_at,
+        boost_expires_at,
         reservations (
           id,
           status,
@@ -147,6 +151,10 @@ export async function fetchMyPosts(userId: string): Promise<ProfilePost[]> {
       status: post.status,
       createdAt: post.created_at,
       expiresAt: post.expires_at,
+      boostExpiresAt: post.boost_expires_at,
+      isBoosted:
+        Boolean(post.boost_expires_at) &&
+        new Date(post.boost_expires_at ?? 0).getTime() > Date.now(),
       reservationCount: reservations.filter(
         (reservation) =>
           reservation.status === 'pending' || reservation.status === 'accepted',
