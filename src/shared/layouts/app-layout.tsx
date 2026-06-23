@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { logout } from '@/features/auth/api/auth-api';
 import { FloatingChatButton } from '@/features/chat/components/floating-chat-button';
+import { ReservedGivenReminder } from '@/features/posts/components/reserved-given-reminder';
 import { AnalyticsTracker } from '@/shared/components/analytics-tracker';
 import { AppFooter } from '@/shared/components/app-footer';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
@@ -69,6 +70,7 @@ function LocalizedAppLayout() {
           </p>
         ) : null}
       </header>
+      <ReservedGivenReminder />
       <Outlet />
       <AppFooter />
       <FloatingChatButton />

@@ -33,6 +33,13 @@ const NotificationsPage = lazy(() =>
     }),
   ),
 );
+const OwnerReservationsPage = lazy(() =>
+  import('@/features/reservations/pages/owner-reservations-page').then(
+    (module) => ({
+      default: module.OwnerReservationsPage,
+    }),
+  ),
+);
 const AdminDashboardPage = lazy(() =>
   import('@/features/admin/pages/admin-dashboard-page').then((module) => ({
     default: module.AdminDashboardPage,
@@ -133,6 +140,10 @@ export const router = createBrowserRouter([
   {
     path: '/profile',
     element: <Navigate replace to="/ge/profile" />,
+  },
+  {
+    path: '/reservations',
+    element: <Navigate replace to="/ge/reservations" />,
   },
   {
     path: '/notifications',
@@ -240,6 +251,14 @@ export const router = createBrowserRouter([
         element: withSuspense(
           <ProtectedRoute>
             <AccountPage />
+          </ProtectedRoute>,
+        ),
+      },
+      {
+        path: 'reservations',
+        element: withSuspense(
+          <ProtectedRoute>
+            <OwnerReservationsPage />
           </ProtectedRoute>,
         ),
       },

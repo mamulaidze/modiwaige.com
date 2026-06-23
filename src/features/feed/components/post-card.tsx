@@ -15,18 +15,14 @@ export function PostCard({ post }: PostCardProps) {
   const postUrl = localizedPath(`/posts/${post.id}`);
 
   return (
-    <article className="group relative overflow-hidden rounded-[14px] border bg-card shadow-sm">
-      {post.isBoosted ? (
-        <div className="absolute top-3 left-3 z-10">
-          <BoostBadge variant="overlay" />
-        </div>
-      ) : null}
-      <div className="absolute top-3 right-3 z-10">
+    <article className="glass-surface group relative overflow-hidden rounded-[14px] shadow-sm">
+      <div className="absolute top-2 right-2 left-2 z-10 flex flex-col items-start gap-1.5 sm:top-3 sm:right-3 sm:left-3 sm:flex-row sm:items-start sm:justify-between">
+        {post.isBoosted ? <BoostBadge variant="overlay" /> : <span />}
         <StatusBadge status={post.status} />
       </div>
       <Link
         aria-label={post.title}
-        className="bg-muted focus-visible:ring-ring m-2 mb-0 block aspect-[4/3] overflow-hidden rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-inset"
+        className="bg-muted focus-visible:ring-ring m-1.5 mb-0 block aspect-square overflow-hidden rounded-[12px] outline-none focus-visible:ring-2 focus-visible:ring-inset sm:m-2 sm:mb-0 sm:aspect-[4/3] sm:rounded-[14px]"
         to={postUrl}
       >
         {post.imageUrl ? (
@@ -43,9 +39,9 @@ export function PostCard({ post }: PostCardProps) {
         )}
       </Link>
 
-      <div className="relative space-y-2 p-4">
+      <div className="relative space-y-1.5 p-2.5 sm:space-y-2 sm:p-4">
         <div className="min-w-0">
-          <h2 className="line-clamp-2 text-[17px] leading-6 font-medium tracking-tight">
+          <h2 className="line-clamp-2 text-sm leading-5 font-semibold tracking-tight sm:text-[17px] sm:leading-6 sm:font-medium">
             <Link
               className="focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2"
               to={postUrl}
@@ -55,20 +51,20 @@ export function PostCard({ post }: PostCardProps) {
             </Link>
           </h2>
           {post.isBoosted ? (
-            <span className="mt-1 inline-flex rounded-full bg-amber-500/12 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+            <span className="mt-1 inline-flex rounded-full bg-amber-500/12 px-2 py-0.5 text-[10px] font-semibold text-amber-700 sm:text-[11px] dark:text-amber-300">
               {t('VIP')}
             </span>
           ) : null}
         </div>
 
-        <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
+        <div className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs sm:gap-2 sm:text-sm">
           <span className="truncate">{t(post.location)}</span>
           <span aria-hidden="true">·</span>
           <span className="shrink-0">
             {formatRelativeDate(post.createdAt, language)}
           </span>
         </div>
-        <div className="text-muted-foreground flex min-w-0 items-center text-sm leading-5">
+        <div className="text-muted-foreground flex min-w-0 items-center text-xs leading-5 sm:text-sm">
           <span className="truncate">{formatCategory(post.category, t)}</span>
         </div>
       </div>

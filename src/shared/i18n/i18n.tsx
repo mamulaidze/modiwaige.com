@@ -8,6 +8,8 @@ const defaultLanguage: Language = 'ge';
 
 const translations: Record<string, string> = {
   'Free giving in Georgia': 'რასაცა გასცემ შენია, რაც არა დაკარგულია',
+  Browse: 'დათვალიერება',
+  All: 'ყველა',
   Home: 'მთავარი',
   Create: 'დამატება...',
   Profile: 'პროფილი',
@@ -141,6 +143,7 @@ const translations: Record<string, string> = {
   s: 'წმ',
 
   'Create Post': 'განცხადების დამატება',
+  'Post an item': 'ნივთის დამატება',
   'Give away an unwanted item for free.': 'აჩუქე არასაჭირო ნივთი უფასოდ.',
   'Item details': 'ნივთის დეტალები',
   'Use a clear title and honest condition details.':
@@ -433,6 +436,8 @@ const translations: Record<string, string> = {
 
 const ruTranslations: Record<string, string> = {
   'Free giving in Georgia': 'Бесплатные вещи в Грузии',
+  Browse: 'Смотреть',
+  All: 'Все',
   Home: 'Главная',
   Create: 'Добавить',
   Profile: 'Профиль',
@@ -554,6 +559,7 @@ const ruTranslations: Record<string, string> = {
   Expires: 'Истекает',
 
   'Create Post': 'Добавить объявление',
+  'Post an item': 'Добавить вещь',
   'Give away an unwanted item for free.': 'Отдайте ненужную вещь бесплатно.',
   'Item details': 'Детали вещи',
   'Use a clear title and honest condition details.':
@@ -734,6 +740,20 @@ Object.assign(translations, {
   'Author chat': 'ავტორის ჩატი',
   'If a reserved item was already given, do not forget to mark it as given.':
     'თუ დაჯავშნილი ნივთი უკვე გადაეცა, არ დაგავიწყდეთ მისი გაცემულად მონიშვნა.',
+  'Reserved item reminder': 'დაჯავშნილი ნივთის შეხსენება',
+  'Review reserved posts': 'დაჯავშნილი პოსტების ნახვა',
+  Dismiss: 'დახურვა',
+  'Item reservations': 'ნივთების ჯავშნები',
+  'See who reserved your items.': 'ნახეთ, ვინ დაჯავშნა თქვენი ნივთები.',
+  'Loading reservations': 'ჯავშნები იტვირთება',
+  'Checking who reserved your items.':
+    'ვამოწმებთ, ვინ დაჯავშნა თქვენი ნივთები.',
+  'Could not load reservations': 'ჯავშნების ჩატვირთვა ვერ მოხერხდა',
+  'No item reservations yet': 'თქვენს ნივთებზე ჯავშნები ჯერ არ არის',
+  'When someone reserves your item, it will appear here.':
+    'როცა ვინმე თქვენს ნივთს დაჯავშნის, აქ გამოჩნდება.',
+  Item: 'ნივთი',
+  reservations: 'ჯავშნები',
 });
 
 Object.assign(ruTranslations, {
@@ -820,6 +840,20 @@ Object.assign(ruTranslations, {
   'Author chat': 'Чат с автором',
   'If a reserved item was already given, do not forget to mark it as given.':
     'Если забронированная вещь уже передана, не забудьте отметить её как отданную.',
+  'Reserved item reminder': 'Напоминание о брони',
+  'Review reserved posts': 'Посмотреть забронированные посты',
+  Dismiss: 'Закрыть',
+  'Item reservations': 'Брони моих вещей',
+  'See who reserved your items.': 'Посмотрите, кто забронировал ваши вещи.',
+  'Loading reservations': 'Загрузка броней',
+  'Checking who reserved your items.':
+    'Проверяем, кто забронировал ваши вещи.',
+  'Could not load reservations': 'Не удалось загрузить брони',
+  'No item reservations yet': 'Броней ваших вещей пока нет',
+  'When someone reserves your item, it will appear here.':
+    'Когда кто-то забронирует вашу вещь, она появится здесь.',
+  Item: 'Вещь',
+  reservations: 'брони',
 });
 
 type I18nContextValue = {

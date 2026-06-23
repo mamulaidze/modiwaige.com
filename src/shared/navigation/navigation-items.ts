@@ -26,7 +26,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Home,
   },
   {
-    href: '/',
+    href: '/homepage?focus=search',
     labelKey: 'Search',
     icon: Search,
   },
@@ -37,7 +37,7 @@ export const navigationItems: NavigationItem[] = [
     requiresAuth: true,
   },
   {
-    href: '/profile?tab=reserved',
+    href: '/reservations',
     labelKey: 'Reservations',
     icon: CalendarCheck,
     requiresAuth: true,

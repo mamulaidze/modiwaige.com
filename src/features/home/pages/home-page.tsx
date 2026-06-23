@@ -1,4 +1,11 @@
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Bike,
   BookOpen,
@@ -16,6 +23,7 @@ import {
   Rocket,
   X,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 import { PostCard } from '@/features/feed/components/post-card';
 import { categoryOptions } from '@/features/feed/constants/feed-filters';
@@ -65,6 +73,8 @@ const categoryIcons: Record<string, typeof Sparkles> = {
 
 export function HomePage() {
   const { language, t } = useI18n();
+  const [searchParams] = useSearchParams();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [filters, setFilters] = useState<FeedFiltersValue>(initialFilters);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(filters.search.trim(), 400);
@@ -92,6 +102,37 @@ export function HomePage() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
   const activeFilters = getActiveFilterLabels(filters, t);
 
+  useEffect(() => {
+    const nextFilters = getFiltersFromSearchParams(searchParams);
+
+    setFilters((current) => {
+      if (
+        current.search === nextFilters.search &&
+        current.category === nextFilters.category &&
+        current.city === nextFilters.city &&
+        current.boostedOnly === nextFilters.boostedOnly
+      ) {
+        return current;
+      }
+
+      return nextFilters;
+    });
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (searchParams.get('focus') !== 'search') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      searchInputRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      searchInputRef.current?.focus();
+    });
+  }, [searchParams]);
+
   return (
     <PageContainer className="max-w-[1360px] gap-10 pt-5 sm:px-5 md:pt-6 lg:px-6">
       <Seo
@@ -117,6 +158,7 @@ export function HomePage() {
             <input
               className="modern-input h-12 w-full rounded-[12px] pr-3 pl-9 text-base outline-none"
               placeholder={t('Search free items')}
+              ref={searchInputRef}
               type="search"
               value={filters.search}
               onChange={(event) =>
@@ -279,7 +321,7 @@ export function HomePage() {
               {posts.length} {t('available')}
             </span>
           </div>
-          <div className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
             {posts.map((post, index) => (
               <Fragment key={post.id}>
                 <PostCard post={post} />
@@ -333,6 +375,26 @@ export function HomePage() {
   }
 }
 
+function getFiltersFromSearchParams(searchParams: URLSearchParams): FeedFiltersValue {
+  const search = searchParams.get('search')?.trim() ?? '';
+  const categoryParam = searchParams.get('category') ?? 'all';
+  const city = searchParams.get('city')?.trim() || 'all';
+  const boostedOnly = searchParams.get('boosted') === 'true';
+  const category = categoryOptions.some(
+    (option) => option.value === categoryParam,
+  )
+    ? (categoryParam as FeedFiltersValue['category'])
+    : 'all';
+
+  return {
+    ...initialFilters,
+    boostedOnly,
+    category,
+    city,
+    search,
+  };
+}
+
 function MobileFilterSheet({
   filters,
   onApply,
@@ -350,7 +412,7 @@ function MobileFilterSheet({
   return (
     <div
       aria-modal="true"
-      className="fixed inset-0 z-50 bg-black/35 md:hidden"
+      className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm md:hidden"
       role="dialog"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -358,7 +420,7 @@ function MobileFilterSheet({
         }
       }}
     >
-      <div className="bg-background fixed inset-x-0 bottom-0 max-h-[88svh] overflow-y-auto rounded-t-3xl border-t p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
+      <div className="glass-surface fixed inset-x-0 bottom-0 max-h-[88svh] overflow-y-auto rounded-t-3xl p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">{t('Filters')}</h2>
@@ -380,7 +442,7 @@ function MobileFilterSheet({
           <label className="space-y-2">
             <span className="text-sm font-medium">{t('Search free items')}</span>
             <input
-              className="modern-input h-12 w-full rounded-[12px] px-3 text-base outline-none"
+                className="glass-control h-12 w-full rounded-[12px] px-3 text-base outline-none"
               value={draftFilters.search}
               onChange={(event) =>
                 setDraftFilters((current) => ({
@@ -399,10 +461,10 @@ function MobileFilterSheet({
 
                 return (
                   <button
-                    className={`rounded-[12px] border px-3 py-3 text-sm font-semibold ${
+                    className={`rounded-[12px] border px-3 py-3 text-sm font-semibold backdrop-blur transition-colors ${
                       isActive
                         ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border bg-card text-muted-foreground'
+                        : 'border-border bg-card/55 text-muted-foreground'
                     }`}
                     key={category.value}
                     type="button"
@@ -433,7 +495,7 @@ function MobileFilterSheet({
             }
           />
 
-          <label className="flex items-center justify-between gap-3 rounded-[12px] border p-4">
+          <label className="glass-control flex items-center justify-between gap-3 rounded-[12px] p-4">
             <span className="font-medium">{t('Boosted posts only')}</span>
             <input
               checked={draftFilters.boostedOnly}
@@ -449,7 +511,7 @@ function MobileFilterSheet({
           </label>
         </div>
 
-        <div className="bg-background sticky bottom-0 mt-6 grid grid-cols-2 gap-2 pt-3">
+        <div className="sticky bottom-0 -mx-4 mt-6 grid grid-cols-2 gap-2 border-t border-white/10 bg-background/55 px-4 pt-3 backdrop-blur-xl">
           <Button type="button" variant="outline" onClick={onClear}>
             {t('Clear filters')}
           </Button>
@@ -534,7 +596,7 @@ function SponsoredAd({
   return (
     <aside
       aria-label={`Sponsored placement ${slotNumber}`}
-      className="sponsored-campaign col-span-1 overflow-hidden rounded-[14px] min-[430px]:col-span-2 xl:col-span-4"
+      className="sponsored-campaign col-span-2 overflow-hidden rounded-[14px] xl:col-span-4"
     >
       <a
         className="sponsored-campaign-link group relative isolate flex min-h-36 overflow-hidden p-4 sm:p-5"

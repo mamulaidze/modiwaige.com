@@ -66,7 +66,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
   return (
     <div className="bg-background/88 border-border/70 mx-auto hidden min-h-16 w-full max-w-[1280px] items-center justify-between gap-3 rounded-2xl border px-4 py-2 shadow-sm backdrop-blur md:flex lg:gap-4 lg:px-5">
       <Link
-        className="group focus-visible:ring-ring flex min-w-[180px] max-w-[240px] items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2"
+        className="group focus-visible:ring-ring flex min-w-[150px] max-w-[220px] items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 xl:min-w-[180px]"
         to={localizedPath('/')}
       >
         <div className="brand-mark flex size-9 shrink-0 items-center justify-center rounded-[10px]">
@@ -84,8 +84,12 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button className="h-10 shrink-0 px-3 whitespace-nowrap" variant="outline">
-            {t('Browse')}
+          <Button
+            className="h-10 shrink-0 px-3 whitespace-nowrap xl:min-w-[132px]"
+            variant="outline"
+          >
+            <span className="hidden xl:inline">{t('Browse')}</span>
+            <span className="xl:hidden">{t('All')}</span>
             <ChevronDown className="size-4" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
@@ -95,7 +99,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
               key={category.label}
               onSelect={() =>
                 navigate(
-                  `${localizedPath('/')}?category=${encodeURIComponent(category.value)}`,
+                  `${localizedPath('/homepage')}?category=${encodeURIComponent(category.value)}`,
                 )
               }
             >
@@ -107,7 +111,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
       </DropdownMenu>
 
       <form
-        className="border-border bg-card/70 focus-within:ring-ring/30 hidden h-10 min-w-0 max-w-md flex-1 items-center gap-2 rounded-full border px-3 focus-within:ring-4 lg:flex"
+        className="border-border bg-card/70 focus-within:ring-ring/30 hidden h-10 min-w-[150px] max-w-sm flex-1 items-center gap-2 rounded-full border px-3 focus-within:ring-4 lg:flex 2xl:max-w-md"
         role="search"
         onSubmit={(event) => {
           event.preventDefault();
@@ -116,8 +120,8 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
 
           navigate(
             query
-              ? `${localizedPath('/')}?search=${encodeURIComponent(query)}`
-              : localizedPath('/'),
+              ? `${localizedPath('/homepage')}?search=${encodeURIComponent(query)}`
+              : localizedPath('/homepage'),
           );
         }}
       >
@@ -128,7 +132,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
           placeholder={t('Search free items near you...')}
           type="search"
         />
-        <span className="text-muted-foreground border-l pl-2 text-xs">
+        <span className="text-muted-foreground hidden border-l pl-2 text-xs 2xl:inline">
           {t('All Georgia')}
         </span>
       </form>
@@ -138,9 +142,10 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
         className="flex shrink-0 items-center gap-1"
       >
         {isAuthenticated ? (
-          <Button asChild className="h-10 shrink-0 px-4 whitespace-nowrap">
+          <Button asChild className="h-10 shrink-0 px-3 whitespace-nowrap xl:px-4">
             <NavLink to={localizedPath('/create')}>
-              {t('Post an item')}
+              <span className="hidden xl:inline">{t('Post an item')}</span>
+              <span className="xl:hidden">{t('Post')}</span>
             </NavLink>
           </Button>
         ) : null}
@@ -205,7 +210,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
           </DropdownMenu>
         ) : null}
         <NotificationBell />
-        <ThemeToggle variant="segmented" />
+        <ThemeToggle />
         <LanguageSwitcher />
       </nav>
     </div>
