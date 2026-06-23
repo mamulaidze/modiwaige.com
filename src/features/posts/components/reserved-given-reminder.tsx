@@ -63,24 +63,24 @@ export function ReservedGivenReminder() {
 
   return (
     <aside
-      className="mx-auto mt-2 w-[calc(100%-1.5rem)] max-w-5xl rounded-2xl border border-amber-500/25 bg-amber-50 px-4 py-3 text-amber-950 shadow-sm dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100"
+      className="glass-surface mx-auto mt-2 w-[calc(100%-1.5rem)] max-w-5xl rounded-2xl px-4 py-3 shadow-sm"
       role="alert"
     >
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 rounded-full bg-amber-500/15 p-2 text-amber-700 dark:text-amber-200">
+        <span className="mt-0.5 rounded-full bg-amber-500/15 p-2 text-amber-700 ring-1 ring-amber-500/20 dark:bg-amber-300/15 dark:text-amber-200 dark:ring-amber-200/15">
           <AlertTriangle className="size-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">
+          <p className="text-foreground text-sm font-semibold">
             {t('Reserved item reminder')}
           </p>
-          <p className="mt-1 text-sm leading-5">
+          <p className="text-muted-foreground mt-1 text-sm leading-5">
             {t(
               'If a reserved item was already given, do not forget to mark it as given.',
             )}
           </p>
           <Link
-            className="mt-2 inline-flex text-sm font-semibold text-amber-800 underline-offset-4 hover:underline dark:text-amber-100"
+            className="mt-2 inline-flex text-sm font-semibold text-amber-700 underline-offset-4 hover:underline dark:text-amber-200"
             to={localizedPath('/profile?tab=posts')}
           >
             {t('Review reserved posts')}
@@ -88,7 +88,7 @@ export function ReservedGivenReminder() {
         </div>
         <button
           aria-label={t('Dismiss')}
-          className="-mr-1 rounded-full p-1 text-amber-800/70 transition hover:bg-amber-500/10 hover:text-amber-950 dark:text-amber-100/70 dark:hover:text-amber-50"
+          className="text-muted-foreground hover:bg-accent hover:text-foreground -mr-1 rounded-full p-1 transition"
           type="button"
           onClick={dismissReminder}
         >
