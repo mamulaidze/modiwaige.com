@@ -21,6 +21,11 @@ const ChatPage = lazy(() =>
     default: module.ChatPage,
   })),
 );
+const ChatsPage = lazy(() =>
+  import('@/features/chat/pages/chats-page').then((module) => ({
+    default: module.ChatsPage,
+  })),
+);
 const NotificationsPage = lazy(() =>
   import('@/features/notifications/pages/notifications-page').then(
     (module) => ({
@@ -122,6 +127,10 @@ export const router = createBrowserRouter([
     element: <Navigate replace to="/ge" />,
   },
   {
+    path: '/chats',
+    element: <Navigate replace to="/ge/chats" />,
+  },
+  {
     path: '/profile',
     element: <Navigate replace to="/ge/profile" />,
   },
@@ -195,6 +204,14 @@ export const router = createBrowserRouter([
         element: withSuspense(
           <ProtectedRoute>
             <ChatPage />
+          </ProtectedRoute>,
+        ),
+      },
+      {
+        path: 'chats',
+        element: withSuspense(
+          <ProtectedRoute>
+            <ChatsPage />
           </ProtectedRoute>,
         ),
       },

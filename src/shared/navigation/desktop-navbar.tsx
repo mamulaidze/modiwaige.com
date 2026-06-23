@@ -40,7 +40,11 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
   const { localizedPath, t } = useI18n();
   const currentPath = normalizePath(location.pathname);
   const visibleItems = navigationItems.filter((item) => {
-    if (item.labelKey === 'Search' || item.labelKey === 'Reservations') {
+    if (
+      item.labelKey === 'Search' ||
+      item.labelKey === 'Reservations' ||
+      item.href === '/create'
+    ) {
       return false;
     }
 
@@ -60,9 +64,9 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
   });
 
   return (
-    <div className="bg-background/88 border-border/70 mx-auto hidden min-h-16 w-full max-w-[1280px] items-center justify-between gap-5 rounded-2xl border px-4 py-2 shadow-sm backdrop-blur md:flex lg:px-5">
+    <div className="bg-background/88 border-border/70 mx-auto hidden min-h-16 w-full max-w-[1280px] items-center justify-between gap-3 rounded-2xl border px-4 py-2 shadow-sm backdrop-blur md:flex lg:gap-4 lg:px-5">
       <Link
-        className="group focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2"
+        className="group focus-visible:ring-ring flex min-w-[180px] max-w-[240px] items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2"
         to={localizedPath('/')}
       >
         <div className="brand-mark flex size-9 shrink-0 items-center justify-center rounded-[10px]">
@@ -72,7 +76,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
           <p className="text-foreground truncate text-base leading-none font-semibold tracking-tight">
             Gaachuqe
           </p>
-          <p className="text-muted-foreground mt-0.5 max-w-64 truncate text-xs">
+          <p className="text-muted-foreground mt-0.5 truncate text-xs">
             {t('Free giving in Georgia')}
           </p>
         </div>
@@ -80,7 +84,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button className="h-10 shrink-0 px-3" variant="outline">
+          <Button className="h-10 shrink-0 px-3 whitespace-nowrap" variant="outline">
             {t('Browse')}
             <ChevronDown className="size-4" aria-hidden="true" />
           </Button>
@@ -103,7 +107,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
       </DropdownMenu>
 
       <form
-        className="border-border bg-card/70 focus-within:ring-ring/30 hidden h-10 min-w-64 flex-1 items-center gap-2 rounded-full border px-3 focus-within:ring-4 lg:flex"
+        className="border-border bg-card/70 focus-within:ring-ring/30 hidden h-10 min-w-0 max-w-md flex-1 items-center gap-2 rounded-full border px-3 focus-within:ring-4 lg:flex"
         role="search"
         onSubmit={(event) => {
           event.preventDefault();
@@ -131,25 +135,31 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
 
       <nav
         aria-label={t('Primary navigation')}
-        className="flex min-w-0 items-center gap-1"
+        className="flex shrink-0 items-center gap-1"
       >
+        {isAuthenticated ? (
+          <Button asChild className="h-10 shrink-0 px-4 whitespace-nowrap">
+            <NavLink to={localizedPath('/create')}>
+              {t('Post an item')}
+            </NavLink>
+          </Button>
+        ) : null}
         {visibleItems.map((item) => {
           const isPrimary =
-            item.href === '/create' ||
-            (!isAuthenticated && item.href === '/register');
+            !isAuthenticated && item.href === '/register';
 
           return isPrimary ? (
-            <Button asChild className="ml-1 h-9" key={item.href}>
+            <Button asChild className="ml-1 h-9 shrink-0 whitespace-nowrap" key={item.href}>
               <NavLink to={localizedPath(item.href)}>
                 <item.icon className="size-4" aria-hidden="true" />
-                {t(item.href === '/create' ? 'Post an item' : item.labelKey)}
+                {t(item.labelKey)}
               </NavLink>
             </Button>
           ) : (
             <NavLink
               className={() =>
                 cn(
-                  'text-muted-foreground hover:bg-accent hover:text-foreground flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium transition-colors',
+                  'text-muted-foreground hover:bg-accent hover:text-foreground flex h-9 items-center gap-2 rounded-[10px] px-2 text-sm font-medium whitespace-nowrap transition-colors xl:px-3',
                   isCurrentDesktopItem(item.href, currentPath, localizedPath) &&
                     'bg-accent text-primary',
                 )
@@ -158,7 +168,7 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
               to={localizedPath(item.href)}
             >
               <item.icon className="size-4" aria-hidden="true" />
-              {t(item.labelKey)}
+              <span className="hidden xl:inline">{t(item.labelKey)}</span>
             </NavLink>
           );
         })}

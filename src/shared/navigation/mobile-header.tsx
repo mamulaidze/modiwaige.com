@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { BrandLogo } from '@/shared/components/brand-logo';
+import { LanguageSwitcher } from '@/shared/i18n/language-switcher';
 import { useI18n } from '@/shared/i18n/i18n';
+import { ThemeToggle } from '@/shared/theme/theme-toggle';
 
 type MobileHeaderProps = {
   isLoggingOut: boolean;
@@ -26,7 +28,7 @@ export function MobileHeader({ isLoggingOut, onLogout }: MobileHeaderProps) {
         <div className="brand-mark flex size-9 shrink-0 items-center justify-center rounded-[10px]">
           <BrandLogo className="size-6" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 max-w-[170px]">
           <p className="text-foreground truncate text-base leading-none font-semibold tracking-tight">
             Gaachuqe
           </p>
@@ -35,7 +37,9 @@ export function MobileHeader({ isLoggingOut, onLogout }: MobileHeaderProps) {
           </p>
         </div>
       </Link>
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1">
+        <LanguageSwitcher />
+        <ThemeToggle />
         <NotificationBell />
         {!isLoading && isAuthenticated ? (
           <Link

@@ -35,6 +35,7 @@ export type ReservedItem = {
     title: string;
     location: string;
     status: FeedStatus | 'archived';
+    ownerName: string;
   } | null;
 };
 
@@ -71,7 +72,15 @@ type ReservedItemRow = {
   status: ReservedItem['status'];
   expires_at: string | null;
   created_at: string;
-  posts: ReservedItem['post'];
+  posts: {
+    id: string;
+    title: string;
+    location: string;
+    status: FeedStatus | 'archived';
+    owner: {
+      display_name: string;
+    } | null;
+  } | null;
 };
 
 export async function fetchProfileSummary(
@@ -179,7 +188,10 @@ export async function fetchReservedItems(
           id,
           title,
           location,
-          status
+          status,
+          owner:profiles!posts_owner_id_fkey (
+            display_name
+          )
         )
       `,
     )
@@ -195,7 +207,16 @@ export async function fetchReservedItems(
     status: reservation.status,
     expiresAt: reservation.expires_at,
     createdAt: reservation.created_at,
-    post: reservation.posts,
+    post: reservation.posts
+      ? {
+          id: reservation.posts.id,
+          title: reservation.posts.title,
+          location: reservation.posts.location,
+          status: reservation.posts.status,
+          ownerName:
+            reservation.posts.owner?.display_name ?? 'Gaachuqe member',
+        }
+      : null,
   }));
 }
 

@@ -726,6 +726,16 @@ Object.assign(translations, {
   Listed: 'დამატებულია',
 });
 
+Object.assign(translations, {
+  'No conversations yet': 'საუბრები ჯერ არ არის',
+  'Accepted reservations with active chats will appear here.':
+    'დადასტურებული ჯავშნების აქტიური ჩატები აქ გამოჩნდება.',
+  'Requester chat': 'მომთხოვნის ჩატი',
+  'Author chat': 'ავტორის ჩატი',
+  'If a reserved item was already given, do not forget to mark it as given.':
+    'თუ დაჯავშნილი ნივთი უკვე გადაეცა, არ დაგავიწყდეთ მისი გაცემულად მონიშვნა.',
+});
+
 Object.assign(ruTranslations, {
   Boosted: 'VIP-объявление',
   'Boosted only': 'Только продвигаемые',
@@ -803,6 +813,13 @@ Object.assign(ruTranslations, {
   'Community member': 'Участник сообщества',
   'Pickup area': 'Место передачи',
   Listed: 'Добавлено',
+  'No conversations yet': 'Разговоров пока нет',
+  'Accepted reservations with active chats will appear here.':
+    'Активные чаты по подтверждённым броням появятся здесь.',
+  'Requester chat': 'Чат с получателем',
+  'Author chat': 'Чат с автором',
+  'If a reserved item was already given, do not forget to mark it as given.':
+    'Если забронированная вещь уже передана, не забудьте отметить её как отданную.',
 });
 
 type I18nContextValue = {

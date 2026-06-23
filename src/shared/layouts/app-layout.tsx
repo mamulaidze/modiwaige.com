@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { logout } from '@/features/auth/api/auth-api';
+import { FloatingChatButton } from '@/features/chat/components/floating-chat-button';
 import { AnalyticsTracker } from '@/shared/components/analytics-tracker';
 import { AppFooter } from '@/shared/components/app-footer';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
@@ -70,6 +71,7 @@ function LocalizedAppLayout() {
       </header>
       <Outlet />
       <AppFooter />
+      <FloatingChatButton />
       {hidesMobileBottomNav ? null : <MobileBottomNav />}
 
       {isLogoutConfirmOpen ? (

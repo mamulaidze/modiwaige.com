@@ -49,6 +49,25 @@ export async function fetchUnreadNotificationCount(userId?: string) {
   return count ?? 0;
 }
 
+export async function fetchUnreadChatNotificationCount(userId?: string) {
+  if (!userId) {
+    return 0;
+  }
+
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('recipient_id', userId)
+    .eq('type', 'chat_message')
+    .is('read_at', null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
+}
+
 export async function fetchNotifications(userId?: string) {
   if (!userId) {
     return [];

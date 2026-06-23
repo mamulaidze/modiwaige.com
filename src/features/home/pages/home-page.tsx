@@ -266,11 +266,16 @@ export function HomePage() {
 
       {posts.length > 0 ? (
         <section aria-label={t('Free item feed')} className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl leading-7 font-bold tracking-tight">
-              {t('Recently added')}
-            </h2>
-            <span className="text-primary text-sm font-semibold">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm font-medium">
+                {t('Free item feed')}
+              </p>
+              <h2 className="text-2xl leading-7 font-bold tracking-tight">
+                {t('Recently added')}
+              </h2>
+            </div>
+            <span className="bg-accent text-primary inline-flex w-fit rounded-full px-3 py-1.5 text-sm font-semibold">
               {posts.length} {t('available')}
             </span>
           </div>

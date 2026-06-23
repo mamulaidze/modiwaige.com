@@ -80,7 +80,7 @@ import {
   type ProfileSettingsValues,
 } from '../validation/profile-settings-schema';
 
-type ProfileTab = 'posts' | 'reserved' | 'chats' | 'settings';
+type ProfileTab = 'posts' | 'reserved' | 'settings';
 const profileLocationBaseOptions = [
   { label: 'Georgia', value: 'Georgia' },
   ...postCityOptions.map((city) => ({ label: city, value: city })),
@@ -111,8 +111,7 @@ export function AccountPage() {
   const reservationsQuery = useQuery({
     queryKey: ['reserved-items', user?.id],
     queryFn: () => fetchReservedItems(user?.id ?? ''),
-    enabled:
-      Boolean(user?.id) && (activeTab === 'reserved' || activeTab === 'chats'),
+    enabled: Boolean(user?.id) && activeTab === 'reserved',
   });
 
   const displayName =
@@ -124,14 +123,11 @@ export function AccountPage() {
   const isLoading =
     profileQuery.isLoading ||
     (activeTab === 'posts' && postsQuery.isLoading) ||
-    ((activeTab === 'reserved' || activeTab === 'chats') &&
-      reservationsQuery.isLoading);
+    (activeTab === 'reserved' && reservationsQuery.isLoading);
   const error =
     profileQuery.error ??
     (activeTab === 'posts' ? postsQuery.error : null) ??
-    (activeTab === 'reserved' || activeTab === 'chats'
-      ? reservationsQuery.error
-      : null);
+    (activeTab === 'reserved' ? reservationsQuery.error : null);
 
   return (
     <PageContainer className="gap-6">
@@ -201,7 +197,7 @@ export function AccountPage() {
           )
         }
       >
-        <TabsList className="grid-cols-4" aria-label={t('Profile')}>
+        <TabsList className="grid-cols-3" aria-label={t('Profile')}>
           <TabsTrigger className="min-w-0 px-2" value="posts">
             <span className="block max-w-full truncate text-center whitespace-nowrap">
               {t('My Listings')}
@@ -210,11 +206,6 @@ export function AccountPage() {
           <TabsTrigger className="min-w-0 px-2" value="reserved">
             <span className="block max-w-full truncate text-center whitespace-nowrap">
               {t('Reservations')}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger className="min-w-0 px-2" value="chats">
-            <span className="block max-w-full truncate text-center whitespace-nowrap">
-              {t('Chats')}
             </span>
           </TabsTrigger>
           <TabsTrigger className="min-w-0 px-2" value="settings">
@@ -267,10 +258,6 @@ export function AccountPage() {
             await queryClient.invalidateQueries({ queryKey: ['feed'] });
           }}
         />
-      ) : null}
-
-      {!isLoading && !error && activeTab === 'chats' ? (
-        <ChatsSection reservations={reservationsQuery.data ?? []} />
       ) : null}
 
       {!isLoading && !error && activeTab === 'settings' && user ? (
@@ -966,49 +953,6 @@ function ReservedItemsSection({
   );
 }
 
-function ChatsSection({ reservations }: { reservations: ReservedItem[] }) {
-  const { localizedPath, t } = useI18n();
-  const conversations = reservations.filter(
-    (reservation) => reservation.status === 'accepted' && reservation.post,
-  );
-
-  if (conversations.length === 0) {
-    return (
-      <EmptyState
-        title={t('No conversations yet')}
-        description={t('Accepted reservations with active chats will appear here.')}
-      />
-    );
-  }
-
-  return (
-    <section className="space-y-3" aria-label={t('Chats')}>
-      {conversations.map((reservation) => (
-        <Link
-          className="premium-card flex min-w-0 items-center gap-4 rounded-[16px] p-4 transition-colors hover:bg-accent/60"
-          key={reservation.id}
-          to={localizedPath(`/chat/${reservation.id}`)}
-        >
-          <span className="bg-accent text-primary flex size-12 shrink-0 items-center justify-center rounded-full">
-            <MessageCircle className="size-5" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-semibold">
-              {reservation.post?.title ?? t('Unavailable item')}
-            </span>
-            <span className="text-muted-foreground mt-1 block truncate text-sm">
-              {t('Use this temporary chat to arrange pickup.')}
-            </span>
-          </span>
-          <span className="hidden shrink-0 sm:block">
-            <ReservationStatusBadge status={reservation.status} />
-          </span>
-        </Link>
-      ))}
-    </section>
-  );
-}
-
 function SettingsSection({
   defaultValues,
   onAccountDeleted,
@@ -1336,7 +1280,7 @@ function formatDate(value: string, language: string) {
 }
 
 function getProfileTab(value: string | null): ProfileTab {
-  if (value === 'reserved' || value === 'chats' || value === 'settings') {
+  if (value === 'reserved' || value === 'settings') {
     return value;
   }
 
