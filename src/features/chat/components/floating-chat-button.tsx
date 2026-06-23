@@ -66,8 +66,8 @@ export function FloatingChatButton() {
   });
 
   useEffect(() => {
-    const width = buttonRef.current?.offsetWidth ?? 44;
-    const height = buttonRef.current?.offsetHeight ?? 40;
+    const width = buttonRef.current?.offsetWidth ?? 48;
+    const height = buttonRef.current?.offsetHeight ?? 48;
     const viewport = getViewportSize();
     const nextPosition = {
       x: Math.max(EDGE_INSET, viewport.width - width - EDGE_INSET),
@@ -121,8 +121,8 @@ export function FloatingChatButton() {
   }
 
   function clampPosition(nextX: number, nextY: number) {
-    const width = buttonRef.current?.offsetWidth ?? 44;
-    const height = buttonRef.current?.offsetHeight ?? 44;
+    const width = buttonRef.current?.offsetWidth ?? 48;
+    const height = buttonRef.current?.offsetHeight ?? 48;
     const viewport = getViewportSize();
     const minX = EDGE_INSET;
     const maxX = Math.max(minX, viewport.width - width - EDGE_INSET);
@@ -183,8 +183,8 @@ export function FloatingChatButton() {
       return;
     }
 
-    const width = buttonRef.current?.offsetWidth ?? 44;
-    const height = buttonRef.current?.offsetHeight ?? 44;
+    const width = buttonRef.current?.offsetWidth ?? 48;
+    const height = buttonRef.current?.offsetHeight ?? 48;
     const currentPosition = positionRef.current;
     const centerX = currentPosition.x + width / 2;
     const centerY = currentPosition.y + height / 2;
@@ -204,7 +204,7 @@ export function FloatingChatButton() {
   return (
     <button
       aria-label={t('Chats')}
-      className="bg-primary text-primary-foreground fixed z-50 flex size-10 touch-none items-center justify-center rounded-full shadow-xl transition-[box-shadow] hover:shadow-2xl sm:size-11 lg:size-12"
+      className="bg-primary text-primary-foreground fixed z-50 flex size-12 touch-none items-center justify-center rounded-full shadow-xl transition-[box-shadow] hover:shadow-2xl sm:size-[52px] lg:size-14"
       ref={buttonRef}
       style={{
         left: position.x,
@@ -215,9 +215,9 @@ export function FloatingChatButton() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <MessageCircle className="size-[18px] sm:size-5 lg:size-[22px]" aria-hidden="true" />
+      <MessageCircle className="size-[22px] sm:size-6 lg:size-7" aria-hidden="true" />
       {unreadChatCount > 0 ? (
-        <span className="bg-destructive text-primary-foreground absolute -top-1 -right-1 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[9px] leading-[18px] font-bold ring-2 ring-background sm:min-w-5 sm:px-1.5 sm:text-[10px] sm:leading-5">
+        <span className="bg-destructive text-primary-foreground absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-5 font-bold ring-2 ring-background sm:min-w-[22px] sm:text-[11px] sm:leading-[22px]">
           {unreadChatCount > 9 ? '9+' : unreadChatCount}
         </span>
       ) : null}
