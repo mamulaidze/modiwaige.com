@@ -12,7 +12,8 @@ import { buildChatInboxRows } from '../utils/chat-inbox';
 
 const EDGE_INSET = 12;
 const TOP_INSET = 72;
-const BOTTOM_INSET = 112;
+const MOBILE_BOTTOM_INSET = 112;
+const DESKTOP_BOTTOM_INSET = 24;
 
 function getViewportSize() {
   return {
@@ -25,6 +26,10 @@ function getViewportSize() {
       document.documentElement.clientWidth ??
       window.innerWidth,
   };
+}
+
+function getBottomInset(viewportWidth: number) {
+  return viewportWidth >= 1024 ? DESKTOP_BOTTOM_INSET : MOBILE_BOTTOM_INSET;
 }
 
 export function FloatingChatButton() {
@@ -69,9 +74,10 @@ export function FloatingChatButton() {
     const width = buttonRef.current?.offsetWidth ?? 48;
     const height = buttonRef.current?.offsetHeight ?? 48;
     const viewport = getViewportSize();
+    const bottomInset = getBottomInset(viewport.width);
     const nextPosition = {
       x: Math.max(EDGE_INSET, viewport.width - width - EDGE_INSET),
-      y: Math.max(TOP_INSET, viewport.height - height - BOTTOM_INSET),
+      y: Math.max(TOP_INSET, viewport.height - height - bottomInset),
     };
 
     positionRef.current = nextPosition;
@@ -124,10 +130,11 @@ export function FloatingChatButton() {
     const width = buttonRef.current?.offsetWidth ?? 48;
     const height = buttonRef.current?.offsetHeight ?? 48;
     const viewport = getViewportSize();
+    const bottomInset = getBottomInset(viewport.width);
     const minX = EDGE_INSET;
     const maxX = Math.max(minX, viewport.width - width - EDGE_INSET);
     const minY = TOP_INSET;
-    const maxY = Math.max(minY, viewport.height - height - BOTTOM_INSET);
+    const maxY = Math.max(minY, viewport.height - height - bottomInset);
 
     return {
       x: Math.min(Math.max(nextX, minX), maxX),
@@ -189,6 +196,7 @@ export function FloatingChatButton() {
     const centerX = currentPosition.x + width / 2;
     const centerY = currentPosition.y + height / 2;
     const viewport = getViewportSize();
+    const bottomInset = getBottomInset(viewport.width);
     const snapX =
       centerX < viewport.width / 2
         ? EDGE_INSET
@@ -196,7 +204,7 @@ export function FloatingChatButton() {
     const snapY =
       centerY < viewport.height / 2
         ? TOP_INSET
-        : viewport.height - height - BOTTOM_INSET;
+        : viewport.height - height - bottomInset;
 
     updatePosition(clampPosition(snapX, snapY));
   }
@@ -204,7 +212,7 @@ export function FloatingChatButton() {
   return (
     <button
       aria-label={t('Chats')}
-      className="bg-primary text-primary-foreground fixed z-50 flex size-12 touch-none items-center justify-center rounded-full shadow-xl transition-[box-shadow] hover:shadow-2xl sm:size-[52px] lg:size-14"
+      className="bg-primary text-primary-foreground fixed z-50 flex size-12 touch-none items-center justify-center rounded-full shadow-xl transition-[box-shadow] hover:shadow-2xl sm:size-[52px] lg:size-12"
       ref={buttonRef}
       style={{
         left: position.x,
@@ -215,7 +223,7 @@ export function FloatingChatButton() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <MessageCircle className="size-[22px] sm:size-6 lg:size-7" aria-hidden="true" />
+      <MessageCircle className="size-[22px] sm:size-6 lg:size-[22px]" aria-hidden="true" />
       {unreadChatCount > 0 ? (
         <span className="bg-destructive text-primary-foreground absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-5 font-bold ring-2 ring-background sm:min-w-[22px] sm:text-[11px] sm:leading-[22px]">
           {unreadChatCount > 9 ? '9+' : unreadChatCount}

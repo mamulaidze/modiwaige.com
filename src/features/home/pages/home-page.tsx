@@ -133,6 +133,23 @@ export function HomePage() {
     });
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!isFilterSheetOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const previousTouchAction = document.body.style.touchAction;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.touchAction = previousTouchAction;
+    };
+  }, [isFilterSheetOpen]);
+
   return (
     <PageContainer className="max-w-[1360px] gap-10 pt-5 sm:px-5 md:pt-6 lg:px-6">
       <Seo
@@ -420,7 +437,7 @@ function MobileFilterSheet({
         }
       }}
     >
-      <div className="glass-surface fixed inset-x-0 bottom-0 max-h-[88svh] overflow-y-auto rounded-t-3xl p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
+      <div className="glass-surface fixed inset-x-0 bottom-0 max-h-[88svh] touch-pan-y overflow-y-auto rounded-t-3xl p-4 overscroll-contain pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">{t('Filters')}</h2>
@@ -511,11 +528,20 @@ function MobileFilterSheet({
           </label>
         </div>
 
-        <div className="sticky bottom-0 -mx-4 mt-6 grid grid-cols-2 gap-2 border-t border-white/10 bg-background/55 px-4 pt-3 backdrop-blur-xl">
-          <Button type="button" variant="outline" onClick={onClear}>
+        <div className="sticky bottom-0 -mx-4 mt-6 grid grid-cols-[0.9fr_1.1fr] gap-2 border-t border-white/10 bg-background/55 px-4 pt-3 backdrop-blur-xl">
+          <Button
+            className="h-11 px-3 text-xs leading-tight sm:px-4 sm:text-sm"
+            type="button"
+            variant="outline"
+            onClick={onClear}
+          >
             {t('Clear filters')}
           </Button>
-          <Button type="button" onClick={() => onApply(draftFilters)}>
+          <Button
+            className="h-11 px-2 text-sm leading-tight"
+            type="button"
+            onClick={() => onApply(draftFilters)}
+          >
             {t('Apply')}
           </Button>
         </div>
