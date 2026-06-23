@@ -15,10 +15,22 @@ export function PostCard({ post }: PostCardProps) {
   const postUrl = localizedPath(`/posts/${post.id}`);
 
   return (
-    <article className="premium-card premium-card-hover group relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1">
+    <article
+      className={`premium-card premium-card-hover group relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 ${
+        post.isBoosted
+          ? 'border-orange-400/80 shadow-[0_20px_50px_hsl(24_80%_38%/.18),0_0_0_2px_hsl(24_95%_55%/.16)]'
+          : ''
+      }`}
+    >
       {post.isBoosted ? (
-        <div className="absolute top-3 left-3 z-10">
-          <BoostBadge />
+        <div
+          className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500"
+          aria-hidden="true"
+        />
+      ) : null}
+      {post.isBoosted ? (
+        <div className="absolute top-4 left-4 z-10">
+          <BoostBadge variant="overlay" />
         </div>
       ) : null}
       <Link

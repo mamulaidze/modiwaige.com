@@ -16,6 +16,11 @@ const CreatePostPage = lazy(() =>
     default: module.CreatePostPage,
   })),
 );
+const ChatPage = lazy(() =>
+  import('@/features/chat/pages/chat-page').then((module) => ({
+    default: module.ChatPage,
+  })),
+);
 const AdminDashboardPage = lazy(() =>
   import('@/features/admin/pages/admin-dashboard-page').then((module) => ({
     default: module.AdminDashboardPage,
@@ -106,6 +111,10 @@ export const router = createBrowserRouter([
     element: <Navigate replace to="/ge/create" />,
   },
   {
+    path: '/chat/:reservationId',
+    element: <Navigate replace to="/ge" />,
+  },
+  {
     path: '/profile',
     element: <Navigate replace to="/ge/profile" />,
   },
@@ -167,6 +176,14 @@ export const router = createBrowserRouter([
         element: withSuspense(
           <ProtectedRoute>
             <CreatePostPage />
+          </ProtectedRoute>,
+        ),
+      },
+      {
+        path: 'chat/:reservationId',
+        element: withSuspense(
+          <ProtectedRoute>
+            <ChatPage />
           </ProtectedRoute>,
         ),
       },

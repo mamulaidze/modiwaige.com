@@ -6,6 +6,7 @@ import {
   Eye,
   Loader2,
   MapPin,
+  MessageCircle,
   Pencil,
   Phone,
   Settings,
@@ -33,6 +34,11 @@ import {
 import { ReservationCountdown } from '@/features/posts/components/reservation-countdown';
 import { ReservationStatusBadge } from '@/features/posts/components/reservation-status-badge';
 import { BoostBadge } from '@/features/posts/components/boost-badge';
+import { BoostActiveCountdown } from '@/features/posts/components/boost-active-countdown';
+import {
+  BoostPaymentSuccess,
+  BoostSuccessAlert,
+} from '@/features/posts/components/boost-payment-success';
 import { BoostPostDialog } from '@/features/posts/components/boost-post-dialog';
 import {
   activateDemoPostBoost,
@@ -338,6 +344,7 @@ function MyPostsSection({
   posts: ProfilePost[];
 }) {
   const { language, localizedPath, t } = useI18n();
+  const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [markingGivenId, setMarkingGivenId] = useState<string | null>(null);
   const [managingReservationId, setManagingReservationId] = useState<
@@ -346,6 +353,12 @@ function MyPostsSection({
   const [statsPostId, setStatsPostId] = useState<string | null>(null);
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
   const [boostDialogPostId, setBoostDialogPostId] = useState<string | null>(
+    null,
+  );
+  const [boostSuccessExpiresAt, setBoostSuccessExpiresAt] = useState<
+    string | null
+  >(null);
+  const [boostAlertExpiresAt, setBoostAlertExpiresAt] = useState<string | null>(
     null,
   );
   const [confirmation, setConfirmation] = useState<{
@@ -425,9 +438,14 @@ function MyPostsSection({
     onError(null);
 
     try {
-      await activateDemoPostBoost(postId, plan);
+      const boostedPost = await activateDemoPostBoost(postId, plan);
       await onDeleted();
+      await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      await queryClient.invalidateQueries({
+        queryKey: ['unread-notifications'],
+      });
       setBoostDialogPostId(null);
+      setBoostSuccessExpiresAt(boostedPost.boost_expires_at);
     } catch (error) {
       logErrorDetails('Profile boost post failed', error);
       onError(getFriendlyErrorMessage(error, 'Could not boost post.'));
@@ -483,15 +501,21 @@ function MyPostsSection({
 
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 <Button
-                  className="h-auto min-h-11 bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300"
+                  className="h-auto min-h-11 bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300 disabled:opacity-100"
                   disabled={
-                    post.status !== 'available' || boostingPostId === post.id
+                    post.status !== 'available' ||
+                    post.isBoosted ||
+                    boostingPostId === post.id
                   }
                   type="button"
                   onClick={() => setBoostDialogPostId(post.id)}
                 >
                   <Rocket className="size-4" aria-hidden="true" />
-                  {post.isBoosted ? t('Extend boost') : t('Boost post')}
+                  {post.isBoosted && post.boostExpiresAt ? (
+                    <BoostActiveCountdown expiresAt={post.boostExpiresAt} />
+                  ) : (
+                    t('Boost post')
+                  )}
                 </Button>
                 <Button
                   aria-expanded={statsPostId === post.id}
@@ -593,6 +617,23 @@ function MyPostsSection({
         />
       ) : null}
 
+      {boostSuccessExpiresAt ? (
+        <BoostPaymentSuccess
+          expiresAt={boostSuccessExpiresAt}
+          onComplete={() => {
+            setBoostAlertExpiresAt(boostSuccessExpiresAt);
+            setBoostSuccessExpiresAt(null);
+          }}
+        />
+      ) : null}
+
+      {boostAlertExpiresAt ? (
+        <BoostSuccessAlert
+          expiresAt={boostAlertExpiresAt}
+          onDismiss={() => setBoostAlertExpiresAt(null)}
+        />
+      ) : null}
+
       {confirmation?.type === 'mark-given' ? (
         <ConfirmDialog
           confirmLabel={t('Mark given')}
@@ -684,7 +725,7 @@ function OwnerReservationsPanel({
   ) => void;
   reservations: ProfilePost['reservations'];
 }) {
-  const { t } = useI18n();
+  const { localizedPath, t } = useI18n();
 
   return (
     <section className="mt-4 space-y-3 border-t pt-4">
@@ -739,6 +780,12 @@ function OwnerReservationsPanel({
               ) : null}
               {reservation.status === 'accepted' ? (
                 <>
+                  <Button asChild variant="outline">
+                    <Link to={localizedPath(`/chat/${reservation.id}`)}>
+                      <MessageCircle className="size-4" aria-hidden="true" />
+                      {t('Chat')}
+                    </Link>
+                  </Button>
                   <Button
                     disabled={managingReservationId === reservation.id}
                     type="button"
@@ -913,6 +960,14 @@ function ReservedItemsSection({
                       {cancellingId === reservation.id
                         ? t('Cancelling...')
                         : t('Unreserve')}
+                    </Button>
+                  ) : null}
+                  {reservation.status === 'accepted' ? (
+                    <Button asChild>
+                      <Link to={localizedPath(`/chat/${reservation.id}`)}>
+                        <MessageCircle className="size-4" aria-hidden="true" />
+                        {t('Chat')}
+                      </Link>
                     </Button>
                   ) : null}
                 </div>

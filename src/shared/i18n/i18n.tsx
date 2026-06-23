@@ -648,7 +648,7 @@ const ruTranslations: Record<string, string> = {
 };
 
 Object.assign(translations, {
-  Boosted: 'ტოპ',
+  Boosted: 'VIP განცხადება',
   'Boosted only': 'მხოლოდ ტოპ განცხადებები',
   'Boosted posts only': 'მხოლოდ ტოპ განცხადებები',
   'Boost post': 'აბუსთვა',
@@ -664,10 +664,48 @@ Object.assign(translations, {
   '3 days': '3 დღე',
   '7 days': '7 დღე',
   'Could not boost post.': 'განცხადების ტოპში აწევა ვერ მოხერხდა.',
+  'Demo payment completed': 'დემო გადახდა დასრულდა',
+  'Your post is now at the top of the feed.':
+    'თქვენი განცხადება უკვე სიის დასაწყისშია.',
+  'Top placement active until': 'ტოპში იქნება',
+  'Your post is in the top section': 'განცხადება ტოპშია',
+  'Active until': 'აქტიურია',
+  'VIP active': 'VIP აქტიურია',
+  'VIP placement activated': 'VIP განთავსება გააქტიურდა',
+  'Your post is now shown as a VIP listing.':
+    'თქვენი განცხადება ახლა VIP განცხადებად გამოჩნდება.',
+  'VIP time left': 'VIP ვადის ამოწურვამდე',
+  'VIP placement expired': 'VIP ვადა ამოიწურა',
+  d: 'დ',
+  Chat: 'ჩატი',
+  'Chat with': 'ჩატი:',
+  'Chat with owner': 'მფლობელთან ჩატი',
+  'Back to item': 'ნივთზე დაბრუნება',
+  'Loading chat': 'ჩატი იტვირთება',
+  'Your temporary conversation is loading.': 'დროებითი საუბარი იტვირთება.',
+  'Chat unavailable': 'ჩატი მიუწვდომელია',
+  'This chat could not be opened.': 'ჩატის გახსნა ვერ მოხერხდა.',
+  'This chat is temporary. Messages are deleted when the reservation ends, is cancelled, or the item is given.':
+    'ეს ჩატი დროებითია. შეტყობინებები წაიშლება, როცა ჯავშანი დასრულდება, გაუქმდება ან ნივთი გაიცემა.',
+  'No messages yet': 'შეტყობინებები ჯერ არ არის',
+  'Use this temporary chat to arrange pickup.':
+    'გამოიყენეთ დროებითი ჩატი ნივთის გადაცემის შესათანხმებლად.',
+  'This chat has ended': 'ჩატი დასრულებულია',
+  'The reservation is no longer active, so all chat messages were deleted.':
+    'ჯავშანი აღარ არის აქტიური, ამიტომ ჩატის ყველა შეტყობინება წაიშალა.',
+  Message: 'შეტყობინება',
+  'Write a message...': 'დაწერეთ შეტყობინება...',
+  Send: 'გაგზავნა',
+  'Message could not be sent.': 'შეტყობინება ვერ გაიგზავნა.',
+  'New chat message': 'ახალი შეტყობინება ჩატში',
+  'Open the temporary chat to read the message.':
+    'შეტყობინების სანახავად გახსენით დროებითი ჩატი.',
+  'Temporary reservation chat for arranging item pickup.':
+    'დროებითი ჯავშნის ჩატი ნივთის გადაცემის შესათანხმებლად.',
 });
 
 Object.assign(ruTranslations, {
-  Boosted: 'Продвигается',
+  Boosted: 'VIP-объявление',
   'Boosted only': 'Только продвигаемые',
   'Boosted posts only': 'Только продвигаемые объявления',
   'Boost post': 'Продвинуть объявление',
@@ -683,6 +721,44 @@ Object.assign(ruTranslations, {
   '3 days': '3 дня',
   '7 days': '7 дней',
   'Could not boost post.': 'Не удалось продвинуть объявление.',
+  'Demo payment completed': 'Демо-оплата завершена',
+  'Your post is now at the top of the feed.':
+    'Ваше объявление теперь находится в начале ленты.',
+  'Top placement active until': 'Размещение в топе активно до',
+  'Your post is in the top section': 'Объявление находится в топе',
+  'Active until': 'Активно до',
+  'VIP active': 'VIP активно',
+  'VIP placement activated': 'VIP-размещение активировано',
+  'Your post is now shown as a VIP listing.':
+    'Ваше объявление теперь показывается как VIP.',
+  'VIP time left': 'До окончания VIP',
+  'VIP placement expired': 'Срок VIP истёк',
+  d: 'д',
+  Chat: 'Чат',
+  'Chat with': 'Чат с',
+  'Chat with owner': 'Чат с владельцем',
+  'Back to item': 'Вернуться к вещи',
+  'Loading chat': 'Чат загружается',
+  'Your temporary conversation is loading.': 'Временный разговор загружается.',
+  'Chat unavailable': 'Чат недоступен',
+  'This chat could not be opened.': 'Не удалось открыть чат.',
+  'This chat is temporary. Messages are deleted when the reservation ends, is cancelled, or the item is given.':
+    'Этот чат временный. Сообщения удаляются после завершения или отмены брони либо передачи вещи.',
+  'No messages yet': 'Сообщений пока нет',
+  'Use this temporary chat to arrange pickup.':
+    'Используйте временный чат, чтобы договориться о передаче.',
+  'This chat has ended': 'Чат завершён',
+  'The reservation is no longer active, so all chat messages were deleted.':
+    'Бронь больше не активна, поэтому все сообщения чата были удалены.',
+  Message: 'Сообщение',
+  'Write a message...': 'Напишите сообщение...',
+  Send: 'Отправить',
+  'Message could not be sent.': 'Не удалось отправить сообщение.',
+  'New chat message': 'Новое сообщение в чате',
+  'Open the temporary chat to read the message.':
+    'Откройте временный чат, чтобы прочитать сообщение.',
+  'Temporary reservation chat for arranging item pickup.':
+    'Временный чат бронирования для согласования передачи вещи.',
 });
 
 type I18nContextValue = {

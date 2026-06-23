@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, CheckCheck, ExternalLink } from 'lucide-react';
+import { Bell, CheckCheck, Clock3, ExternalLink, Rocket } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -146,9 +146,12 @@ export function NotificationBell() {
                   language,
                 )}
                 to={
-                  notification.postId
-                    ? localizedPath(`/posts/${notification.postId}`)
-                    : localizedPath('/profile')
+                  notification.type === 'chat_message' &&
+                  notification.reservationId
+                    ? localizedPath(`/chat/${notification.reservationId}`)
+                    : notification.postId
+                      ? localizedPath(`/posts/${notification.postId}`)
+                      : localizedPath('/profile')
                 }
                 onOpen={() => {
                   setIsOpen(false);
@@ -179,6 +182,7 @@ function NotificationItem({
 }) {
   const { t } = useI18n();
   const isUnread = !notification.readAt;
+  const isBoostNotification = notification.type === 'post_boosted';
 
   return (
     <Link
@@ -189,20 +193,31 @@ function NotificationItem({
       to={to}
       onClick={onOpen}
     >
-      <span
-        className={cn(
-          'mt-1 size-2 shrink-0 rounded-full',
-          isUnread ? 'bg-primary' : 'bg-muted-foreground/35',
-        )}
-        aria-hidden="true"
-      />
+      {isBoostNotification ? (
+        <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-white shadow-sm">
+          <Rocket className="size-4" aria-hidden="true" />
+        </span>
+      ) : (
+        <span
+          className={cn(
+            'mt-1 size-2 shrink-0 rounded-full',
+            isUnread ? 'bg-primary' : 'bg-muted-foreground/35',
+          )}
+          aria-hidden="true"
+        />
+      )}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">
           {getNotificationTitle(notification.type, t)}
         </span>
         <span className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-5">
-          {getNotificationBody(notification.type, t)}
+          {notification.type === 'chat_message'
+            ? notification.body
+            : getNotificationBody(notification.type, t)}
         </span>
+        {isBoostNotification && notification.expiresAt ? (
+          <BoostNotificationCountdown expiresAt={notification.expiresAt} />
+        ) : null}
         <span className="text-muted-foreground mt-1 block text-[11px]">
           {timestamp}
         </span>
@@ -225,6 +240,8 @@ function getNotificationTitle(
     reservation_declined: 'Reservation declined',
     reservation_cancelled: 'Reservation cancelled',
     post_given: 'Reservation completed',
+    post_boosted: 'VIP placement activated',
+    chat_message: 'New chat message',
   };
 
   return t(titles[type]);
@@ -240,9 +257,54 @@ function getNotificationBody(
     reservation_declined: 'Your reservation request was declined.',
     reservation_cancelled: 'A reservation was cancelled.',
     post_given: 'The item was marked as given.',
+    post_boosted: 'Your post is now shown as a VIP listing.',
+    chat_message: 'Open the temporary chat to read the message.',
   };
 
   return t(bodies[type]);
+}
+
+function BoostNotificationCountdown({ expiresAt }: { expiresAt: string }) {
+  const { t } = useI18n();
+  const [now, setNow] = useState(() => Date.now());
+  const expiresAtMs = new Date(expiresAt).getTime();
+
+  useEffect(() => {
+    if (expiresAtMs <= Date.now()) {
+      return;
+    }
+
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+
+    return () => window.clearInterval(timer);
+  }, [expiresAtMs]);
+
+  const remainingSeconds = Math.max(0, Math.floor((expiresAtMs - now) / 1000));
+
+  if (remainingSeconds === 0) {
+    return (
+      <span className="text-muted-foreground bg-muted mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold">
+        <Clock3 className="size-3" aria-hidden="true" />
+        {t('VIP placement expired')}
+      </span>
+    );
+  }
+
+  const days = Math.floor(remainingSeconds / 86400);
+  const hours = Math.floor((remainingSeconds % 86400) / 3600);
+  const minutes = Math.floor((remainingSeconds % 3600) / 60);
+  const seconds = remainingSeconds % 60;
+
+  return (
+    <span className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-orange-500/10 px-2 py-1 text-[11px] font-bold text-orange-700 dark:text-orange-300">
+      <Clock3 className="size-3" aria-hidden="true" />
+      {t('VIP time left')} {days > 0 ? `${days}${t('d')} ` : ''}
+      {hours}
+      {t('h')} {minutes}
+      {t('m')} {seconds}
+      {t('s')}
+    </span>
+  );
 }
 
 function formatNotificationTime(value: string, language: string) {

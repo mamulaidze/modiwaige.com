@@ -7,13 +7,16 @@ export type AppNotification = {
     | 'reservation_accepted'
     | 'reservation_declined'
     | 'reservation_cancelled'
-    | 'post_given';
+    | 'post_given'
+    | 'post_boosted'
+    | 'chat_message';
   title: string;
   body: string;
   postId: string | null;
   reservationId: string | null;
   readAt: string | null;
   createdAt: string;
+  expiresAt: string | null;
 };
 
 type NotificationRow = {
@@ -25,6 +28,7 @@ type NotificationRow = {
   reservation_id: string | null;
   read_at: string | null;
   created_at: string;
+  expires_at: string | null;
 };
 
 export async function fetchUnreadNotificationCount(userId?: string) {
@@ -53,11 +57,11 @@ export async function fetchNotifications(userId?: string) {
   const { data, error } = await supabase
     .from('notifications')
     .select(
-      'id, type, title, body, post_id, reservation_id, read_at, created_at',
+      'id, type, title, body, post_id, reservation_id, read_at, created_at, expires_at',
     )
     .eq('recipient_id', userId)
     .order('created_at', { ascending: false })
-    .limit(10);
+    .limit(30);
 
   if (error) {
     throw new Error(error.message);
@@ -72,6 +76,7 @@ export async function fetchNotifications(userId?: string) {
     reservationId: notification.reservation_id,
     readAt: notification.read_at,
     createdAt: notification.created_at,
+    expiresAt: notification.expires_at,
   }));
 }
 

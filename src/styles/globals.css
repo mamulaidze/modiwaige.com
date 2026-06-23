@@ -290,6 +290,150 @@ a {
     background: var(--theme-destructive-soft);
   }
 
+  .sponsored-campaign {
+    border: 1px solid hsl(42 28% 78% / 0.8);
+    background: hsl(42 45% 98%);
+    color: hsl(166 30% 12%);
+    box-shadow:
+      0 22px 54px hsl(160 24% 18% / 0.11),
+      inset 0 1px 0 hsl(0 0% 100% / 0.9);
+  }
+
+  .sponsored-campaign-link {
+    color: hsl(166 30% 12%);
+  }
+
+  .sponsored-campaign-image {
+    top: 0;
+    right: 0;
+    width: 58%;
+    height: 100%;
+    object-position: 68% center;
+  }
+
+  .sponsored-campaign-overlay {
+    background:
+      linear-gradient(
+        90deg,
+        hsl(42 45% 98%) 0%,
+        hsl(42 45% 98%) 42%,
+        hsl(42 45% 98% / 0.9) 52%,
+        hsl(42 45% 98% / 0.18) 72%,
+        transparent 100%
+      ),
+      linear-gradient(180deg, transparent 62%, hsl(42 45% 98% / 0.2));
+  }
+
+  .sponsored-campaign-copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .sponsored-campaign-logo {
+    border: 1px solid hsl(155 34% 28% / 0.2);
+    background: hsl(155 40% 92%);
+    color: hsl(155 54% 24%);
+    box-shadow: 0 10px 24px hsl(155 30% 24% / 0.12);
+  }
+
+  .sponsored-campaign-label {
+    color: hsl(155 54% 28%);
+  }
+
+  .sponsored-campaign-description {
+    color: hsl(172 9% 36%);
+  }
+
+  .sponsored-campaign-action {
+    background: hsl(155 54% 30%);
+    color: white;
+    box-shadow: 0 12px 28px hsl(155 54% 24% / 0.22);
+  }
+
+  .sponsored-campaign-action:hover {
+    background: hsl(155 54% 25%);
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign {
+    border-color: hsl(155 48% 48% / 0.22);
+    background: hsl(158 45% 6%);
+    color: white;
+    box-shadow: 0 22px 60px hsl(160 30% 4% / 0.38);
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-link {
+    color: white;
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-image {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-position: center;
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-overlay {
+    background:
+      linear-gradient(
+        90deg,
+        hsl(158 45% 6% / 0.97) 0%,
+        hsl(158 45% 7% / 0.9) 38%,
+        hsl(158 45% 7% / 0.48) 68%,
+        hsl(158 45% 7% / 0.12) 100%
+      ),
+      linear-gradient(180deg, transparent 45%, hsl(158 45% 5% / 0.56) 100%);
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-logo {
+    border-color: hsl(0 0% 100% / 0.18);
+    background: hsl(0 0% 100% / 0.1);
+    color: white;
+    box-shadow: 0 10px 24px hsl(160 30% 4% / 0.32);
+    backdrop-filter: blur(12px);
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-label {
+    color: hsl(152 58% 64%);
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-description {
+    color: hsl(0 0% 100% / 0.72);
+  }
+
+  :root[data-theme='dark'] .sponsored-campaign-action {
+    background: hsl(152 58% 56%);
+    color: hsl(158 54% 10%);
+    box-shadow: 0 12px 30px hsl(155 70% 35% / 0.35);
+  }
+
+  @media (max-width: 639px) {
+    .sponsored-campaign-image {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.2;
+      object-position: 72% center;
+    }
+
+    .sponsored-campaign-overlay {
+      background: linear-gradient(
+        90deg,
+        hsl(42 45% 98% / 0.98),
+        hsl(42 45% 98% / 0.9)
+      );
+    }
+
+    :root[data-theme='dark'] .sponsored-campaign-image {
+      opacity: 1;
+    }
+
+    :root[data-theme='dark'] .sponsored-campaign-overlay {
+      background:
+        linear-gradient(90deg, hsl(158 45% 6% / 0.96), hsl(158 45% 7% / 0.7)),
+        linear-gradient(180deg, transparent, hsl(158 45% 5% / 0.7));
+    }
+  }
+
   .filter-card-enter {
     transform-origin: top center;
     animation: filter-card-enter 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -359,5 +503,140 @@ a {
   100% {
     opacity: 1;
     transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+.boost-success-card {
+  animation: boost-success-card 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.boost-success-icon {
+  animation: boost-success-icon 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.boost-success-glow {
+  position: absolute;
+  inset: 15% 20%;
+  border-radius: 999px;
+  background: hsl(156 72% 45% / 0.24);
+  filter: blur(44px);
+  animation: boost-success-glow 1.8s ease-in-out infinite alternate;
+}
+
+.boost-success-spark {
+  animation: boost-success-spark 900ms ease-in-out infinite alternate;
+}
+
+.boost-success-rocket {
+  animation: boost-success-rocket 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) infinite
+    alternate;
+}
+
+.boost-confetti span {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  width: 7px;
+  height: 12px;
+  border-radius: 999px;
+  background: hsl(calc(42 + var(--piece) * 17) 78% 55%);
+  opacity: 0;
+  animation: boost-confetti 1.2s ease-out var(--delay) forwards;
+}
+
+.boost-success-alert {
+  animation: boost-success-alert 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes boost-success-card {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes boost-success-icon {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) rotate(-18deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.14) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes boost-success-glow {
+  from {
+    opacity: 0.55;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes boost-success-spark {
+  from {
+    transform: rotate(-12deg) scale(0.8);
+  }
+  to {
+    transform: rotate(14deg) scale(1.18);
+  }
+}
+
+@keyframes boost-success-rocket {
+  from {
+    transform: translate(-3px, 5px) rotate(-18deg);
+  }
+  to {
+    transform: translate(5px, -5px) rotate(-8deg);
+  }
+}
+
+@keyframes boost-confetti {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0)
+      scale(0.35);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle))
+      translateY(calc(var(--distance) * -1)) rotate(240deg) scale(1);
+  }
+}
+
+@keyframes boost-success-alert {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boost-success-card,
+  .boost-success-icon,
+  .boost-success-glow,
+  .boost-success-spark,
+  .boost-success-rocket,
+  .boost-confetti span,
+  .boost-success-alert {
+    animation: none;
   }
 }

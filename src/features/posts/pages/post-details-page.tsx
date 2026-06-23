@@ -6,6 +6,7 @@ import {
   FileWarning,
   ImageIcon,
   MapPin,
+  MessageCircle,
   Pencil,
   Rocket,
   X,
@@ -61,6 +62,11 @@ import {
 import { ReservationCountdown } from '../components/reservation-countdown';
 import { ReservationStatusBadge } from '../components/reservation-status-badge';
 import { BoostBadge } from '../components/boost-badge';
+import { BoostActiveCountdown } from '../components/boost-active-countdown';
+import {
+  BoostPaymentSuccess,
+  BoostSuccessAlert,
+} from '../components/boost-payment-success';
 import { BoostPostDialog } from '../components/boost-post-dialog';
 import { createPostSchema } from '../validation/create-post-schema';
 import type { PostReservation } from '../types/post-details';
@@ -85,6 +91,12 @@ export function PostDetailsPage() {
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isBoostDialogOpen, setIsBoostDialogOpen] = useState(false);
+  const [boostSuccessExpiresAt, setBoostSuccessExpiresAt] = useState<
+    string | null
+  >(null);
+  const [boostAlertExpiresAt, setBoostAlertExpiresAt] = useState<string | null>(
+    null,
+  );
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<
     'mark-given' | 'delete' | 'cancel-reservation' | 'reserve' | null
@@ -174,6 +186,10 @@ export function PostDetailsPage() {
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
+      await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      await queryClient.invalidateQueries({
+        queryKey: ['unread-notifications'],
+      });
       setActionError(null);
       setConfirmation(null);
     },
@@ -282,12 +298,13 @@ export function PostDetailsPage() {
 
       return activateDemoPostBoost(post.id, plan);
     },
-    onSuccess: async () => {
+    onSuccess: async (boostedPost) => {
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
       setIsBoostDialogOpen(false);
       setActionError(null);
+      setBoostSuccessExpiresAt(boostedPost.boost_expires_at);
     },
     onError: (mutationError) => {
       logErrorDetails('Boost post failed', mutationError);
@@ -493,8 +510,8 @@ export function PostDetailsPage() {
           ) : (
             <>
               <div className="space-y-3">
-                <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-3">
-                  <h1 className="min-w-0 text-xl leading-7 font-semibold [overflow-wrap:anywhere] break-words sm:flex-1 sm:text-2xl sm:leading-tight lg:text-3xl">
+                <div className="min-w-0 space-y-3">
+                  <h1 className="min-w-0 text-xl leading-7 font-semibold [overflow-wrap:anywhere] break-words sm:text-2xl sm:leading-tight lg:text-3xl">
                     {post.title}
                   </h1>
                   <div className="flex flex-wrap items-center gap-2">
@@ -595,6 +612,18 @@ export function PostDetailsPage() {
                   <p className="text-muted-foreground mt-1 text-sm leading-6">
                     {t('Contact the owner to arrange pickup.')}
                   </p>
+                  {viewerActiveReservation.status === 'accepted' ? (
+                    <Button asChild className="mt-3 w-full">
+                      <Link
+                        to={localizedPath(
+                          `/chat/${viewerActiveReservation.id}`,
+                        )}
+                      >
+                        <MessageCircle className="size-4" aria-hidden="true" />
+                        {t('Chat with owner')}
+                      </Link>
+                    </Button>
+                  ) : null}
                   {post.owner?.phoneNumber ? (
                     <Button asChild className="mt-3 w-full">
                       <a href={`tel:${post.owner.phoneNumber}`}>
@@ -617,15 +646,21 @@ export function PostDetailsPage() {
               {isOwner ? (
                 <div className="grid gap-2">
                   <Button
-                    className="h-auto min-h-11 w-full bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300"
+                    className="h-auto min-h-11 w-full bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300 disabled:opacity-100"
                     disabled={
-                      post.status !== 'available' || boostMutation.isPending
+                      post.status !== 'available' ||
+                      post.isBoosted ||
+                      boostMutation.isPending
                     }
                     type="button"
                     onClick={() => setIsBoostDialogOpen(true)}
                   >
                     <Rocket className="size-4" aria-hidden="true" />
-                    {post.isBoosted ? t('Extend boost') : t('Boost post')}
+                    {post.isBoosted && post.boostExpiresAt ? (
+                      <BoostActiveCountdown expiresAt={post.boostExpiresAt} />
+                    ) : (
+                      t('Boost post')
+                    )}
                   </Button>
                   <Button
                     className="h-auto min-h-11 w-full whitespace-normal"
@@ -711,6 +746,23 @@ export function PostDetailsPage() {
           isLoading={boostMutation.isPending}
           onCancel={() => setIsBoostDialogOpen(false)}
           onConfirm={(plan) => boostMutation.mutate(plan)}
+        />
+      ) : null}
+
+      {boostSuccessExpiresAt ? (
+        <BoostPaymentSuccess
+          expiresAt={boostSuccessExpiresAt}
+          onComplete={() => {
+            setBoostAlertExpiresAt(boostSuccessExpiresAt);
+            setBoostSuccessExpiresAt(null);
+          }}
+        />
+      ) : null}
+
+      {boostAlertExpiresAt ? (
+        <BoostSuccessAlert
+          expiresAt={boostAlertExpiresAt}
+          onDismiss={() => setBoostAlertExpiresAt(null)}
         />
       ) : null}
 
@@ -878,7 +930,7 @@ function ReservationOwnerActions({
   ) => void;
   reservation: PostReservation;
 }) {
-  const { t } = useI18n();
+  const { localizedPath, t } = useI18n();
 
   if (reservation.status === 'pending') {
     return (
@@ -906,6 +958,12 @@ function ReservationOwnerActions({
   if (reservation.status === 'accepted') {
     return (
       <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline">
+          <Link to={localizedPath(`/chat/${reservation.id}`)}>
+            <MessageCircle className="size-4" aria-hidden="true" />
+            {t('Chat')}
+          </Link>
+        </Button>
         <Button
           disabled={disabled}
           type="button"

@@ -367,10 +367,10 @@ function SponsoredAd({
   return (
     <aside
       aria-label={`Sponsored placement ${slotNumber}`}
-      className="col-span-1 overflow-hidden rounded-lg border border-emerald-300/20 bg-[#071a13] shadow-[0_22px_60px_hsl(160_30%_4%/.38)] min-[430px]:col-span-2 sm:col-span-3"
+      className="sponsored-campaign col-span-1 overflow-hidden rounded-[30px] min-[430px]:col-span-2 sm:col-span-3"
     >
       <a
-        className="group relative isolate flex min-h-72 overflow-hidden p-6 text-white sm:min-h-80 sm:p-8 lg:min-h-72 lg:p-10"
+        className="sponsored-campaign-link group relative isolate flex min-h-80 overflow-hidden p-6 sm:min-h-80 sm:p-8 lg:min-h-72 lg:p-10"
         href="https://kartserluxi.com"
         rel="noopener noreferrer sponsored"
         target="_blank"
@@ -378,19 +378,22 @@ function SponsoredAd({
         <img
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 -z-20 size-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.025] sm:object-right"
+          className="sponsored-campaign-image absolute -z-20 object-cover transition-transform duration-700 group-hover:scale-[1.025]"
           src="/kartser-luxi-campaign.png"
         />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,hsl(158_45%_6%/.97)_0%,hsl(158_45%_7%/.9)_38%,hsl(158_45%_7%/.48)_68%,hsl(158_45%_7%/.12)_100%),linear-gradient(180deg,transparent_45%,hsl(158_45%_5%/.56)_100%)]" />
+        <div
+          className="sponsored-campaign-overlay absolute inset-0 -z-10"
+          aria-hidden="true"
+        />
 
-        <div className="flex w-full max-w-xl flex-col justify-between gap-8">
+        <div className="sponsored-campaign-copy flex w-full max-w-xl flex-col justify-between gap-8">
           <div>
             <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-lg border border-white/18 bg-white/10 text-sm font-black shadow-lg backdrop-blur-md">
+              <span className="sponsored-campaign-logo flex size-11 items-center justify-center rounded-xl text-sm font-black">
                 KL
               </span>
               <div>
-                <p className="text-xs font-semibold text-emerald-300 uppercase">
+                <p className="sponsored-campaign-label text-xs font-bold tracking-[0.16em] uppercase">
                   {copy.label}
                 </p>
                 <p className="mt-0.5 text-lg font-semibold">Kartser Luxi</p>
@@ -400,12 +403,12 @@ function SponsoredAd({
             <h3 className="mt-7 max-w-lg text-3xl leading-tight font-semibold text-balance sm:text-4xl">
               {copy.headline}
             </h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-white/72 sm:text-base">
+            <p className="sponsored-campaign-description mt-3 max-w-md text-sm leading-6 sm:text-base">
               {copy.description}
             </p>
           </div>
 
-          <span className="flex w-fit items-center gap-2 rounded-lg bg-emerald-400 px-5 py-3 text-sm font-bold text-emerald-950 shadow-[0_12px_30px_hsl(155_70%_35%/.35)] transition-transform group-hover:-translate-y-0.5">
+          <span className="sponsored-campaign-action flex w-fit items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-transform group-hover:-translate-y-0.5">
             <GraduationCap className="size-4" aria-hidden="true" />
             {copy.action}
             <ExternalLink className="size-4" aria-hidden="true" />

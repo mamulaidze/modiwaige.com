@@ -9,10 +9,115 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      conversations: {
+        Row: {
+          closed_at: string | null;
+          created_at: string;
+          id: string;
+          owner_id: string;
+          post_id: string;
+          requester_id: string;
+          reservation_id: string;
+          status: 'active' | 'closed';
+          updated_at: string;
+        };
+        Insert: {
+          closed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          owner_id: string;
+          post_id: string;
+          requester_id: string;
+          reservation_id: string;
+          status?: 'active' | 'closed';
+          updated_at?: string;
+        };
+        Update: {
+          closed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          owner_id?: string;
+          post_id?: string;
+          requester_id?: string;
+          reservation_id?: string;
+          status?: 'active' | 'closed';
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'conversations_owner_id_fkey';
+            columns: ['owner_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_requester_id_fkey';
+            columns: ['requester_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_reservation_id_fkey';
+            columns: ['reservation_id'];
+            isOneToOne: true;
+            referencedRelation: 'reservations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      messages: {
+        Row: {
+          body: string;
+          conversation_id: string;
+          created_at: string;
+          id: string;
+          sender_id: string;
+        };
+        Insert: {
+          body: string;
+          conversation_id: string;
+          created_at?: string;
+          id?: string;
+          sender_id: string;
+        };
+        Update: {
+          body?: string;
+          conversation_id?: string;
+          created_at?: string;
+          id?: string;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'messages_conversation_id_fkey';
+            columns: ['conversation_id'];
+            isOneToOne: false;
+            referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'messages_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notifications: {
         Row: {
           body: string;
           created_at: string;
+          expires_at: string | null;
           id: string;
           post_id: string | null;
           read_at: string | null;
@@ -24,11 +129,14 @@ export type Database = {
             | 'reservation_accepted'
             | 'reservation_declined'
             | 'reservation_cancelled'
-            | 'post_given';
+            | 'post_given'
+            | 'post_boosted'
+            | 'chat_message';
         };
         Insert: {
           body: string;
           created_at?: string;
+          expires_at?: string | null;
           id?: string;
           post_id?: string | null;
           read_at?: string | null;
@@ -40,11 +148,14 @@ export type Database = {
             | 'reservation_accepted'
             | 'reservation_declined'
             | 'reservation_cancelled'
-            | 'post_given';
+            | 'post_given'
+            | 'post_boosted'
+            | 'chat_message';
         };
         Update: {
           body?: string;
           created_at?: string;
+          expires_at?: string | null;
           id?: string;
           post_id?: string | null;
           read_at?: string | null;
@@ -56,7 +167,9 @@ export type Database = {
             | 'reservation_accepted'
             | 'reservation_declined'
             | 'reservation_cancelled'
-            | 'post_given';
+            | 'post_given'
+            | 'post_boosted'
+            | 'chat_message';
         };
         Relationships: [
           {
@@ -543,6 +656,13 @@ export type Database = {
           next_status: 'accepted' | 'declined' | 'cancelled' | 'completed';
         };
         Returns: Database['public']['Tables']['reservations']['Row'];
+      };
+      send_chat_message: {
+        Args: {
+          message_body: string;
+          target_reservation_id: string;
+        };
+        Returns: Database['public']['Tables']['messages']['Row'];
       };
     };
     Enums: Record<string, never>;
