@@ -1,6 +1,8 @@
 import {
   Home,
   LogIn,
+  Search,
+  CalendarCheck,
   PlusCircle,
   ShieldCheck,
   User,
@@ -24,9 +26,20 @@ export const navigationItems: NavigationItem[] = [
     icon: Home,
   },
   {
+    href: '/',
+    labelKey: 'Search',
+    icon: Search,
+  },
+  {
     href: '/create',
-    labelKey: 'Create',
+    labelKey: 'Post',
     icon: PlusCircle,
+    requiresAuth: true,
+  },
+  {
+    href: '/profile?tab=reserved',
+    labelKey: 'Reservations',
+    icon: CalendarCheck,
     requiresAuth: true,
   },
   {

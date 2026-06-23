@@ -166,7 +166,7 @@ export function CreatePostForm() {
 
   return (
     <form
-      className="premium-card min-w-0 space-y-6 rounded-3xl p-4 sm:p-6"
+      className="border-border bg-card min-w-0 space-y-8 rounded-[14px] border p-4 sm:p-6"
       onSubmit={handleSubmit(onSubmit)}
     >
       <section className="space-y-4">
@@ -190,7 +190,10 @@ export function CreatePostForm() {
             {...register('title')}
           />
           {errors.title ? (
-            <FieldError id="title-error" message={t(errors.title.message ?? '')} />
+            <FieldError
+              id="title-error"
+              message={t(errors.title.message ?? '')}
+            />
           ) : null}
         </div>
 
@@ -243,10 +246,10 @@ export function CreatePostForm() {
               <button
                 aria-pressed={isSelected}
                 className={cn(
-                  'rounded-2xl border px-3 py-3 text-left text-sm font-medium transition-all',
+                  'rounded-[10px] border px-3 py-3 text-left text-sm font-medium transition-colors',
                   isSelected
-                    ? 'bg-primary text-primary-foreground border-primary shadow-[0_10px_24px_var(--theme-primary-shadow)]'
-                    : 'glass-surface text-foreground hover:bg-[var(--theme-glass-hover)]',
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-foreground hover:border-primary/30 hover:bg-accent',
                 )}
                 key={option.value}
                 type="button"
@@ -326,7 +329,7 @@ export function CreatePostForm() {
           <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:grid-cols-5">
             {photoPreviews.map((preview, index) => (
               <div
-                className="group relative overflow-hidden rounded-2xl border"
+                className="group relative overflow-hidden rounded-[10px] border"
                 key={preview.url}
               >
                 <img
@@ -349,8 +352,8 @@ export function CreatePostForm() {
         ) : null}
 
         {remainingPhotoSlots > 0 ? (
-          <label className="glass-surface flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-dashed p-5 text-center transition-all hover:-translate-y-0.5 hover:bg-[var(--theme-glass-hover)]">
-            <span className="bg-primary/10 text-primary flex size-12 items-center justify-center rounded-2xl">
+          <label className="border-border bg-background hover:border-primary/30 hover:bg-accent flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-[14px] border border-dashed p-5 text-center transition-colors">
+            <span className="bg-accent text-primary flex size-12 items-center justify-center rounded-[10px]">
               <ImagePlus className="size-6" aria-hidden="true" />
             </span>
             <span className="text-sm font-semibold [overflow-wrap:anywhere] break-words">
@@ -388,11 +391,7 @@ export function CreatePostForm() {
       ) : null}
 
       <div className="bg-card/90 sticky bottom-20 z-10 -mx-4 border-t p-4 backdrop-blur-xl sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-        <Button
-          className="h-12 w-full rounded-2xl"
-          disabled={isSubmitting}
-          type="submit"
-        >
+        <Button className="h-12 w-full" disabled={isSubmitting} type="submit">
           {isSubmitting ? t('Creating post...') : t('Create post')}
         </Button>
       </div>
@@ -411,11 +410,11 @@ function SectionTitle({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl">
+      <span className="bg-accent text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-[10px]">
         {icon}
       </span>
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
+        <h2 className="text-base leading-6 font-bold">{title}</h2>
         <p className="text-muted-foreground mt-1 text-sm leading-5">
           {description}
         </p>
@@ -426,7 +425,7 @@ function SectionTitle({
 
 function inputClassName(hasError: boolean) {
   return cn(
-    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
+    'modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
     hasError && 'border-destructive focus-visible:ring-destructive',
   );
 }

@@ -29,7 +29,7 @@ export function BoostPaymentSuccess({
       className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-[var(--theme-backdrop-strong)] p-4 backdrop-blur-md"
       role="dialog"
     >
-      <div className="boost-success-card glass-surface relative w-full max-w-sm overflow-hidden rounded-[32px] p-6 text-center sm:p-8">
+      <div className="boost-success-card border-border bg-card relative w-full max-w-sm overflow-hidden rounded-[18px] border p-6 text-center shadow-[0_18px_54px_var(--theme-surface-shadow)] sm:p-8">
         <div className="boost-success-glow" aria-hidden="true" />
         <div className="boost-confetti" aria-hidden="true">
           {Array.from({ length: 18 }).map((_, index) => (
@@ -48,7 +48,7 @@ export function BoostPaymentSuccess({
         </div>
 
         <div className="relative">
-          <div className="boost-success-icon mx-auto flex size-24 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_18px_45px_hsl(156_72%_34%/.38)]">
+          <div className="boost-success-icon mx-auto flex size-20 items-center justify-center rounded-full bg-emerald-500 text-white">
             <Check className="size-12 stroke-[3]" aria-hidden="true" />
           </div>
           <Sparkles
@@ -67,7 +67,7 @@ export function BoostPaymentSuccess({
         <p className="text-muted-foreground mt-2 leading-6">
           {t('Your post is now at the top of the feed.')}
         </p>
-        <p className="mt-4 rounded-2xl border bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+        <p className="mt-4 rounded-[10px] border bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
           {t('Top placement active until')}{' '}
           {formatDateTime(expiresAt, language)}
         </p>
@@ -95,11 +95,11 @@ export function BoostSuccessAlert({
 
   return (
     <div
-      className="boost-success-alert fixed top-20 right-3 left-3 z-50 mx-auto max-w-md rounded-3xl border border-emerald-400/40 bg-emerald-950 p-4 text-white shadow-[0_22px_60px_hsl(156_40%_4%/.45)] sm:top-24 sm:right-5 sm:left-auto sm:mx-0 sm:w-full"
+      className="boost-success-alert fixed top-20 right-3 left-3 z-50 mx-auto max-w-md rounded-[14px] border border-emerald-400/30 bg-emerald-950 p-4 text-white shadow-[0_14px_36px_var(--theme-surface-shadow)] sm:top-24 sm:right-5 sm:left-auto sm:mx-0 sm:w-full"
       role="status"
     >
       <div className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-400 text-emerald-950">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-emerald-400 text-emerald-950">
           <Rocket className="size-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">

@@ -21,7 +21,7 @@ export function ThemeToggle({ className, variant = 'icon' }: ThemeToggleProps) {
         aria-label={label}
         aria-pressed={isDark}
         className={cn(
-          'glass-control relative grid h-10 w-[88px] shrink-0 grid-cols-2 overflow-hidden rounded-full p-1 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0',
+          'glass-control relative grid h-9 w-[78px] shrink-0 grid-cols-2 overflow-hidden rounded-full p-1 transition-colors duration-160',
           className,
         )}
         type="button"
@@ -29,8 +29,8 @@ export function ThemeToggle({ className, variant = 'icon' }: ThemeToggleProps) {
       >
         <span
           className={cn(
-            'bg-primary absolute top-1 bottom-1 left-1 w-9 rounded-full shadow-[0_8px_18px_var(--theme-primary-shadow)] transition-transform duration-200 ease-out',
-            isDark && 'translate-x-10',
+            'bg-primary absolute top-1 bottom-1 left-1 w-[31px] rounded-full transition-transform duration-160 ease-out',
+            isDark && 'translate-x-[38px]',
           )}
           aria-hidden="true"
         />
@@ -59,7 +59,7 @@ export function ThemeToggle({ className, variant = 'icon' }: ThemeToggleProps) {
       aria-label={label}
       aria-pressed={isDark}
       className={cn(
-        'glass-control text-primary relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0',
+        'glass-control text-primary relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-160',
         className,
       )}
       type="button"

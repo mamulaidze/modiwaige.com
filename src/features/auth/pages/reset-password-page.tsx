@@ -3,6 +3,7 @@ import { KeyRound } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { updatePassword } from '@/features/auth/api/auth-api';
 import { AuthFormField } from '@/features/auth/components/auth-form-field';
@@ -39,12 +40,16 @@ export function ResetPasswordPage() {
     try {
       await updatePassword({ password: values.password });
       setIsUpdated(true);
+      toast.success(t('Password updated. You can now log in.'));
       window.setTimeout(() => navigate(localizedPath('/login')), 1200);
     } catch (error) {
       logErrorDetails('Password update failed', error);
-      setFormError(
-        getFriendlyErrorMessage(error, 'Password could not be updated.'),
+      const message = getFriendlyErrorMessage(
+        error,
+        'Password could not be updated.',
       );
+      setFormError(message);
+      toast.error(t(message));
     }
   }
 
@@ -59,9 +64,9 @@ export function ResetPasswordPage() {
             : 'Set a new password for your Gaachuqe account.'
         }
       />
-      <div className="glass-surface rounded-[28px] p-5 sm:p-6">
+      <div className="premium-card rounded-[14px] p-5 sm:p-6">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl leading-[30px] font-bold tracking-tight">
             {t('Set new password')}
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -78,6 +83,9 @@ export function ResetPasswordPage() {
             registration={register('password')}
             type="password"
           />
+          <p className="text-muted-foreground -mt-2 text-xs leading-5">
+            {t('Use 8 to 72 characters for your password.')}
+          </p>
           <AuthFormField
             autoComplete="new-password"
             error={errors.confirmPassword}
@@ -89,7 +97,7 @@ export function ResetPasswordPage() {
 
           {isUpdated ? (
             <p
-              className="rounded-md border border-primary/50 bg-primary/10 p-3 text-sm"
+              className="border-primary/50 bg-primary/10 rounded-md border p-3 text-sm"
               role="status"
             >
               {t('Password updated. You can now log in.')}

@@ -7,20 +7,33 @@ import {
   ShieldCheck,
   Trash2,
   Users,
-  X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
-import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
+import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 import { PageContainer } from '@/shared/layouts/page-container';
-import { cn } from '@/shared/lib/cn';
 import { getFriendlyErrorMessage } from '@/shared/lib/errors';
 
 import {
@@ -47,6 +60,9 @@ export function AdminDashboardPage() {
   const [postsState, setPostsState] = useState(initialTableState);
   const [reportsState, setReportsState] = useState(initialTableState);
   const queryClient = useQueryClient();
+  const debouncedUserSearch = useDebouncedValue(usersState.search, 400);
+  const debouncedPostSearch = useDebouncedValue(postsState.search, 400);
+  const debouncedReportSearch = useDebouncedValue(reportsState.search, 400);
 
   const statsQuery = useQuery({
     queryKey: ['admin-stats'],
@@ -54,33 +70,36 @@ export function AdminDashboardPage() {
   });
 
   const usersQuery = useQuery({
-    queryKey: ['admin-users', usersState.page, usersState.search],
+    queryKey: ['admin-users', usersState.page, debouncedUserSearch],
     queryFn: () =>
       fetchAdminUsers({
         page: usersState.page,
         pageSize: ADMIN_PAGE_SIZE,
-        search: usersState.search,
+        search: debouncedUserSearch,
       }),
+    enabled: activeTab === 'users',
   });
 
   const postsQuery = useQuery({
-    queryKey: ['admin-posts', postsState.page, postsState.search],
+    queryKey: ['admin-posts', postsState.page, debouncedPostSearch],
     queryFn: () =>
       fetchAdminPosts({
         page: postsState.page,
         pageSize: ADMIN_PAGE_SIZE,
-        search: postsState.search,
+        search: debouncedPostSearch,
       }),
+    enabled: activeTab === 'posts',
   });
 
   const reportsQuery = useQuery({
-    queryKey: ['admin-reports', reportsState.page, reportsState.search],
+    queryKey: ['admin-reports', reportsState.page, debouncedReportSearch],
     queryFn: () =>
       fetchAdminReports({
         page: reportsState.page,
         pageSize: ADMIN_PAGE_SIZE,
-        search: reportsState.search,
+        search: debouncedReportSearch,
       }),
+    enabled: activeTab === 'reports',
   });
 
   const deletePostMutation = useMutation({
@@ -92,7 +111,12 @@ export function AdminDashboardPage() {
         queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
         queryClient.invalidateQueries({ queryKey: ['feed'] }),
       ]);
+      toast.success(t('Post deleted.'));
     },
+    onError: (mutationError) =>
+      toast.error(
+        t(getFriendlyErrorMessage(mutationError, 'Could not delete post.')),
+      ),
   });
 
   const reportStatusMutation = useMutation({
@@ -103,19 +127,20 @@ export function AdminDashboardPage() {
         queryClient.invalidateQueries({ queryKey: ['admin-reports'] }),
         queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
       ]);
+      toast.success(t('Report status updated.'));
     },
+    onError: (mutationError) =>
+      toast.error(t(getFriendlyErrorMessage(mutationError))),
   });
 
-  const isLoading =
-    statsQuery.isLoading ||
-    usersQuery.isLoading ||
-    postsQuery.isLoading ||
-    reportsQuery.isLoading;
-  const error =
-    statsQuery.error ??
-    usersQuery.error ??
-    postsQuery.error ??
-    reportsQuery.error;
+  const activeQuery =
+    activeTab === 'users'
+      ? usersQuery
+      : activeTab === 'posts'
+        ? postsQuery
+        : reportsQuery;
+  const isLoading = statsQuery.isLoading || activeQuery.isLoading;
+  const error = statsQuery.error ?? activeQuery.error;
 
   return (
     <PageContainer className="gap-6">
@@ -128,13 +153,13 @@ export function AdminDashboardPage() {
             : 'Gaachuqe admin dashboard for users, posts, reports, and moderation.'
         }
       />
-      <section className="premium-card rounded-3xl p-5">
+      <section className="premium-card rounded-[14px] p-5">
         <div className="flex items-start gap-3">
-          <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
+          <div className="bg-accent text-primary flex size-10 items-center justify-center rounded-[10px]">
             <ShieldCheck className="size-6" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-2xl leading-[30px] font-bold tracking-tight">
               {t('Admin dashboard')}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
@@ -146,23 +171,16 @@ export function AdminDashboardPage() {
 
       {statsQuery.data ? <StatsGrid stats={statsQuery.data} /> : null}
 
-      <div className="glass-surface grid grid-cols-3 gap-1 rounded-3xl p-1">
-        <TabButton
-          active={activeTab === 'users'}
-          label={t('Users')}
-          onClick={() => setActiveTab('users')}
-        />
-        <TabButton
-          active={activeTab === 'posts'}
-          label={t('Posts')}
-          onClick={() => setActiveTab('posts')}
-        />
-        <TabButton
-          active={activeTab === 'reports'}
-          label={t('Reports')}
-          onClick={() => setActiveTab('reports')}
-        />
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as AdminTab)}
+      >
+        <TabsList className="grid-cols-3" aria-label={t('Admin dashboard')}>
+          <TabsTrigger value="users">{t('Users')}</TabsTrigger>
+          <TabsTrigger value="posts">{t('Posts')}</TabsTrigger>
+          <TabsTrigger value="reports">{t('Reports')}</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {isLoading ? (
         <LoadingState
@@ -173,7 +191,7 @@ export function AdminDashboardPage() {
       ) : null}
 
       {error ? (
-        <div className="premium-card rounded-3xl p-4" role="alert">
+        <div className="premium-card rounded-[14px] p-4" role="alert">
           <h2 className="text-destructive font-semibold">
             {t('Could not load admin tools')}
           </h2>
@@ -192,9 +210,7 @@ export function AdminDashboardPage() {
           onPageChange={(page) =>
             setUsersState((state) => ({ ...state, page }))
           }
-          onSearchChange={(search) =>
-            setUsersState({ page: 0, search })
-          }
+          onSearchChange={(search) => setUsersState({ page: 0, search })}
         />
       ) : null}
 
@@ -210,9 +226,7 @@ export function AdminDashboardPage() {
           onPageChange={(page) =>
             setPostsState((state) => ({ ...state, page }))
           }
-          onSearchChange={(search) =>
-            setPostsState({ page: 0, search })
-          }
+          onSearchChange={(search) => setPostsState({ page: 0, search })}
         />
       ) : null}
 
@@ -226,9 +240,7 @@ export function AdminDashboardPage() {
           onPageChange={(page) =>
             setReportsState((state) => ({ ...state, page }))
           }
-          onSearchChange={(search) =>
-            setReportsState({ page: 0, search })
-          }
+          onSearchChange={(search) => setReportsState({ page: 0, search })}
           onStatusChange={(reportId, status) =>
             reportStatusMutation.mutate({ reportId, status })
           }
@@ -257,38 +269,13 @@ function StatsGrid({ stats }: { stats: AdminStats }) {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="premium-card rounded-3xl p-4">
+    <div className="premium-card rounded-[14px] p-4">
       <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <BarChart3 className="size-4" aria-hidden="true" />
         {label}
       </div>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={cn(
-        'rounded-2xl px-3 py-2 text-sm font-medium transition-colors',
-        active
-          ? 'bg-primary text-primary-foreground shadow-[0_10px_24px_var(--theme-primary-shadow)]'
-          : 'text-muted-foreground hover:bg-[var(--theme-glass-hover)]',
-      )}
-      type="button"
-      onClick={onClick}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -600,23 +587,33 @@ function ReportsTable({
                 </BodyCell>
                 <BodyCell>{report.reporterName}</BodyCell>
                 <BodyCell>
-                  <select
-                    aria-label={t('Report status')}
-                    className="modern-input h-10 rounded-2xl px-3 text-sm outline-none"
+                  <Select
                     disabled={updatingReportId === report.id}
                     value={report.status}
-                    onChange={(event) =>
+                    onValueChange={(status) =>
                       setPendingStatusChange({
                         reportId: report.id,
-                        status: event.target.value as AdminReport['status'],
+                        status: status as AdminReport['status'],
                       })
                     }
                   >
-                    <option value="open">{t('OpenStatus')}</option>
-                    <option value="reviewing">{t('Reviewing')}</option>
-                    <option value="resolved">{t('Resolved')}</option>
-                    <option value="dismissed">{t('Dismissed')}</option>
-                  </select>
+                    <SelectTrigger
+                      aria-label={t('Report status')}
+                      className="h-10 min-w-36 text-sm"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">{t('OpenStatus')}</SelectItem>
+                      <SelectItem value="reviewing">
+                        {t('Reviewing')}
+                      </SelectItem>
+                      <SelectItem value="resolved">{t('Resolved')}</SelectItem>
+                      <SelectItem value="dismissed">
+                        {t('Dismissed')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </BodyCell>
                 <BodyCell>{formatDate(report.createdAt, language)}</BodyCell>
                 <BodyCell>
@@ -680,14 +677,14 @@ function AdminSearch({
   value: string;
 }) {
   return (
-    <div className="glass-surface relative rounded-3xl p-2">
+    <div className="border-border bg-card relative rounded-[14px] border p-2">
       <Search
         className="text-muted-foreground pointer-events-none absolute top-1/2 left-5 size-4 -translate-y-1/2"
         aria-hidden="true"
       />
       <input
         aria-label={label}
-        className="modern-input h-11 w-full rounded-2xl pr-3 pl-10 text-base outline-none"
+        className="modern-input h-11 w-full rounded-[10px] pr-3 pl-10 text-base outline-none"
         placeholder={label}
         type="search"
         value={value}
@@ -714,7 +711,7 @@ function PaginationControls({
   const to = Math.min(total, (page + 1) * pageSize);
 
   return (
-    <div className="flex flex-col gap-3 rounded-3xl border border-border/70 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+    <div className="border-border flex flex-col gap-3 rounded-[14px] border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
       <p className="text-muted-foreground">
         {from}-{to} {t('of')} {total}
       </p>
@@ -751,61 +748,37 @@ function ReportDetailModal({
   report: AdminReport;
 }) {
   const { localizedPath, t } = useI18n();
-  const dialogRef = useRef<HTMLElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useDialogFocusTrap(dialogRef, {
-    initialFocusRef: closeButtonRef,
-    onEscape: onClose,
-  });
 
   return (
-    <div
-      aria-labelledby="report-detail-title"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-end bg-black/55 p-3 backdrop-blur-sm sm:items-center sm:justify-center"
-      role="dialog"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
       }}
     >
-      <section
-        className="premium-card max-h-[90svh] w-full max-w-2xl overflow-y-auto rounded-3xl p-5 shadow-2xl"
-        ref={dialogRef}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-muted-foreground text-xs font-semibold uppercase">
-              {t('Report details')}
-            </p>
-            <h2
-              className="mt-1 text-xl font-semibold"
-              id="report-detail-title"
-            >
-              {report.subject}
-            </h2>
-          </div>
-          <Button
-            aria-label={t('Close')}
-            className="size-10 rounded-full p-0"
-            ref={closeButtonRef}
-            type="button"
-            variant="outline"
-            onClick={onClose}
-          >
-            <X className="size-4" aria-hidden="true" />
-          </Button>
+      <DialogContent className="max-w-2xl" closeLabel={t('Close')}>
+        <div className="pr-10">
+          <p className="text-muted-foreground text-xs font-semibold uppercase">
+            {t('Report details')}
+          </p>
+          <DialogTitle className="mt-1 text-xl font-semibold">
+            {report.subject}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {t('Report details')}
+          </DialogDescription>
         </div>
 
         <div className="mt-5 grid gap-4">
           <DetailBlock label={t('Reason')} value={report.subject} />
           <DetailBlock label={t('Report text')} value={report.body} />
           <DetailBlock label={t('Reporter')} value={report.reporterName} />
-          <DetailBlock label={t('Status')} value={formatValue(report.status, t)} />
+          <DetailBlock
+            label={t('Status')}
+            value={formatValue(report.status, t)}
+          />
 
-          <div className="rounded-2xl border border-border/70 p-4">
+          <div className="border-border rounded-[10px] border p-4">
             <p className="text-muted-foreground text-xs font-semibold uppercase">
               {t('Post context')}
             </p>
@@ -818,7 +791,8 @@ function ReportDetailModal({
                   {report.post.title}
                 </Link>
                 <p className="text-muted-foreground text-sm">
-                  {t(report.post.location)} - {formatValue(report.post.status, t)}
+                  {t(report.post.location)} -{' '}
+                  {formatValue(report.post.status, t)}
                 </p>
               </div>
             ) : (
@@ -828,7 +802,7 @@ function ReportDetailModal({
             )}
           </div>
 
-          <div className="rounded-2xl border border-dashed border-border/80 p-4">
+          <div className="border-border rounded-[10px] border border-dashed p-4">
             <p className="text-muted-foreground text-xs font-semibold uppercase">
               {t('Status history')}
             </p>
@@ -838,25 +812,25 @@ function ReportDetailModal({
             {/* TODO: Load report status history here after an admin audit log table is added. */}
           </div>
         </div>
-      </section>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 function DetailBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border/70 p-4">
+    <div className="border-border rounded-[10px] border p-4">
       <p className="text-muted-foreground text-xs font-semibold uppercase">
         {label}
       </p>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{value}</p>
+      <p className="mt-2 text-sm leading-6 whitespace-pre-wrap">{value}</p>
     </div>
   );
 }
 
 function AdminTable({ children }: { children: React.ReactNode }) {
   return (
-    <div className="premium-card overflow-x-auto rounded-3xl">
+    <div className="premium-card overflow-x-auto rounded-[14px]">
       <table className="w-full min-w-[760px] border-collapse text-left text-sm">
         {children}
       </table>

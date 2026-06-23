@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<
     if (this.state.error) {
       return (
         <main className="flex min-h-svh items-center justify-center px-4">
-          <div className="premium-card w-full max-w-md rounded-3xl p-5">
+          <div className="premium-card w-full max-w-md rounded-[14px] p-5">
             <p className="text-destructive text-sm font-medium">
               Something went wrong
             </p>

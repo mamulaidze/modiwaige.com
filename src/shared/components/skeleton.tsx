@@ -16,7 +16,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'from-muted to-muted via-card/70 animate-pulse rounded-2xl bg-gradient-to-r',
+        'from-muted to-muted via-card/70 animate-pulse rounded-[10px] bg-gradient-to-r',
         className,
       )}
       aria-hidden="true"
@@ -47,7 +47,7 @@ export function LoadingSkeleton({
   return (
     <div
       className={cn(
-        'premium-card rounded-3xl',
+        'premium-card rounded-[14px]',
         variant === 'inline' || variant === 'session' ? 'p-4' : 'p-0',
       )}
       aria-live="polite"
@@ -87,7 +87,7 @@ function FeedSkeleton() {
     <section className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 lg:gap-5">
       {Array.from({ length: 6 }).map((_, index) => (
         <article
-          className="premium-card overflow-hidden rounded-3xl"
+          className="premium-card overflow-hidden rounded-[14px]"
           key={index}
         >
           <Skeleton className="aspect-[4/3] w-full rounded-none" />
@@ -113,7 +113,7 @@ function DetailsSkeleton() {
   return (
     <section className="grid gap-6 p-0 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
       <div className="space-y-3">
-        <Skeleton className="aspect-[4/3] w-full rounded-3xl" />
+        <Skeleton className="aspect-[4/3] w-full rounded-[14px]" />
         <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: 5 }).map((_, index) => (
             <Skeleton className="aspect-square w-full" key={index} />
@@ -154,7 +154,7 @@ function AccountSkeleton() {
   return (
     <section className="space-y-3 p-0">
       {Array.from({ length: 3 }).map((_, index) => (
-        <article className="premium-card rounded-3xl p-4" key={index}>
+        <article className="premium-card rounded-[14px] p-4" key={index}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export function PageSkeleton() {
         <Skeleton className="h-4 w-full max-w-2xl" />
         <Skeleton className="h-4 w-4/5 max-w-xl" />
       </section>
-      <div className="glass-surface rounded-3xl p-4">
+      <div className="border-border bg-card rounded-[14px] border p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-32" />

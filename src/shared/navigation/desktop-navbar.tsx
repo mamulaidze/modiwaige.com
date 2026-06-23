@@ -1,10 +1,26 @@
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import {
+  BookOpen,
+  ChevronDown,
+  Gift,
+  Home,
+  Laptop,
+  Search,
+  Shirt,
+  User,
+} from 'lucide-react';
 
 import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { BrandLogo } from '@/shared/components/brand-logo';
 import { Button } from '@/shared/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { LanguageSwitcher } from '@/shared/i18n/language-switcher';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
@@ -20,35 +36,36 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const adminStatus = useAdminStatus();
   const location = useLocation();
+  const navigate = useNavigate();
   const { localizedPath, t } = useI18n();
   const currentPath = normalizePath(location.pathname);
-  const visibleItems = navigationItems
-    .filter((item) => {
-      if (item.adminOnly) {
-        return isAuthenticated && Boolean(adminStatus.data);
-      }
+  const visibleItems = navigationItems.filter((item) => {
+    if (item.labelKey === 'Search' || item.labelKey === 'Reservations') {
+      return false;
+    }
 
-      if (item.requiresAuth) {
-        return isAuthenticated;
-      }
+    if (item.adminOnly) {
+      return isAuthenticated && Boolean(adminStatus.data);
+    }
 
-      if (item.guestOnly) {
-        return !isAuthenticated;
-      }
+    if (item.requiresAuth) {
+      return isAuthenticated;
+    }
 
-      return true;
-    })
-    .filter(
-      (item) => !isCurrentDesktopItem(item.href, currentPath, localizedPath),
-    );
+    if (item.guestOnly) {
+      return !isAuthenticated;
+    }
+
+    return true;
+  });
 
   return (
-    <div className="glass-surface mx-auto hidden min-h-14 w-full max-w-[1280px] items-center justify-between gap-4 rounded-2xl px-4 py-2 md:flex lg:px-5">
+    <div className="bg-background/88 border-border/70 mx-auto hidden min-h-16 w-full max-w-[1280px] items-center justify-between gap-5 rounded-2xl border px-4 py-2 shadow-sm backdrop-blur md:flex lg:px-5">
       <Link
-        className="group focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-xl transition-transform duration-200 outline-none focus-visible:ring-2 active:scale-[0.99]"
+        className="group focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2"
         to={localizedPath('/')}
       >
-        <div className="brand-mark flex size-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-[var(--theme-glass-border)] transition-transform duration-200 group-hover:scale-[1.03]">
+        <div className="brand-mark flex size-9 shrink-0 items-center justify-center rounded-[10px]">
           <BrandLogo className="size-6" />
         </div>
         <div className="min-w-0">
@@ -61,40 +78,121 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
         </div>
       </Link>
 
-      <nav
-        aria-label={t('Primary navigation')}
-        className="flex min-w-0 items-center gap-1.5"
-      >
-        {visibleItems.map((item) => (
-          <Button
-            asChild
-            className="h-9 rounded-lg px-3"
-            key={item.href}
-            variant="outline"
-          >
-            <NavLink
-              className={({ isActive }) =>
-                cn(
-                  'rounded-lg transition-transform duration-200 active:scale-[0.98]',
-                  isActive && 'primary-glow bg-primary/10 text-primary',
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="h-10 shrink-0 px-3" variant="outline">
+            {t('Browse')}
+            <ChevronDown className="size-4" aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+          {browseCategories.map((category) => (
+            <DropdownMenuItem
+              key={category.label}
+              onSelect={() =>
+                navigate(
+                  `${localizedPath('/')}?category=${encodeURIComponent(category.value)}`,
                 )
               }
+            >
+              <category.icon className="size-4" aria-hidden="true" />
+              {t(category.label)}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <form
+        className="border-border bg-card/70 focus-within:ring-ring/30 hidden h-10 min-w-64 flex-1 items-center gap-2 rounded-full border px-3 focus-within:ring-4 lg:flex"
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          const query = String(formData.get('q') ?? '').trim();
+
+          navigate(
+            query
+              ? `${localizedPath('/')}?search=${encodeURIComponent(query)}`
+              : localizedPath('/'),
+          );
+        }}
+      >
+        <Search className="text-muted-foreground size-4" aria-hidden="true" />
+        <input
+          className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
+          name="q"
+          placeholder={t('Search free items near you...')}
+          type="search"
+        />
+        <span className="text-muted-foreground border-l pl-2 text-xs">
+          {t('All Georgia')}
+        </span>
+      </form>
+
+      <nav
+        aria-label={t('Primary navigation')}
+        className="flex min-w-0 items-center gap-1"
+      >
+        {visibleItems.map((item) => {
+          const isPrimary =
+            item.href === '/create' ||
+            (!isAuthenticated && item.href === '/register');
+
+          return isPrimary ? (
+            <Button asChild className="ml-1 h-9" key={item.href}>
+              <NavLink to={localizedPath(item.href)}>
+                <item.icon className="size-4" aria-hidden="true" />
+                {t(item.href === '/create' ? 'Post an item' : item.labelKey)}
+              </NavLink>
+            </Button>
+          ) : (
+            <NavLink
+              className={() =>
+                cn(
+                  'text-muted-foreground hover:bg-accent hover:text-foreground flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium transition-colors',
+                  isCurrentDesktopItem(item.href, currentPath, localizedPath) &&
+                    'bg-accent text-primary',
+                )
+              }
+              key={item.href}
               to={localizedPath(item.href)}
             >
               <item.icon className="size-4" aria-hidden="true" />
               {t(item.labelKey)}
             </NavLink>
-          </Button>
-        ))}
+          );
+        })}
         {!isLoading && isAuthenticated ? (
-          <Button
-            className="h-9 rounded-lg px-3"
-            disabled={isLoggingOut}
-            type="button"
-            onClick={onLogout}
-          >
-            {isLoggingOut ? t('Logging out...') : t('Log out')}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                aria-label={t('Profile')}
+                className="size-9 rounded-full px-0"
+                variant="outline"
+              >
+                <User className="size-4" aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to={localizedPath('/profile')}>{t('Profile')}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to={localizedPath('/profile?tab=reserved')}>
+                  {t('Reservations')}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={isLoggingOut}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  onLogout();
+                }}
+              >
+                {isLoggingOut ? t('Logging out...') : t('Log out')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : null}
         <NotificationBell />
         <ThemeToggle variant="segmented" />
@@ -128,3 +226,11 @@ function isCurrentDesktopItem(
 
   return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
 }
+
+const browseCategories = [
+  { icon: Gift, label: 'All', value: 'all' },
+  { icon: Home, label: 'HomeCategory', value: 'home' },
+  { icon: Shirt, label: 'Clothing', value: 'clothing' },
+  { icon: Laptop, label: 'Electronics', value: 'electronics' },
+  { icon: BookOpen, label: 'Books', value: 'books' },
+];

@@ -69,9 +69,9 @@ export function LoginPage() {
             : 'Log in to Gaachuqe to manage posts, reservations, and your profile.'
         }
       />
-      <div className="glass-surface rounded-[28px] p-5 sm:p-6">
+      <div className="premium-card rounded-[14px] p-5 sm:p-6">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl leading-[30px] font-bold tracking-tight">
             {t('Log in')}
           </h1>
           <p className="text-muted-foreground text-sm">

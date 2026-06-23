@@ -1,4 +1,4 @@
-import { CalendarDays, ImageIcon, MapPin } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
@@ -15,32 +15,23 @@ export function PostCard({ post }: PostCardProps) {
   const postUrl = localizedPath(`/posts/${post.id}`);
 
   return (
-    <article
-      className={`premium-card premium-card-hover group relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 ${
-        post.isBoosted
-          ? 'border-orange-400/80 shadow-[0_20px_50px_hsl(24_80%_38%/.18),0_0_0_2px_hsl(24_95%_55%/.16)]'
-          : ''
-      }`}
-    >
+    <article className="group relative overflow-hidden rounded-[14px] border bg-card shadow-sm">
       {post.isBoosted ? (
-        <div
-          className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500"
-          aria-hidden="true"
-        />
-      ) : null}
-      {post.isBoosted ? (
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-3 left-3 z-10">
           <BoostBadge variant="overlay" />
         </div>
       ) : null}
+      <div className="absolute top-3 right-3 z-10">
+        <StatusBadge status={post.status} />
+      </div>
       <Link
         aria-label={post.title}
-        className="bg-muted focus-visible:ring-ring block aspect-[4/3] w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset"
+        className="bg-muted focus-visible:ring-ring m-2 mb-0 block aspect-[4/3] overflow-hidden rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-inset"
         to={postUrl}
       >
         {post.imageUrl ? (
           <img
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"
+            className="h-full w-full object-cover"
             src={post.imageUrl}
             alt=""
             loading="lazy"
@@ -52,9 +43,9 @@ export function PostCard({ post }: PostCardProps) {
         )}
       </Link>
 
-      <div className="relative space-y-3 p-4">
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <h2 className="line-clamp-2 text-base leading-6 font-semibold tracking-tight">
+      <div className="relative space-y-2 p-4">
+        <div className="min-w-0">
+          <h2 className="line-clamp-2 text-[17px] leading-6 font-medium tracking-tight">
             <Link
               className="focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2"
               to={postUrl}
@@ -63,49 +54,42 @@ export function PostCard({ post }: PostCardProps) {
               {post.title}
             </Link>
           </h2>
-          <StatusBadge status={post.status} />
+          {post.isBoosted ? (
+            <span className="mt-1 inline-flex rounded-full bg-amber-500/12 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+              {t('VIP')}
+            </span>
+          ) : null}
         </div>
 
-        <p className="text-muted-foreground line-clamp-2 text-sm leading-6">
-          {post.description}
-        </p>
-
-        <div className="text-muted-foreground flex flex-col gap-1.5 text-sm">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <MapPin
-              className="size-3.5 shrink-0 sm:size-4"
-              aria-hidden="true"
-            />
-            <span className="truncate">{t(post.location)}</span>
+        <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
+          <span className="truncate">{t(post.location)}</span>
+          <span aria-hidden="true">·</span>
+          <span className="shrink-0">
+            {formatRelativeDate(post.createdAt, language)}
           </span>
-          <span className="flex min-w-0 items-center gap-1.5">
-            <CalendarDays
-              className="size-3.5 shrink-0 sm:size-4"
-              aria-hidden="true"
-            />
-            <span className="truncate">
-              {formatDate(post.createdAt, language)}
-            </span>
-          </span>
-          <span className="flex min-w-0 items-center gap-1.5">
-            <CalendarDays
-              className="size-3.5 shrink-0 sm:size-4"
-              aria-hidden="true"
-            />
-            <span className="truncate">
-              {t('Expires')} {formatDate(post.expiresAt, language)}
-            </span>
-          </span>
+        </div>
+        <div className="text-muted-foreground flex min-w-0 items-center text-sm leading-5">
+          <span className="truncate">{formatCategory(post.category, t)}</span>
         </div>
       </div>
     </article>
   );
 }
 
-function formatDate(value: string, language: string) {
-  return new Intl.DateTimeFormat(getLanguageLocale(language), {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value));
+function formatRelativeDate(value: string, language: string) {
+  const elapsedDays = Math.round(
+    (new Date(value).getTime() - Date.now()) / 86_400_000,
+  );
+
+  return new Intl.RelativeTimeFormat(getLanguageLocale(language), {
+    numeric: 'auto',
+  }).format(elapsedDays, 'day');
+}
+
+function formatCategory(value: string, t: (text: string) => string) {
+  if (value === 'home') {
+    return t('HomeCategory');
+  }
+
+  return t(value.replace(/^\w/, (letter) => letter.toUpperCase()));
 }

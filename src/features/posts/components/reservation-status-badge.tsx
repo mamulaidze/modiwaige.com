@@ -13,7 +13,7 @@ const statusLabels: Record<ReservationStatus, string> = {
 
 const statusStyles: Record<ReservationStatus, string> = {
   pending: 'bg-accent/75 text-accent-foreground ring-1 ring-border',
-  accepted: 'primary-glow bg-primary/10 text-primary ring-1 ring-primary/15',
+  accepted: 'bg-accent text-primary ring-1 ring-primary/15',
   declined: 'bg-destructive/10 text-destructive ring-1 ring-destructive/20',
   cancelled: 'bg-muted/80 text-muted-foreground ring-1 ring-border',
   completed: 'bg-muted/80 text-muted-foreground ring-1 ring-border',
@@ -29,7 +29,7 @@ export function ReservationStatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur',
+        'inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium',
         statusStyles[status],
       )}
     >

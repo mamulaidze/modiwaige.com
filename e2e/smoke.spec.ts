@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 const testEmail = process.env.PLAYWRIGHT_TEST_EMAIL;
@@ -19,16 +20,18 @@ test.describe('guest smoke', () => {
   test('guest can switch between English and Georgian', async ({ page }) => {
     await page.goto('/en');
 
-    await page.getByRole('button', { name: /language/i }).click();
+    await page.getByTestId('language-switcher').filter({ visible: true }).click();
     await page.getByRole('menuitem', { name: /ქართული/i }).click();
     await expect(page).toHaveURL(/\/ge/);
 
-    await page.getByRole('button', { name: /language/i }).click();
+    await page.getByTestId('language-switcher').filter({ visible: true }).click();
     await page.getByRole('menuitem', { name: /english/i }).click();
     await expect(page).toHaveURL(/\/en/);
   });
 
-  test('guest admin route redirects away from admin tools', async ({ page }) => {
+  test('guest admin route redirects away from admin tools', async ({
+    page,
+  }) => {
     await page.goto('/en/admin');
 
     await expect(page).not.toHaveURL(/\/admin$/);
@@ -36,8 +39,29 @@ test.describe('guest smoke', () => {
   });
 });
 
+test.describe('accessibility smoke', () => {
+  for (const path of ['/en', '/en/login', '/en/register']) {
+    test(`${path} has no serious accessibility violations`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa'])
+        .analyze();
+      const seriousViolations = results.violations.filter(
+        ({ impact }) => impact === 'serious' || impact === 'critical',
+      );
+
+      expect(seriousViolations).toEqual([]);
+    });
+  }
+});
+
 test.describe('auth smoke', () => {
-  test.skip(!runAuthTests, 'Set PLAYWRIGHT_TEST_EMAIL and PLAYWRIGHT_TEST_PASSWORD to run auth flows.');
+  test.skip(
+    !runAuthTests,
+    'Set PLAYWRIGHT_TEST_EMAIL and PLAYWRIGHT_TEST_PASSWORD to run auth flows.',
+  );
 
   test.beforeEach(async ({ page }) => {
     await login(page);
@@ -52,10 +76,14 @@ test.describe('auth smoke', () => {
     await page.goto('/en/create');
 
     await expect(page.getByLabel(/title/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /create post/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /create post/i }),
+    ).toBeVisible();
   });
 
-  test('configured user can see own post management surface', async ({ page }) => {
+  test('configured user can see own post management surface', async ({
+    page,
+  }) => {
     await page.goto('/en/profile');
 
     await expect(page.getByRole('button', { name: /my posts/i })).toBeVisible();
@@ -75,7 +103,9 @@ test.describe('optional manual auth flows', () => {
 
     await expect(page.getByLabel(/first name/i)).toBeVisible();
     await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /create account/i }),
+    ).toBeVisible();
   });
 
   test('reserve, edit, and delete flows have reachable controls when data exists', async ({
@@ -85,7 +115,10 @@ test.describe('optional manual auth flows', () => {
     await page.goto('/en');
 
     const firstPost = page.locator('article').first();
-    test.skip((await firstPost.count()) === 0, 'No seed post exists to exercise reserve/edit/delete controls.');
+    test.skip(
+      (await firstPost.count()) === 0,
+      'No seed post exists to exercise reserve/edit/delete controls.',
+    );
 
     await firstPost.getByRole('link').first().click();
     await expect(page.getByRole('main')).toBeVisible();

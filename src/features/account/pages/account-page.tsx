@@ -7,6 +7,7 @@ import {
   Loader2,
   MapPin,
   MessageCircle,
+  MoreHorizontal,
   Pencil,
   Phone,
   Settings,
@@ -16,9 +17,10 @@ import {
   Trash2,
   User,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { formatGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-number';
 import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
@@ -51,6 +53,13 @@ import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
+import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
@@ -71,7 +80,7 @@ import {
   type ProfileSettingsValues,
 } from '../validation/profile-settings-schema';
 
-type ProfileTab = 'posts' | 'reserved' | 'settings';
+type ProfileTab = 'posts' | 'reserved' | 'chats' | 'settings';
 const profileLocationBaseOptions = [
   { label: 'Georgia', value: 'Georgia' },
   ...postCityOptions.map((city) => ({ label: city, value: city })),
@@ -82,8 +91,9 @@ export function AccountPage() {
   const { language, localizedPath, t } = useI18n();
   const adminStatus = useAdminStatus();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
+  const activeTab = getProfileTab(searchParams.get('tab'));
   const [actionError, setActionError] = useState<string | null>(null);
 
   const profileQuery = useQuery({
@@ -95,30 +105,15 @@ export function AccountPage() {
   const postsQuery = useQuery({
     queryKey: ['my-posts', user?.id],
     queryFn: () => fetchMyPosts(user?.id ?? ''),
-    enabled: Boolean(user?.id),
+    enabled: Boolean(user?.id) && activeTab === 'posts',
   });
 
   const reservationsQuery = useQuery({
     queryKey: ['reserved-items', user?.id],
     queryFn: () => fetchReservedItems(user?.id ?? ''),
-    enabled: Boolean(user?.id),
+    enabled:
+      Boolean(user?.id) && (activeTab === 'reserved' || activeTab === 'chats'),
   });
-
-  const stats = useMemo(() => {
-    const posts = postsQuery.data ?? [];
-    const reservations = reservationsQuery.data ?? [];
-
-    return {
-      totalPosts: posts.length,
-      availablePosts: posts.filter((post) => post.status === 'available')
-        .length,
-      reservedPosts: posts.filter((post) => post.status === 'reserved').length,
-      reservedItems: reservations.filter(
-        (reservation) =>
-          reservation.status === 'pending' || reservation.status === 'accepted',
-      ).length,
-    };
-  }, [postsQuery.data, reservationsQuery.data]);
 
   const displayName =
     profileQuery.data?.displayName ??
@@ -128,10 +123,15 @@ export function AccountPage() {
 
   const isLoading =
     profileQuery.isLoading ||
-    postsQuery.isLoading ||
-    reservationsQuery.isLoading;
+    (activeTab === 'posts' && postsQuery.isLoading) ||
+    ((activeTab === 'reserved' || activeTab === 'chats') &&
+      reservationsQuery.isLoading);
   const error =
-    profileQuery.error ?? postsQuery.error ?? reservationsQuery.error;
+    profileQuery.error ??
+    (activeTab === 'posts' ? postsQuery.error : null) ??
+    (activeTab === 'reserved' || activeTab === 'chats'
+      ? reservationsQuery.error
+      : null);
 
   return (
     <PageContainer className="gap-6">
@@ -144,10 +144,10 @@ export function AccountPage() {
             : 'Manage your Gaachuqe profile, posts, reservations, and account settings.'
         }
       />
-      <section className="premium-card rounded-3xl p-5">
+      <section className="premium-card rounded-[14px] p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center overflow-hidden rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
+            <div className="bg-accent text-primary flex size-14 items-center justify-center overflow-hidden rounded-full">
               {profileQuery.data?.avatarUrl ? (
                 <img
                   className="h-full w-full object-cover"
@@ -159,11 +159,11 @@ export function AccountPage() {
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {t('Profile')}
+              <h1 className="text-2xl leading-[30px] font-bold tracking-tight">
+                {displayName}
               </h1>
               <p className="text-muted-foreground mt-1 text-sm">
-                {displayName}
+                {t('Profile')}
               </p>
             </div>
           </div>
@@ -192,33 +192,38 @@ export function AccountPage() {
         </div>
       </section>
 
-      <section
-        aria-label={t('Profile statistics')}
-        className="grid gap-3 sm:grid-cols-4"
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setSearchParams(
+            value === 'posts' ? {} : { tab: value },
+            { replace: true },
+          )
+        }
       >
-        <StatCard label={t('Total posts')} value={stats.totalPosts} />
-        <StatCard label={t('Available')} value={stats.availablePosts} />
-        <StatCard label={t('Reserved posts')} value={stats.reservedPosts} />
-        <StatCard label={t('My reservations')} value={stats.reservedItems} />
-      </section>
-
-      <div className="glass-surface grid grid-cols-3 gap-1 rounded-3xl p-1">
-        <TabButton
-          active={activeTab === 'posts'}
-          label={t('My Posts')}
-          onClick={() => setActiveTab('posts')}
-        />
-        <TabButton
-          active={activeTab === 'reserved'}
-          label={t('Reserved Items')}
-          onClick={() => setActiveTab('reserved')}
-        />
-        <TabButton
-          active={activeTab === 'settings'}
-          label={t('Settings')}
-          onClick={() => setActiveTab('settings')}
-        />
-      </div>
+        <TabsList className="grid-cols-4" aria-label={t('Profile')}>
+          <TabsTrigger className="min-w-0 px-2" value="posts">
+            <span className="block max-w-full truncate text-center whitespace-nowrap">
+              {t('My Listings')}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger className="min-w-0 px-2" value="reserved">
+            <span className="block max-w-full truncate text-center whitespace-nowrap">
+              {t('Reservations')}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger className="min-w-0 px-2" value="chats">
+            <span className="block max-w-full truncate text-center whitespace-nowrap">
+              {t('Chats')}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger className="min-w-0 px-2" value="settings">
+            <span className="block max-w-full truncate text-center whitespace-nowrap">
+              {t('Settings')}
+            </span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {isLoading ? (
         <LoadingState
@@ -264,6 +269,10 @@ export function AccountPage() {
         />
       ) : null}
 
+      {!isLoading && !error && activeTab === 'chats' ? (
+        <ChatsSection reservations={reservationsQuery.data ?? []} />
+      ) : null}
+
       {!isLoading && !error && activeTab === 'settings' && user ? (
         <SettingsSection
           defaultValues={{
@@ -295,42 +304,6 @@ export function AccountPage() {
         </p>
       ) : null}
     </PageContainer>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="premium-card rounded-3xl p-4">
-      <div className="text-muted-foreground flex items-center gap-2 text-sm">
-        <BarChart3 className="size-4" aria-hidden="true" />
-        {label}
-      </div>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
-  );
-}
-
-function TabButton({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={
-        active
-          ? 'bg-primary text-primary-foreground rounded-2xl px-3 py-2 text-sm font-medium shadow-[0_10px_24px_var(--theme-primary-shadow)]'
-          : 'text-muted-foreground rounded-2xl px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--theme-glass-hover)]'
-      }
-      type="button"
-      onClick={onClick}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -458,7 +431,7 @@ function MyPostsSection({
     <>
       <section className="space-y-3" aria-label="My posts">
         {posts.map((post) => (
-          <article className="premium-card rounded-3xl p-4" key={post.id}>
+          <article className="premium-card rounded-[14px] p-4" key={post.id}>
             <div className="space-y-4">
               <div className="space-y-3">
                 <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between">
@@ -499,9 +472,9 @@ function MyPostsSection({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <div className="border-border flex flex-wrap items-center gap-2 border-t pt-4">
                 <Button
-                  className="h-auto min-h-11 bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300 disabled:opacity-100"
+                  className="h-10 bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-100"
                   disabled={
                     post.status !== 'available' ||
                     post.isBoosted ||
@@ -517,69 +490,62 @@ function MyPostsSection({
                     t('Boost post')
                   )}
                 </Button>
-                <Button
-                  aria-expanded={statsPostId === post.id}
-                  className="h-auto min-h-11 whitespace-normal"
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    setStatsPostId((current) =>
-                      current === post.id ? null : post.id,
-                    )
-                  }
-                >
-                  <BarChart3 className="size-4" aria-hidden="true" />
-                  {t('Statistics')}
-                </Button>
-                <Button
-                  asChild
-                  className="h-auto min-h-11 whitespace-normal"
-                  variant="outline"
-                >
+                <Button asChild variant="outline">
                   <Link to={localizedPath(`/posts/${post.id}`)}>
                     <Eye className="size-4" aria-hidden="true" />
                     {t('View')}
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  className="h-auto min-h-11 whitespace-normal"
-                  variant="outline"
-                >
-                  <Link to={`${localizedPath(`/posts/${post.id}`)}?edit=1`}>
-                    <Pencil className="size-4" aria-hidden="true" />
-                    {t('Edit')}
-                  </Link>
-                </Button>
-                <Button
-                  className="h-auto min-h-11 whitespace-normal"
-                  disabled={
-                    post.status === 'given' || markingGivenId === post.id
-                  }
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    setConfirmation({ id: post.id, type: 'mark-given' })
-                  }
-                >
-                  {markingGivenId === post.id
-                    ? t('Saving...')
-                    : post.status === 'given'
-                      ? t('Given')
-                      : t('Mark given')}
-                </Button>
-                <Button
-                  className="border-destructive/40 text-destructive hover:bg-destructive hover:text-primary-foreground h-auto min-h-11 whitespace-normal"
-                  disabled={deletingId === post.id}
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    setConfirmation({ id: post.id, type: 'delete' })
-                  }
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  {deletingId === post.id ? t('Deleting...') : t('Delete')}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      aria-label={t('Action')}
+                      className="ml-auto size-10 px-0"
+                      type="button"
+                      variant="outline"
+                    >
+                      <MoreHorizontal className="size-4" aria-hidden="true" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        setStatsPostId((current) =>
+                          current === post.id ? null : post.id,
+                        )
+                      }
+                    >
+                      <BarChart3 className="size-4" aria-hidden="true" />
+                      {t('Statistics')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to={`${localizedPath(`/posts/${post.id}`)}?edit=1`}>
+                        <Pencil className="size-4" aria-hidden="true" />
+                        {t('Edit')}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={
+                        post.status === 'given' || markingGivenId === post.id
+                      }
+                      onSelect={() =>
+                        setConfirmation({ id: post.id, type: 'mark-given' })
+                      }
+                    >
+                      {post.status === 'given' ? t('Given') : t('Mark given')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      disabled={deletingId === post.id}
+                      onSelect={() =>
+                        setConfirmation({ id: post.id, type: 'delete' })
+                      }
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                      {t('Delete')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
             {statsPostId === post.id ? <PostStatistics post={post} /> : null}
@@ -733,7 +699,7 @@ function OwnerReservationsPanel({
       <div className="grid gap-2">
         {reservations.map((reservation) => (
           <div
-            className="soft-surface flex min-w-0 flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center sm:justify-between"
+            className="soft-surface flex min-w-0 flex-col gap-3 rounded-[10px] p-3 sm:flex-row sm:items-center sm:justify-between"
             key={reservation.id}
           >
             <div className="min-w-0">
@@ -826,7 +792,7 @@ function PostMetaChip({
   value: string;
 }) {
   return (
-    <div className="soft-surface flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2">
+    <div className="soft-surface flex min-w-0 items-center gap-3 rounded-[10px] px-3 py-2">
       <span className="text-muted-foreground shrink-0">{icon}</span>
       <div className="min-w-0">
         <p className="text-muted-foreground text-xs leading-4">{label}</p>
@@ -925,7 +891,7 @@ function ReservedItemsSection({
         ) : null}
         {reservations.map((reservation) => (
           <article
-            className="premium-card rounded-3xl p-4"
+            className="premium-card rounded-[14px] p-4"
             key={reservation.id}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1000,6 +966,49 @@ function ReservedItemsSection({
   );
 }
 
+function ChatsSection({ reservations }: { reservations: ReservedItem[] }) {
+  const { localizedPath, t } = useI18n();
+  const conversations = reservations.filter(
+    (reservation) => reservation.status === 'accepted' && reservation.post,
+  );
+
+  if (conversations.length === 0) {
+    return (
+      <EmptyState
+        title={t('No conversations yet')}
+        description={t('Accepted reservations with active chats will appear here.')}
+      />
+    );
+  }
+
+  return (
+    <section className="space-y-3" aria-label={t('Chats')}>
+      {conversations.map((reservation) => (
+        <Link
+          className="premium-card flex min-w-0 items-center gap-4 rounded-[16px] p-4 transition-colors hover:bg-accent/60"
+          key={reservation.id}
+          to={localizedPath(`/chat/${reservation.id}`)}
+        >
+          <span className="bg-accent text-primary flex size-12 shrink-0 items-center justify-center rounded-full">
+            <MessageCircle className="size-5" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-semibold">
+              {reservation.post?.title ?? t('Unavailable item')}
+            </span>
+            <span className="text-muted-foreground mt-1 block truncate text-sm">
+              {t('Use this temporary chat to arrange pickup.')}
+            </span>
+          </span>
+          <span className="hidden shrink-0 sm:block">
+            <ReservationStatusBadge status={reservation.status} />
+          </span>
+        </Link>
+      ))}
+    </section>
+  );
+}
+
 function SettingsSection({
   defaultValues,
   onAccountDeleted,
@@ -1038,17 +1047,21 @@ function SettingsSection({
       await updateProfileSettings({ userId, ...values });
       await onSaved();
       setMessage(t('Settings saved.'));
+      toast.success(t('Settings saved.'));
     } catch (error) {
       logErrorDetails('Profile settings save failed', error);
-      setErrorMessage(
-        getFriendlyErrorMessage(error, 'Settings could not be saved.'),
+      const message = getFriendlyErrorMessage(
+        error,
+        'Settings could not be saved.',
       );
+      setErrorMessage(message);
+      toast.error(t(message));
     }
   }
 
   return (
     <>
-      <section className="premium-card rounded-3xl p-5">
+      <section className="premium-card rounded-[14px] p-5">
         <div className="mb-5 flex items-center gap-2">
           <Settings
             className="text-muted-foreground size-5"
@@ -1121,7 +1134,7 @@ function SettingsSection({
         </form>
       </section>
 
-      <section className="premium-card border-destructive/40 rounded-3xl p-5">
+      <section className="premium-card border-destructive/40 rounded-[14px] p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold">{t('Delete account')}</h2>
@@ -1206,7 +1219,7 @@ function DeleteAccountModal({
       }}
     >
       <div
-        className="glass-surface w-full max-w-md rounded-3xl p-5"
+        className="border-border bg-card w-full max-w-md rounded-[18px] border p-5 shadow-[0_18px_54px_var(--theme-surface-shadow)]"
         ref={dialogRef}
       >
         <div className="flex items-start gap-3">
@@ -1278,7 +1291,7 @@ function DeleteAccountModal({
 
 function inputClassName(hasError: boolean) {
   return cn(
-    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none',
+    'modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none',
     hasError && 'border-destructive focus-visible:ring-destructive',
   );
 }
@@ -1320,4 +1333,12 @@ function formatDate(value: string, language: string) {
     month: 'short',
     year: 'numeric',
   }).format(new Date(value));
+}
+
+function getProfileTab(value: string | null): ProfileTab {
+  if (value === 'reserved' || value === 'chats' || value === 'settings') {
+    return value;
+  }
+
+  return 'posts';
 }

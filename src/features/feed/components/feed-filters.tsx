@@ -52,7 +52,9 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
       className={`sticky top-20 z-20 transition-all duration-500 ease-out sm:top-24 ${
         isCollapsed
           ? 'ml-auto w-fit'
-          : cn('filter-card-enter glass-surface overflow-visible rounded-3xl')
+          : cn(
+              'filter-card-enter border-border bg-card overflow-visible rounded-[14px] border',
+            )
       }`}
       aria-label={t('Feed filters')}
     >
@@ -61,7 +63,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
           aria-controls={panelId}
           aria-expanded={isOpen}
           aria-label={t('Filters')}
-          className="filter-pop-in glass-surface size-14 rounded-3xl px-0 transition-transform duration-200 hover:scale-105"
+          className="filter-pop-in size-12 px-0"
           type="button"
           variant="outline"
           onClick={() => setIsOpen(true)}
@@ -81,7 +83,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                 />
                 <input
                   aria-label={t('Search free items')}
-                  className="modern-input h-12 w-full rounded-2xl pr-3 pl-9 text-base outline-none"
+                  className="modern-input h-12 w-full rounded-[10px] pr-3 pl-9 text-base outline-none"
                   placeholder={t('Search free items')}
                   type="search"
                   value={filters.search}
@@ -95,7 +97,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                 aria-controls={panelId}
                 aria-expanded={isOpen}
                 aria-label={t('Filters')}
-                className="size-12 shrink-0 rounded-2xl px-0"
+                className="size-12 shrink-0 px-0"
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen((current) => !current)}
@@ -148,7 +150,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                     {t('Category')}
                   </span>
                   <select
-                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
+                    className="modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none"
                     value={filters.category}
                     onChange={(event) =>
                       onChange({
@@ -179,7 +181,7 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                     })
                   }
                 />
-                <label className="flex items-center gap-3 rounded-2xl border p-3 sm:col-span-2">
+                <label className="flex items-center gap-3 rounded-[10px] border p-3 sm:col-span-2">
                   <input
                     checked={filters.boostedOnly}
                     className="size-4 accent-[var(--primary)]"

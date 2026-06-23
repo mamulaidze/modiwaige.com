@@ -3,6 +3,7 @@ import { Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { sendPasswordResetEmail } from '@/features/auth/api/auth-api';
 import { AuthFormField } from '@/features/auth/components/auth-form-field';
@@ -40,11 +41,17 @@ export function ForgotPasswordPage() {
         redirectTo: `${window.location.origin}${localizedPath('/reset-password')}`,
       });
       setIsSent(true);
+      toast.success(
+        t('If an account exists for this email, a reset link was sent.'),
+      );
     } catch (error) {
       logErrorDetails('Password reset email failed', error);
-      setFormError(
-        getFriendlyErrorMessage(error, 'Password reset email could not be sent.'),
+      const message = getFriendlyErrorMessage(
+        error,
+        'Password reset email could not be sent.',
       );
+      setFormError(message);
+      toast.error(t(message));
     }
   }
 
@@ -59,9 +66,9 @@ export function ForgotPasswordPage() {
             : 'Request a Gaachuqe password reset link by email.'
         }
       />
-      <div className="glass-surface rounded-[28px] p-5 sm:p-6">
+      <div className="premium-card rounded-[14px] p-5 sm:p-6">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl leading-[30px] font-bold tracking-tight">
             {t('Reset password')}
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -83,7 +90,7 @@ export function ForgotPasswordPage() {
 
           {isSent ? (
             <p
-              className="rounded-md border border-primary/50 bg-primary/10 p-3 text-sm"
+              className="border-primary/50 bg-primary/10 rounded-md border p-3 text-sm"
               role="status"
             >
               {t('If an account exists for this email, a reset link was sent.')}

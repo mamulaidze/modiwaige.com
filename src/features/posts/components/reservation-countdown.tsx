@@ -25,7 +25,7 @@ export function ReservationCountdown({ expiresAt }: ReservationCountdownProps) {
   const seconds = totalSeconds % 60;
 
   return (
-    <div className="bg-accent text-accent-foreground flex items-center gap-2 rounded-md p-3 text-sm">
+    <div className="bg-accent text-accent-foreground flex items-center gap-2 rounded-[10px] p-3 text-sm">
       <Clock className="size-4" aria-hidden="true" />
       <span>
         {t('Reservation expires in')} {hours}

@@ -14,10 +14,10 @@ export function AppFooter() {
   const { localizedPath, t } = useI18n();
 
   return (
-    <footer className="px-4 pb-24 sm:px-6 md:pb-6 lg:px-8">
-      <div className="glass-surface mx-auto flex w-full max-w-[1280px] flex-col gap-3 rounded-2xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+    <footer className="border-border bg-card mt-12 border-t px-4 pt-6 pb-28 sm:px-6 md:pb-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-4 px-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="brand-mark flex size-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-[var(--theme-glass-border)]">
+          <span className="brand-mark flex size-8 shrink-0 items-center justify-center rounded-[10px]">
             <BrandLogo className="size-5" />
           </span>
           <div className="min-w-0">

@@ -67,9 +67,9 @@ export function RegisterPage() {
             : 'Create a Gaachuqe account to give away useful items and reserve free local finds.'
         }
       />
-      <div className="glass-surface rounded-[28px] p-5 sm:p-6">
+      <div className="premium-card rounded-[14px] p-5 sm:p-6">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl leading-[30px] font-bold tracking-tight">
             {t('Register')}
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -121,7 +121,7 @@ export function RegisterPage() {
                   aria-invalid={Boolean(errors.phoneNumber)}
                   autoComplete="tel"
                   className={cn(
-                    'modern-input h-11 w-full rounded-2xl px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
+                    'modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
                     errors.phoneNumber &&
                       'border-destructive focus-visible:ring-destructive',
                   )}
@@ -156,6 +156,9 @@ export function RegisterPage() {
             registration={register('password')}
             type="password"
           />
+          <p className="text-muted-foreground -mt-2 text-xs leading-5">
+            {t('Use 8 to 72 characters for your password.')}
+          </p>
 
           {formError ? (
             <p

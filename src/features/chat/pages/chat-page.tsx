@@ -185,10 +185,10 @@ export function ChatPage() {
         </Link>
       </Button>
 
-      <section className="premium-card overflow-hidden rounded-3xl">
+      <section className="overflow-hidden rounded-[18px] border bg-card shadow-sm">
         <header className="border-b p-4 sm:p-5">
           <div className="flex items-start gap-3">
-            <span className="bg-primary text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-2xl">
+            <span className="bg-accent text-primary flex size-12 shrink-0 items-center justify-center rounded-full">
               <MessageCircle className="size-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -201,7 +201,7 @@ export function ChatPage() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm leading-6 text-amber-950 dark:text-amber-100">
+          <div className="mt-4 rounded-[10px] border border-amber-600/20 bg-amber-50 p-3 text-sm leading-6 text-amber-900 dark:bg-amber-950/20 dark:text-amber-100">
             <div className="flex items-start gap-2">
               <ShieldAlert
                 className="mt-1 size-4 shrink-0"
@@ -223,7 +223,7 @@ export function ChatPage() {
         </header>
 
         <div
-          className="bg-muted/25 flex max-h-[48svh] min-h-80 flex-col gap-3 overflow-y-auto p-4 sm:p-5"
+          className="bg-muted/25 flex max-h-[56svh] min-h-96 flex-col gap-3 overflow-y-auto p-4 sm:p-5"
           ref={messageListRef}
         >
           {chat.messages.length === 0 && isActive ? (
@@ -240,7 +240,7 @@ export function ChatPage() {
           ) : null}
 
           {!isActive ? (
-            <div className="bg-card m-auto max-w-sm rounded-3xl border p-5 text-center">
+            <div className="bg-card m-auto max-w-sm rounded-[14px] border p-5 text-center">
               <Clock3
                 className="text-muted-foreground mx-auto size-9"
                 aria-hidden="true"
@@ -261,14 +261,14 @@ export function ChatPage() {
                 return (
                   <div
                     className={cn(
-                      'flex max-w-[86%] flex-col',
+                      'flex max-w-[86%] flex-col gap-1',
                       isOwn ? 'ml-auto items-end' : 'mr-auto items-start',
                     )}
                     key={chatMessage.id}
                   >
                     <div
                       className={cn(
-                        'rounded-2xl px-3 py-2 text-sm leading-6 [overflow-wrap:anywhere] break-words whitespace-pre-wrap',
+                        'rounded-2xl px-3.5 py-2.5 text-sm leading-6 shadow-sm [overflow-wrap:anywhere] break-words whitespace-pre-wrap',
                         isOwn
                           ? 'bg-primary text-primary-foreground rounded-br-md'
                           : 'bg-card rounded-bl-md border',
@@ -287,7 +287,7 @@ export function ChatPage() {
 
         {isActive ? (
           <form
-            className="border-t p-3 sm:p-4"
+            className="border-t bg-background/80 p-3 sm:p-4"
             onSubmit={(event) => {
               event.preventDefault();
               const trimmedMessage = message.trim();
@@ -300,7 +300,7 @@ export function ChatPage() {
             <div className="flex items-end gap-2">
               <textarea
                 aria-label={t('Message')}
-                className="modern-input max-h-32 min-h-12 min-w-0 flex-1 resize-y rounded-2xl px-3 py-3 text-base outline-none"
+                className="modern-input max-h-32 min-h-12 min-w-0 flex-1 resize-y rounded-[10px] px-3 py-3 text-base outline-none"
                 maxLength={1000}
                 placeholder={t('Write a message...')}
                 value={message}
@@ -322,7 +322,7 @@ export function ChatPage() {
               />
               <Button
                 aria-label={t('Send')}
-                className="size-12 shrink-0 rounded-2xl p-0"
+                className="size-12 shrink-0 p-0"
                 disabled={!message.trim() || sendMutation.isPending}
                 type="submit"
               >

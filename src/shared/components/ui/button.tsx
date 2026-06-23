@@ -5,14 +5,14 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 const buttonVariants = cva(
-  'inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex h-10 items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-sm font-medium transition-colors duration-160 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-[0_10px_24px_var(--theme-primary-shadow)] hover:-translate-y-0.5 hover:bg-[var(--theme-primary-hover)] hover:shadow-[0_14px_30px_var(--theme-primary-shadow)] active:translate-y-0 active:bg-[var(--theme-primary-active)]',
+          'bg-primary text-white hover:bg-[var(--theme-primary-hover)] active:bg-[var(--theme-primary-active)]',
         outline:
-          'glass-surface hover:-translate-y-0.5 hover:bg-[var(--theme-glass-hover)] hover:text-accent-foreground active:translate-y-0',
+          'border border-border bg-card text-foreground hover:border-primary/30 hover:bg-accent',
       },
     },
     defaultVariants: {

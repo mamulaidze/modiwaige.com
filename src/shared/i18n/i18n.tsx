@@ -702,6 +702,28 @@ Object.assign(translations, {
     'შეტყობინების სანახავად გახსენით დროებითი ჩატი.',
   'Temporary reservation chat for arranging item pickup.':
     'დროებითი ჯავშნის ჩატი ნივთის გადაცემის შესათანხმებლად.',
+  'Show password': 'პაროლის ჩვენება',
+  'Hide password': 'პაროლის დამალვა',
+  'Use 8 to 72 characters for your password.':
+    'პაროლი უნდა შეიცავდეს 8-დან 72-მდე სიმბოლოს.',
+  'Post deleted.': 'განცხადება წაიშალა.',
+  'Report status updated.': 'რეპორტის სტატუსი განახლდა.',
+});
+
+Object.assign(translations, {
+  'Clear filters': 'ფილტრების გასუფთავება',
+  Apply: 'გამოყენება',
+  'More cities': 'მეტი ქალაქი',
+  'Meet in a public place. Never pay cash to strangers.':
+    'შეხვდით საჯარო ადგილას. არასოდეს გადაუხადოთ ფული უცნობებს.',
+  'Report submitted.': 'რეპორტი გაგზავნილია.',
+  Verification: 'ვერიფიკაცია',
+  'Phone verified': 'ტელეფონი დადასტურებულია',
+  Basic: 'საბაზისო',
+  'Completed giveaways': 'დასრულებული გაცემა',
+  'Community member': 'საზოგადოების წევრი',
+  'Pickup area': 'გატანის ადგილი',
+  Listed: 'დამატებულია',
 });
 
 Object.assign(ruTranslations, {
@@ -759,6 +781,28 @@ Object.assign(ruTranslations, {
     'Откройте временный чат, чтобы прочитать сообщение.',
   'Temporary reservation chat for arranging item pickup.':
     'Временный чат бронирования для согласования передачи вещи.',
+  'Show password': 'Показать пароль',
+  'Hide password': 'Скрыть пароль',
+  'Use 8 to 72 characters for your password.':
+    'Используйте от 8 до 72 символов для пароля.',
+  'Post deleted.': 'Объявление удалено.',
+  'Report status updated.': 'Статус жалобы обновлён.',
+});
+
+Object.assign(ruTranslations, {
+  'Clear filters': 'Очистить фильтры',
+  Apply: 'Применить',
+  'More cities': 'Другие города',
+  'Meet in a public place. Never pay cash to strangers.':
+    'Встречайтесь в общественном месте. Никогда не платите незнакомцам.',
+  'Report submitted.': 'Жалоба отправлена.',
+  Verification: 'Проверка',
+  'Phone verified': 'Телефон подтверждён',
+  Basic: 'Базовый',
+  'Completed giveaways': 'Завершённые передачи',
+  'Community member': 'Участник сообщества',
+  'Pickup area': 'Место передачи',
+  Listed: 'Добавлено',
 });
 
 type I18nContextValue = {

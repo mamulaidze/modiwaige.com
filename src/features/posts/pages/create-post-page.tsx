@@ -19,13 +19,13 @@ export function CreatePostPage() {
             : 'Create a free giveaway post on Gaachuqe and help a useful item find a new owner.'
         }
       />
-      <section className="premium-card rounded-3xl p-4 sm:p-5">
+      <section className="border-border bg-card rounded-[14px] border p-4 sm:p-5">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="bg-primary text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-[0_10px_24px_var(--theme-primary-shadow)]">
+          <div className="bg-accent text-primary flex size-10 shrink-0 items-center justify-center rounded-[10px]">
             <ImagePlus className="size-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight [overflow-wrap:anywhere] break-words sm:text-2xl">
+            <h1 className="text-xl leading-7 font-bold tracking-tight [overflow-wrap:anywhere] break-words sm:text-2xl sm:leading-[30px]">
               {t('Create Post')}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere] break-words">

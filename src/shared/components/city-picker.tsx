@@ -1,13 +1,11 @@
 import { Check, ChevronDown, MapPin, Search, X } from 'lucide-react';
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from 'react';
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/components/ui/popover';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
 
@@ -49,7 +47,6 @@ export function CityPicker({
 }: CityPickerProps) {
   const { t } = useI18n();
   const id = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -70,35 +67,6 @@ export function CityPicker({
         .includes(normalizedSearch),
     );
   }, [normalizedSearch, options, t]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    function handlePointerDown(event: PointerEvent) {
-      if (
-        event.target instanceof Node &&
-        !rootRef.current?.contains(event.target)
-      ) {
-        closePicker();
-      }
-    }
-
-    document.addEventListener('pointerdown', handlePointerDown);
-
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      window.setTimeout(() => searchInputRef.current?.focus(), 0);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    optionRefs.current[activeIndex]?.scrollIntoView({ block: 'nearest' });
-  }, [activeIndex]);
 
   function closePicker() {
     setIsOpen(false);
@@ -169,7 +137,7 @@ export function CityPicker({
   }
 
   return (
-    <div className={cn('space-y-2', className)} ref={rootRef}>
+    <div className={cn('space-y-2', className)}>
       {label ? (
         <label
           className="text-sm font-medium"
@@ -179,71 +147,82 @@ export function CityPicker({
           {label}
         </label>
       ) : null}
-      <div className="relative">
-        <button
-          aria-describedby={errorMessageId}
-          aria-controls={`${id}-listbox`}
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          aria-invalid={error || undefined}
-          aria-labelledby={label ? `${id}-label ${id}-trigger` : undefined}
-          className={cn(
-            'modern-input flex h-11 w-full items-center justify-between gap-3 rounded-2xl px-3 text-left text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
-            allowClear && value && 'pr-16',
-            error && 'border-destructive focus-visible:ring-destructive',
-          )}
-          disabled={disabled}
-          id={`${id}-trigger`}
-          type="button"
-          onClick={() => {
-            if (isOpen) {
-              closePicker();
-            } else {
-              openPicker();
-            }
-          }}
-          onKeyDown={handleKeyDown}
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            <MapPin
-              className="text-muted-foreground size-4 shrink-0"
-              aria-hidden="true"
-            />
-            <span
+      <Popover
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            openPicker();
+          } else {
+            closePicker();
+          }
+        }}
+      >
+        <div className="relative">
+          <PopoverTrigger asChild>
+            <button
+              aria-describedby={errorMessageId}
+              aria-controls={`${id}-listbox`}
+              aria-expanded={isOpen}
+              aria-haspopup="listbox"
+              aria-invalid={error || undefined}
+              aria-labelledby={label ? `${id}-label ${id}-trigger` : undefined}
               className={cn(
-                'truncate',
-                !selectedOption && 'text-muted-foreground',
+                'modern-input flex h-11 w-full items-center justify-between gap-3 rounded-[10px] px-3 text-left text-base outline-none disabled:cursor-not-allowed disabled:opacity-60',
+                allowClear && value && 'pr-16',
+                error && 'border-destructive focus-visible:ring-destructive',
               )}
+              disabled={disabled}
+              id={`${id}-trigger`}
+              type="button"
+              onKeyDown={handleKeyDown}
             >
-              {selectedLabel}
-            </span>
-          </span>
-          <ChevronDown
-            className={cn(
-              'text-muted-foreground size-4 shrink-0 transition-transform',
-              isOpen && 'rotate-180',
-            )}
-            aria-hidden="true"
-          />
-        </button>
+              <span className="flex min-w-0 items-center gap-2">
+                <MapPin
+                  className="text-muted-foreground size-4 shrink-0"
+                  aria-hidden="true"
+                />
+                <span
+                  className={cn(
+                    'truncate',
+                    !selectedOption && 'text-muted-foreground',
+                  )}
+                >
+                  {selectedLabel}
+                </span>
+              </span>
+              <ChevronDown
+                className={cn(
+                  'text-muted-foreground size-4 shrink-0 transition-transform',
+                  isOpen && 'rotate-180',
+                )}
+                aria-hidden="true"
+              />
+            </button>
+          </PopoverTrigger>
 
-        {allowClear && value ? (
-          <button
-            aria-label={clearLabel ?? t('Clear')}
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-8 flex size-7 -translate-y-1/2 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-            disabled={disabled}
-            type="button"
-            onClick={() => {
-              onChange('');
-              closePicker();
+          {allowClear && value ? (
+            <button
+              aria-label={clearLabel ?? t('Clear')}
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-8 flex size-7 -translate-y-1/2 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+              disabled={disabled}
+              type="button"
+              onClick={() => {
+                onChange('');
+                closePicker();
+              }}
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          ) : null}
+
+          <PopoverContent
+            align="start"
+            className="filter-panel-enter w-[var(--radix-popover-trigger-width)] overflow-hidden"
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              searchInputRef.current?.focus();
             }}
           >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-        ) : null}
-
-        {isOpen ? (
-          <div className="city-picker-popover filter-panel-enter absolute top-13 right-0 left-0 z-30 overflow-hidden rounded-3xl p-2 shadow-[0_22px_58px_var(--theme-surface-shadow)]">
             <div className="relative">
               <Search
                 className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
@@ -258,7 +237,7 @@ export function CityPicker({
                 aria-controls={`${id}-listbox`}
                 aria-label={searchLabel ?? t('Search city')}
                 autoComplete="off"
-                className="modern-input h-11 w-full rounded-2xl pr-3 pl-9 text-base outline-none"
+                className="modern-input h-11 w-full rounded-[10px] pr-3 pl-9 text-base outline-none"
                 placeholder={searchLabel ?? t('Search city')}
                 ref={searchInputRef}
                 type="search"
@@ -267,7 +246,16 @@ export function CityPicker({
                   setSearch(event.target.value);
                   setActiveIndex(0);
                 }}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(event) => {
+                  handleKeyDown(event);
+                  window.setTimeout(
+                    () =>
+                      optionRefs.current[activeIndex]?.scrollIntoView({
+                        block: 'nearest',
+                      }),
+                    0,
+                  );
+                }}
               />
             </div>
 
@@ -285,7 +273,7 @@ export function CityPicker({
                     <button
                       aria-selected={isSelected}
                       className={cn(
-                        'flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                        'flex w-full items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-left text-sm font-medium transition-colors',
                         isSelected
                           ? 'bg-primary/10 text-primary'
                           : 'text-foreground hover:bg-[var(--theme-glass-hover)]',
@@ -318,9 +306,9 @@ export function CityPicker({
                 </p>
               )}
             </div>
-          </div>
-        ) : null}
-      </div>
+          </PopoverContent>
+        </div>
+      </Popover>
     </div>
   );
 }

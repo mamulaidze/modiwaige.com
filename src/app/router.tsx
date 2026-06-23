@@ -21,6 +21,13 @@ const ChatPage = lazy(() =>
     default: module.ChatPage,
   })),
 );
+const NotificationsPage = lazy(() =>
+  import('@/features/notifications/pages/notifications-page').then(
+    (module) => ({
+      default: module.NotificationsPage,
+    }),
+  ),
+);
 const AdminDashboardPage = lazy(() =>
   import('@/features/admin/pages/admin-dashboard-page').then((module) => ({
     default: module.AdminDashboardPage,
@@ -119,6 +126,10 @@ export const router = createBrowserRouter([
     element: <Navigate replace to="/ge/profile" />,
   },
   {
+    path: '/notifications',
+    element: <Navigate replace to="/ge/notifications" />,
+  },
+  {
     path: '/admin',
     element: <Navigate replace to="/ge/admin" />,
   },
@@ -212,6 +223,14 @@ export const router = createBrowserRouter([
         element: withSuspense(
           <ProtectedRoute>
             <AccountPage />
+          </ProtectedRoute>,
+        ),
+      },
+      {
+        path: 'notifications',
+        element: withSuspense(
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>,
         ),
       },

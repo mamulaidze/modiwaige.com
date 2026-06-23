@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import { supportEmail } from '@/shared/config/contact';
 import { useI18n, type Language } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 
@@ -60,8 +61,7 @@ const content: Record<
       title: 'კონფიდენციალურობის პოლიტიკა',
       intro:
         'ეს გვერდი განმარტავს, რა ინფორმაციას შეიძლება აგროვებდეს Gaachuqe უფასო გაცვლის პლატფორმის მუშაობისთვის.',
-      reviewNotice:
-        '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
+      reviewNotice: '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
       sections: [
         {
           heading: 'რა ინფორმაციას ვაგროვებთ?',
@@ -126,8 +126,7 @@ const content: Record<
       title: 'გამოყენების პირობები',
       intro:
         'ეს პირობები აღწერს Gaachuqe-ის გამოყენების ძირითად წესებს. აპი ეხმარება ადამიანებს არასაჭირო ნივთების უფასოდ გაჩუქებაში.',
-      reviewNotice:
-        '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
+      reviewNotice: '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
       sections: [
         {
           heading: 'სერვისის გამოყენება',
@@ -192,8 +191,7 @@ const content: Record<
       title: 'უსაფრთხოება და საზოგადოებრივი წესები',
       intro:
         'ეს წესები გვეხმარება, რომ ნივთების გადაცემა იყოს მარტივი, ურთიერთპატივისცემაზე დაფუძნებული და უსაფრთხო.',
-      reviewNotice:
-        '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
+      reviewNotice: '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
       sections: [
         {
           heading: 'რჩევები ნივთის უსაფრთხო გარემოში აღებისთვის',
@@ -232,7 +230,7 @@ const content: Record<
         {
           heading: 'How to reach us',
           body: [
-            'Support email placeholder: support@example.com',
+            `Support email: ${supportEmail}`,
             'For urgent safety issues, contact local emergency services first. The app is not an emergency service.',
           ],
         },
@@ -249,13 +247,12 @@ const content: Record<
       title: 'კონტაქტი',
       intro:
         'ეს გვერდი გამოიყენეთ კონფიდენციალურობის კითხვებისთვის, ანგარიშის წაშლაში დახმარებისთვის, უსაფრთხოების საკითხებისთვის, მოდერაციის კითხვებისთვის ან ზოგადი მხარდაჭერისთვის.',
-      reviewNotice:
-        '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
+      reviewNotice: '© 2026 gaachuqe.com. ყველა უფლება დაცულია.',
       sections: [
         {
           heading: 'კავშირი ჩვენთან',
           body: [
-            'უკუკავშირის ელფოსტა: support@example.com',
+            `უკუკავშირის ელფოსტა: ${supportEmail}`,
             'გადაუდებელი ან სასწრაფო მნიშვნელობის საკითხებისთვის პირველ რიგში დაუკავშირდით ადგილობრივ გადაუდებელ სამსახურს. აპი არ არის გადაუდებელი დახმარების სერვისი.',
           ],
         },
@@ -378,7 +375,7 @@ const ruLegalContent: Record<LegalPageKey, LegalPageContent> = {
       {
         heading: 'Как с нами связаться',
         body: [
-          'Email поддержки: support@example.com',
+          `Email поддержки: ${supportEmail}`,
           'По срочным вопросам безопасности сначала обращайтесь в местные экстренные службы. Приложение не является экстренной службой.',
         ],
       },
@@ -431,15 +428,12 @@ function LegalPage({ pageKey }: { pageKey: LegalPageKey }) {
             {page.intro}
           </p>
         </div>
-        <p className="border-primary/30 bg-primary/5 text-primary rounded-2xl border px-4 py-3 text-sm leading-6">
-          {page.reviewNotice}
-        </p>
       </section>
 
       <section className="grid gap-4">
         {page.sections.map((section) => (
           <article
-            className="premium-card rounded-3xl p-4 sm:p-5"
+            className="premium-card rounded-[14px] p-4 sm:p-5"
             key={section.heading}
           >
             <h2 className="text-lg font-semibold">{section.heading}</h2>

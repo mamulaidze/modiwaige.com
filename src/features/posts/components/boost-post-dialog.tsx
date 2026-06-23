@@ -45,7 +45,7 @@ export function BoostPostDialog({
       onConfirm={() => onConfirm(selectedPlan)}
     >
       <div className="space-y-3">
-        <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-[10px] border border-amber-600/20 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
           <div className="flex items-start gap-2 leading-5 font-semibold">
             <Rocket className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>{t('Demo only — no payment will be charged.')}</span>
@@ -60,7 +60,7 @@ export function BoostPostDialog({
               <button
                 aria-pressed={isSelected}
                 className={cn(
-                  'flex items-center justify-between rounded-2xl border p-3 text-left transition-colors',
+                  'flex items-center justify-between rounded-[10px] border p-3 text-left transition-colors',
                   isSelected
                     ? 'border-primary bg-primary/10'
                     : 'hover:bg-muted/60',

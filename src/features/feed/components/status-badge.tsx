@@ -10,9 +10,9 @@ const statusLabels: Record<FeedStatus, string> = {
 };
 
 const statusStyles: Record<FeedStatus, string> = {
-  available: 'primary-glow bg-primary/10 text-primary ring-1 ring-primary/15',
-  reserved: 'bg-accent/75 text-accent-foreground ring-1 ring-border',
-  given: 'bg-muted/80 text-muted-foreground ring-1 ring-border',
+  available: 'border-primary/15 bg-white/95 text-primary',
+  reserved: 'border-border bg-white/95 text-foreground',
+  given: 'border-border bg-white/95 text-muted-foreground',
 };
 
 type StatusBadgeProps = {
@@ -25,7 +25,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur',
+        'inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-medium',
         statusStyles[status],
       )}
     >

@@ -2,18 +2,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
-  CalendarDays,
   FileWarning,
   ImageIcon,
   MapPin,
   MessageCircle,
+  MoreHorizontal,
   Pencil,
   Rocket,
   X,
   Trash2,
   User,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Controller,
   useForm,
@@ -27,6 +27,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { z } from 'zod';
+import { toast } from 'sonner';
 
 import { useAuth } from '@/features/auth/context/use-auth';
 import { StatusBadge } from '@/features/feed/components/status-badge';
@@ -36,9 +37,16 @@ import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { useDialogFocusTrap } from '@/shared/hooks/use-dialog-focus-trap';
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
+import { cn } from '@/shared/lib/cn';
 import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 import {
@@ -105,6 +113,10 @@ export function PostDetailsPage() {
     id: string;
     status: 'accepted' | 'declined' | 'cancelled' | 'completed';
   } | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ behavior: 'smooth', top: 0 });
+  }, [postId]);
 
   const {
     data: post,
@@ -261,6 +273,7 @@ export function PostDetailsPage() {
     onSuccess: () => {
       setIsReportOpen(false);
       setActionError(null);
+      toast.success(t('Report submitted.'));
     },
     onError: (mutationError) => {
       logErrorDetails('Submit report failed', mutationError);
@@ -354,7 +367,7 @@ export function PostDetailsPage() {
       : null;
 
   return (
-    <PageContainer className="gap-6">
+    <PageContainer className="gap-6 pb-28 md:pb-0">
       <Seo
         title={post.title}
         description={
@@ -372,9 +385,9 @@ export function PostDetailsPage() {
         </Link>
       </Button>
 
-      <section className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+      <section className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(340px,2fr)]">
         <div className="min-w-0 space-y-3">
-          <div className="premium-card bg-muted flex aspect-[4/3] items-center justify-center overflow-hidden rounded-3xl">
+          <div className="bg-muted flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[18px] border shadow-sm lg:aspect-[16/10]">
             {activeImage?.url ? (
               <button
                 aria-label="Open full image"
@@ -401,7 +414,12 @@ export function PostDetailsPage() {
               {post.images.map((image, index) => (
                 <button
                   aria-label={`Show image ${index + 1}`}
-                  className="soft-surface focus-visible:ring-ring overflow-hidden rounded-2xl transition-transform hover:scale-[1.02] focus-visible:ring-2"
+                  className={cn(
+                    'focus-visible:ring-ring overflow-hidden rounded-[10px] border bg-card transition-colors focus-visible:ring-2',
+                    activeImageIndex === index
+                      ? 'border-primary'
+                      : 'border-border hover:border-primary/30',
+                  )}
                   key={image.id}
                   type="button"
                   onClick={() => setActiveImageIndex(index)}
@@ -426,7 +444,7 @@ export function PostDetailsPage() {
           ) : null}
         </div>
 
-        <div className="premium-card min-w-0 space-y-5 rounded-3xl p-4 sm:p-5">
+        <div className="premium-card min-w-0 space-y-5 rounded-[18px] p-4 sm:p-5 lg:sticky lg:top-24 lg:self-start">
           {isEditing ? (
             <form
               className="space-y-4"
@@ -444,7 +462,7 @@ export function PostDetailsPage() {
                   {t('Description')}
                 </label>
                 <textarea
-                  className="modern-input min-h-32 w-full rounded-2xl px-3 py-3 text-base outline-none"
+                  className="modern-input min-h-32 w-full rounded-[10px] px-3 py-3 text-base outline-none"
                   id="description"
                   {...editForm.register('description')}
                 />
@@ -456,7 +474,7 @@ export function PostDetailsPage() {
                 <label className="space-y-2">
                   <span className="text-sm font-medium">{t('Category')}</span>
                   <select
-                    className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
+                    className="modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none"
                     {...editForm.register('category')}
                   >
                     {postCategoryOptions.map((option) => (
@@ -517,47 +535,28 @@ export function PostDetailsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     {post.isBoosted ? <BoostBadge /> : null}
                     <StatusBadge status={post.status} />
+                    <span className="text-muted-foreground inline-flex items-center gap-1.5 text-sm">
+                      <MapPin className="size-4" aria-hidden="true" />
+                      {t(post.location)}
+                    </span>
+                    <span className="text-muted-foreground text-sm">
+                      {formatCategory(post.category, t)}
+                    </span>
                   </div>
                 </div>
-                <p className="text-muted-foreground leading-7 [overflow-wrap:anywhere] break-words whitespace-pre-line">
-                  {post.description}
-                </p>
               </div>
-
-              <dl className="grid gap-3 text-sm">
-                <DetailRow
-                  label={t('Category')}
-                  value={formatCategory(post.category, t)}
-                />
-                <DetailRow
-                  label={t('City')}
-                  value={t(post.location)}
-                  icon={<MapPin className="size-4" />}
-                />
-                <DetailRow
-                  label={t('Date')}
-                  value={formatDate(post.createdAt, language)}
-                  icon={<CalendarDays className="size-4" />}
-                />
-                <DetailRow
-                  label={t('Expires')}
-                  value={formatDate(post.expiresAt, language)}
-                  icon={<CalendarDays className="size-4" />}
-                />
-                {post.isBoosted && post.boostExpiresAt ? (
-                  <DetailRow
-                    label={t('Boost expires')}
-                    value={formatDateTime(post.boostExpiresAt, language)}
-                    icon={<Rocket className="size-4" />}
-                  />
-                ) : null}
-              </dl>
 
               {post.activeReservation?.expiresAt ? (
                 <ReservationCountdown
                   expiresAt={post.activeReservation.expiresAt}
                 />
               ) : null}
+
+              <ReservationLifecycle
+                activeReservation={post.activeReservation}
+                isOwner={isOwner}
+                status={post.status}
+              />
 
               {isOwner && post.reservations.length > 0 ? (
                 <OwnerReservationRequests
@@ -572,9 +571,9 @@ export function PostDetailsPage() {
                 />
               ) : null}
 
-              <section className="soft-surface rounded-3xl p-4">
+              <section className="soft-surface rounded-[14px] p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-muted flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
+                  <div className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full">
                     {post.owner?.avatarUrl ? (
                       <img
                         className="h-full w-full object-cover"
@@ -599,10 +598,57 @@ export function PostDetailsPage() {
                     </p>
                   </div>
                 </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                  <TrustMetric
+                    label={t('Verification')}
+                    value={
+                      post.owner?.phoneNumber ? t('Phone verified') : t('Basic')
+                    }
+                  />
+                  <TrustMetric
+                    label={t('Completed giveaways')}
+                    value={t('Community member')}
+                  />
+                </div>
               </section>
 
+              <details className="rounded-[14px] border p-4" open>
+                <summary className="cursor-pointer list-none font-semibold">
+                  {t('Description')}
+                </summary>
+                <p className="text-muted-foreground mt-3 leading-7 [overflow-wrap:anywhere] break-words whitespace-pre-line">
+                  {post.description}
+                </p>
+              </details>
+
+              <details className="rounded-[14px] border p-4">
+                <summary className="cursor-pointer list-none font-semibold">
+                  {t('Details')}
+                </summary>
+                <dl className="mt-3 grid gap-3 border-t pt-4 text-sm">
+                  <DetailRow
+                    label={t('Condition')}
+                    value={formatCategory(post.condition, t)}
+                  />
+                  <DetailRow
+                    label={t('Pickup area')}
+                    value={t(post.location)}
+                  />
+                  <DetailRow
+                    label={t('Listed')}
+                    value={formatDate(post.createdAt, language)}
+                  />
+                  {post.isBoosted && post.boostExpiresAt ? (
+                    <DetailRow
+                      label={t('Boost expires')}
+                      value={formatDateTime(post.boostExpiresAt, language)}
+                    />
+                  ) : null}
+                </dl>
+              </details>
+
               {viewerActiveReservation ? (
-                <section className="primary-glow border-primary/20 bg-primary/5 rounded-3xl border p-4">
+                <section className="border-primary/20 bg-accent rounded-[14px] border p-4">
                   <h2 className="font-semibold">{t('Reservation active')}</h2>
                   <div className="mt-2">
                     <ReservationStatusBadge
@@ -644,28 +690,10 @@ export function PostDetailsPage() {
               ) : null}
 
               {isOwner ? (
-                <div className="grid gap-2">
+                <div className="border-border flex flex-wrap items-center gap-2 border-t pt-4">
                   <Button
-                    className="h-auto min-h-11 w-full bg-amber-400 whitespace-normal text-amber-950 hover:bg-amber-300 disabled:opacity-100"
-                    disabled={
-                      post.status !== 'available' ||
-                      post.isBoosted ||
-                      boostMutation.isPending
-                    }
+                    className="h-10"
                     type="button"
-                    onClick={() => setIsBoostDialogOpen(true)}
-                  >
-                    <Rocket className="size-4" aria-hidden="true" />
-                    {post.isBoosted && post.boostExpiresAt ? (
-                      <BoostActiveCountdown expiresAt={post.boostExpiresAt} />
-                    ) : (
-                      t('Boost post')
-                    )}
-                  </Button>
-                  <Button
-                    className="h-auto min-h-11 w-full whitespace-normal"
-                    type="button"
-                    variant="outline"
                     onClick={() => {
                       setIsEditingManually(true);
                       setSearchParams({ edit: '1' }, { replace: true });
@@ -674,34 +702,56 @@ export function PostDetailsPage() {
                     <Pencil className="size-4" aria-hidden="true" />
                     {t('Edit')}
                   </Button>
-                  <Button
-                    className="h-auto min-h-11 w-full whitespace-normal"
-                    disabled={
-                      post.status === 'given' || markGivenMutation.isPending
-                    }
-                    type="button"
-                    variant="outline"
-                    onClick={() => setConfirmation('mark-given')}
-                  >
-                    {markGivenMutation.isPending
-                      ? t('Saving...')
-                      : post.status === 'given'
-                        ? t('Given')
-                        : t('Mark given')}
-                  </Button>
-                  <Button
-                    className="h-auto min-h-11 w-full whitespace-normal"
-                    disabled={deleteMutation.isPending}
-                    type="button"
-                    variant="outline"
-                    onClick={() => setConfirmation('delete')}
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                    {deleteMutation.isPending ? t('Deleting...') : t('Delete')}
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        aria-label={t('Action')}
+                        className="ml-auto size-10 px-0"
+                        type="button"
+                        variant="outline"
+                      >
+                        <MoreHorizontal className="size-4" aria-hidden="true" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        disabled={
+                          post.status !== 'available' ||
+                          post.isBoosted ||
+                          boostMutation.isPending
+                        }
+                        onSelect={() => setIsBoostDialogOpen(true)}
+                      >
+                        <Rocket className="size-4" aria-hidden="true" />
+                        {post.isBoosted && post.boostExpiresAt ? (
+                          <BoostActiveCountdown
+                            expiresAt={post.boostExpiresAt}
+                          />
+                        ) : (
+                          t('Boost post')
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={
+                          post.status === 'given' || markGivenMutation.isPending
+                        }
+                        onSelect={() => setConfirmation('mark-given')}
+                      >
+                        {post.status === 'given' ? t('Given') : t('Mark given')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        disabled={deleteMutation.isPending}
+                        onSelect={() => setConfirmation('delete')}
+                      >
+                        <Trash2 className="size-4" aria-hidden="true" />
+                        {t('Delete')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="hidden space-y-2 md:block">
                   <VisitorAction
                     disabled={
                       post.status !== 'available' || reserveMutation.isPending
@@ -726,12 +776,45 @@ export function PostDetailsPage() {
                       {t('Report')}
                     </Button>
                   ) : null}
+                  <p className="text-muted-foreground text-xs leading-5">
+                    {t('Meet in a public place. Never pay cash to strangers.')}
+                  </p>
                 </div>
               )}
             </>
           )}
         </div>
       </section>
+
+      {!isOwner && !isEditing ? (
+        <div className="bg-background/95 fixed inset-x-0 bottom-0 z-30 border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-2xl backdrop-blur md:hidden">
+          <div className="mx-auto max-w-md space-y-2">
+            <VisitorAction
+              disabled={post.status !== 'available' || reserveMutation.isPending}
+              isAuthenticated={isAuthenticated}
+              isPending={reserveMutation.isPending}
+              isReservedByViewer={post.activeReservation?.requesterId === user?.id}
+              isCancelling={cancelReservationMutation.isPending}
+              onCancel={() => setConfirmation('cancel-reservation')}
+              onReserve={() => setConfirmation('reserve')}
+            />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-muted-foreground text-xs leading-5">
+                {t('Meet in a public place. Never pay cash to strangers.')}
+              </p>
+              {isAuthenticated ? (
+                <button
+                  className="text-destructive shrink-0 text-xs font-semibold"
+                  type="button"
+                  onClick={() => setIsReportOpen(true)}
+                >
+                  {t('Report')}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isReportOpen ? (
         <ReportPostModal
@@ -875,11 +958,11 @@ function OwnerReservationRequests({
   const { t } = useI18n();
 
   return (
-    <section className="soft-surface rounded-3xl p-4">
+    <section className="soft-surface rounded-[14px] p-4">
       <h2 className="font-semibold">{t('Reservation requests')}</h2>
       <div className="mt-3 grid gap-2">
         {reservations.map((reservation) => (
-          <div className="rounded-2xl border p-3" key={reservation.id}>
+          <div className="rounded-[10px] border p-3" key={reservation.id}>
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -915,6 +998,89 @@ function OwnerReservationRequests({
         ))}
       </div>
     </section>
+  );
+}
+
+function ReservationLifecycle({
+  activeReservation,
+  isOwner,
+  status,
+}: {
+  activeReservation: PostReservation | null;
+  isOwner: boolean;
+  status: string;
+}) {
+  const { t } = useI18n();
+  const steps = activeReservation
+    ? [
+        { label: t('Requested'), active: true },
+        {
+          label:
+            activeReservation.status === 'accepted'
+              ? t('Accepted')
+              : t('Waiting'),
+          active:
+            activeReservation.status === 'accepted' ||
+            activeReservation.status === 'completed',
+        },
+        {
+          label: t('Pickup'),
+          active: activeReservation.status === 'completed',
+        },
+      ]
+    : [
+        { label: t('Available'), active: status === 'available' },
+        { label: t('Requested'), active: false },
+        { label: t('Pickup'), active: false },
+      ];
+
+  return (
+    <section className="rounded-[14px] border p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-semibold">{t('Reservation status')}</h2>
+        {activeReservation ? (
+          <ReservationStatusBadge status={activeReservation.status} />
+        ) : null}
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {steps.map((step, index) => (
+          <div className="min-w-0" key={`${step.label}-${index}`}>
+            <div
+              className={cn(
+                'h-1.5 rounded-full',
+                step.active ? 'bg-primary' : 'bg-muted',
+              )}
+            />
+            <p
+              className={cn(
+                'mt-2 truncate text-xs font-medium',
+                step.active ? 'text-foreground' : 'text-muted-foreground',
+              )}
+            >
+              {step.label}
+            </p>
+          </div>
+        ))}
+      </div>
+      <p className="text-muted-foreground mt-3 text-sm leading-6">
+        {activeReservation
+          ? activeReservation.status === 'accepted'
+            ? t('Next step: arrange pickup in chat.')
+            : isOwner
+              ? t('Next step: review the reservation request.')
+              : t('Next step: waiting for seller acceptance.')
+          : t('Next step: request this item to start a reservation.')}
+      </p>
+    </section>
+  );
+}
+
+function TrustMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[10px] border bg-card/70 p-3">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+    </div>
   );
 }
 
@@ -1146,7 +1312,7 @@ function ReportPostModal({
       }}
     >
       <div
-        className="glass-surface max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl p-4 sm:p-5"
+        className="border-border bg-card max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-[18px] border p-4 shadow-[0_18px_54px_var(--theme-surface-shadow)] sm:p-5"
         ref={dialogRef}
       >
         <div className="flex min-w-0 items-start gap-3">
@@ -1172,7 +1338,7 @@ function ReportPostModal({
           <label className="space-y-2">
             <span className="text-sm font-medium">{t('Subject')}</span>
             <input
-              className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
+              className="modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none"
               disabled={isSubmitting}
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
@@ -1181,7 +1347,7 @@ function ReportPostModal({
           <label className="space-y-2">
             <span className="text-sm font-medium">{t('Details')}</span>
             <textarea
-              className="modern-input min-h-28 w-full rounded-2xl px-3 py-3 text-base outline-none"
+              className="modern-input min-h-28 w-full rounded-[10px] px-3 py-3 text-base outline-none"
               disabled={isSubmitting}
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -1231,7 +1397,7 @@ function EditField({
         {label}
       </label>
       <input
-        className="modern-input h-11 w-full rounded-2xl px-3 text-base outline-none"
+        className="modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none"
         id={registration.name}
         type="text"
         {...registration}

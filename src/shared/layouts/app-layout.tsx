@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { logout } from '@/features/auth/api/auth-api';
 import { AnalyticsTracker } from '@/shared/components/analytics-tracker';
@@ -24,7 +24,9 @@ function LocalizedAppLayout() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { localizedPath, t } = useI18n();
+  const hidesMobileBottomNav = /\/posts\/[^/]+/.test(location.pathname);
 
   async function handleLogout() {
     setIsLogoutConfirmOpen(false);
@@ -43,7 +45,7 @@ function LocalizedAppLayout() {
   }
 
   return (
-    <div className="text-foreground flex min-h-svh flex-col">
+    <div className={`text-foreground flex min-h-svh flex-col ${hidesMobileBottomNav ? '' : 'pb-[calc(env(safe-area-inset-bottom)+5rem)] md:pb-0'}`}>
       <AnalyticsTracker />
       <a className="skip-link" href="#main-content">
         {t('Skip to content')}
@@ -68,7 +70,7 @@ function LocalizedAppLayout() {
       </header>
       <Outlet />
       <AppFooter />
-      <MobileBottomNav />
+      {hidesMobileBottomNav ? null : <MobileBottomNav />}
 
       {isLogoutConfirmOpen ? (
         <ConfirmDialog

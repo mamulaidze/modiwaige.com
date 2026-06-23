@@ -4,32 +4,31 @@ import {
   BookOpen,
   ExternalLink,
   Gift,
-  Globe2,
   GraduationCap,
   HeartHandshake,
   Home,
   Laptop,
-  Leaf,
   MapPin,
   Search,
   Shirt,
+  SlidersHorizontal,
   Sparkles,
   Rocket,
-  Users,
+  X,
 } from 'lucide-react';
 
 import { PostCard } from '@/features/feed/components/post-card';
-import {
-  categoryOptions,
-  cityOptions,
-} from '@/features/feed/constants/feed-filters';
+import { categoryOptions } from '@/features/feed/constants/feed-filters';
 import { useFeed } from '@/features/feed/hooks/use-feed';
 import type { FeedFilters as FeedFiltersValue } from '@/features/feed/types/feed';
+import { postCityOptions } from '@/features/posts/constants/post-options';
+import { CityPicker } from '@/shared/components/city-picker';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
-import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
+import { useI18n } from '@/shared/i18n/i18n';
+import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { getFriendlyErrorMessage } from '@/shared/lib/errors';
 
@@ -50,6 +49,10 @@ const featuredCities = [
   'Zugdidi',
   'Telavi',
 ];
+const cityPickerOptions = [
+  { label: 'All Georgia', value: 'all' },
+  ...postCityOptions.map((city) => ({ label: city, value: city })),
+];
 const categoryIcons: Record<string, typeof Sparkles> = {
   all: Sparkles,
   books: BookOpen,
@@ -63,6 +66,8 @@ const categoryIcons: Record<string, typeof Sparkles> = {
 export function HomePage() {
   const { language, t } = useI18n();
   const [filters, setFilters] = useState<FeedFiltersValue>(initialFilters);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const debouncedSearch = useDebouncedValue(filters.search.trim(), 400);
   const {
     data,
     error,
@@ -73,28 +78,22 @@ export function HomePage() {
     isLoading,
   } = useFeed({
     ...filters,
-    search: filters.search.trim(),
+    search: debouncedSearch,
   });
 
   const posts = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data],
   );
-  const visibleCityCount = cityOptions.filter(
-    (city) => city.value !== 'all',
-  ).length;
-  const visibleCategoryCount = categoryOptions.filter(
-    (category) => category.value !== 'all',
-  ).length;
-
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       void fetchNextPage();
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const activeFilters = getActiveFilterLabels(filters, t);
 
   return (
-    <PageContainer className="max-w-[1360px] gap-8 pt-5 sm:px-5 md:pt-6 lg:px-6">
+    <PageContainer className="max-w-[1360px] gap-10 pt-5 sm:px-5 md:pt-6 lg:px-6">
       <Seo
         title={
           language === 'ge'
@@ -107,111 +106,68 @@ export function HomePage() {
             : 'Find free items in Georgia, reserve nearby giveaways, and give useful things a second life with Gaachuqe.'
         }
       />
-      <section className="relative isolate overflow-hidden rounded-[32px] border border-white/10 bg-[#07140f] px-5 py-12 text-white shadow-[0_28px_80px_hsl(160_30%_4%/.42)] sm:px-8 md:px-14 md:py-16">
-        <img
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-70"
-          src="/home-hero-landscape.png"
-          alt=""
-          aria-hidden="true"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,hsl(160_30%_5%/.9),hsl(160_30%_6%/.62)_44%,hsl(160_30%_7%/.18)),linear-gradient(180deg,hsl(160_30%_5%/.18),hsl(160_30%_5%/.72))]" />
-
-        <div className="max-w-3xl">
-          <div className="bg-primary/20 text-primary mb-6 flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold">
-            <Leaf className="size-4" aria-hidden="true" />
-            {t('Give freely. Build community.')}
-          </div>
-
-          <h1 className="max-w-2xl text-5xl leading-[0.96] font-semibold tracking-tight text-balance sm:text-6xl md:text-7xl">
-            {t('Free things, shared kindly.')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
-            {t(
-              'A community marketplace for giving away what you no longer need across Georgia.',
-            )}
-          </p>
-
-          <form
-            className="mt-8 flex flex-col gap-3 sm:flex-row"
-            role="search"
-            onSubmit={(event) => event.preventDefault()}
+      <section className="space-y-3 md:hidden" aria-label={t('Feed filters')}>
+        <div className="flex items-center gap-2">
+          <label className="relative min-w-0 flex-1">
+            <span className="sr-only">{t('Search free items')}</span>
+            <Search
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              aria-hidden="true"
+            />
+            <input
+              className="modern-input h-12 w-full rounded-[12px] pr-3 pl-9 text-base outline-none"
+              placeholder={t('Search free items')}
+              type="search"
+              value={filters.search}
+              onChange={(event) =>
+                onChangeFilter({ search: event.target.value })
+              }
+            />
+          </label>
+          <Button
+            aria-expanded={isFilterSheetOpen}
+            aria-label={t('Filters')}
+            className="size-12 shrink-0 px-0"
+            type="button"
+            variant="outline"
+            onClick={() => setIsFilterSheetOpen(true)}
           >
-            <label className="relative min-w-0 flex-1">
-              <span className="sr-only">{t('Search free items')}</span>
-              <Search
-                className="pointer-events-none absolute top-1/2 left-5 size-5 -translate-y-1/2 text-white/58"
-                aria-hidden="true"
-              />
-              <input
-                className="focus:border-primary focus:ring-primary/20 h-14 w-full rounded-full border border-white/10 bg-[#0d2018]/90 pr-5 pl-14 text-base text-white shadow-[inset_0_1px_0_hsl(0_0%_100%/.08)] outline-none placeholder:text-white/50 focus:ring-4"
-                placeholder={t('Search free items near you...')}
-                type="search"
-                value={filters.search}
-                onChange={(event) =>
-                  onChangeFilter({ search: event.target.value })
-                }
-              />
-            </label>
-            <Button className="h-14 rounded-full px-8 text-base" type="submit">
-              {t('Search')}
-            </Button>
-          </form>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            {featuredCities.map((city) => {
-              const isActive = filters.city === city;
-
-              return (
-                <button
-                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                    isActive
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'hover:border-primary/50 border-white/10 bg-[#0c1d16]/86 text-white/72 hover:text-white'
-                  }`}
-                  key={city}
-                  type="button"
-                  onClick={() => onChangeFilter({ city })}
-                >
-                  <MapPin className="size-4" aria-hidden="true" />
-                  {city === 'all' ? t('All Georgia') : t(city)}
-                </button>
-              );
-            })}
-          </div>
+            <SlidersHorizontal className="size-5" aria-hidden="true" />
+          </Button>
         </div>
+
+        {activeFilters.length > 0 ? (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {activeFilters.map((filter) => (
+              <span
+                className="bg-accent text-primary inline-flex shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold"
+                key={filter}
+              >
+                {filter}
+              </span>
+            ))}
+            <button
+              className="text-muted-foreground hover:text-foreground shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold"
+              type="button"
+              onClick={clearFilters}
+            >
+              {t('Clear')}
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <section
-        aria-label={t('Home statistics')}
-        className="grid gap-4 md:grid-cols-3"
+        className="hidden space-y-4 md:block"
+        aria-label={t('Trending categories')}
       >
-        <HomeStat
-          icon={<Gift className="size-5" aria-hidden="true" />}
-          label={t('items currently showing')}
-          value={posts.length.toLocaleString(getLanguageLocale(language))}
-        />
-        <HomeStat
-          icon={<Users className="size-5" aria-hidden="true" />}
-          label={t('ways to give')}
-          value={visibleCategoryCount.toLocaleString(
-            getLanguageLocale(language),
-          )}
-        />
-        <HomeStat
-          icon={<Globe2 className="size-5" aria-hidden="true" />}
-          label={t('cities across Georgia')}
-          value={visibleCityCount.toLocaleString(getLanguageLocale(language))}
-        />
-      </section>
-
-      <section className="space-y-4" aria-label={t('Trending categories')}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight">
+          <h2 className="text-2xl leading-7 font-bold tracking-tight">
             {t('Trending categories')}
           </h2>
           <button
             aria-pressed={filters.boostedOnly}
-            className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-[10px] border px-3 py-2 text-sm font-medium transition-colors ${
               filters.boostedOnly
                 ? 'border-amber-400 bg-amber-400 text-amber-950'
                 : 'border-border bg-card text-muted-foreground hover:text-foreground hover:border-amber-400/60'
@@ -232,7 +188,7 @@ export function HomePage() {
 
             return (
               <button
-                className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition-colors ${
+                className={`flex shrink-0 items-center gap-2 rounded-[10px] border px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
@@ -246,6 +202,37 @@ export function HomePage() {
               </button>
             );
           })}
+        </div>
+        <div className="border-border flex gap-2 overflow-x-auto border-t pt-4 pb-1">
+          {featuredCities.map((city) => {
+            const isActive = filters.city === city;
+
+            return (
+              <button
+                className={`flex shrink-0 items-center gap-1.5 rounded-[10px] px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-accent text-primary'
+                    : 'text-muted-foreground hover:bg-card hover:text-foreground'
+                }`}
+                key={city}
+                type="button"
+                onClick={() => onChangeFilter({ city })}
+              >
+                <MapPin className="size-4" aria-hidden="true" />
+                {city === 'all' ? t('All Georgia') : t(city)}
+              </button>
+            );
+          })}
+          <CityPicker
+            className="w-44 shrink-0 space-y-0"
+            options={cityPickerOptions}
+            placeholder={t('More cities')}
+            searchLabel={t('Search city')}
+            value={
+              featuredCities.includes(filters.city) ? '' : filters.city
+            }
+            onChange={(city) => onChangeFilter({ city })}
+          />
         </div>
       </section>
 
@@ -280,15 +267,14 @@ export function HomePage() {
       {posts.length > 0 ? (
         <section aria-label={t('Free item feed')} className="space-y-4">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 className="text-2xl leading-7 font-bold tracking-tight">
               {t('Recently added')}
             </h2>
             <span className="text-primary text-sm font-semibold">
               {posts.length} {t('available')}
             </span>
           </div>
-          <div className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 lg:gap-5">
-            <SponsoredAd language={language} slotNumber={1} />
+          <div className="grid grid-cols-1 gap-4 min-[430px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
             {posts.map((post, index) => (
               <Fragment key={post.id}>
                 <PostCard post={post} />
@@ -315,18 +301,194 @@ export function HomePage() {
           {isFetchingNextPage ? t('Loading...') : t('Show more')}
         </Button>
       ) : null}
+
+      {isFilterSheetOpen ? (
+        <MobileFilterSheet
+          filters={filters}
+          onApply={(nextFilters) => {
+            setFilters(nextFilters);
+            setIsFilterSheetOpen(false);
+          }}
+          onClear={() => {
+            setFilters(initialFilters);
+            setIsFilterSheetOpen(false);
+          }}
+          onClose={() => setIsFilterSheetOpen(false)}
+        />
+      ) : null}
     </PageContainer>
   );
 
   function onChangeFilter(nextFilters: Partial<FeedFiltersValue>) {
     setFilters((current) => ({ ...current, ...nextFilters }));
   }
+
+  function clearFilters() {
+    setFilters(initialFilters);
+  }
+}
+
+function MobileFilterSheet({
+  filters,
+  onApply,
+  onClear,
+  onClose,
+}: {
+  filters: FeedFiltersValue;
+  onApply: (filters: FeedFiltersValue) => void;
+  onClear: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const [draftFilters, setDraftFilters] = useState(filters);
+
+  return (
+    <div
+      aria-modal="true"
+      className="fixed inset-0 z-50 bg-black/35 md:hidden"
+      role="dialog"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div className="bg-background fixed inset-x-0 bottom-0 max-h-[88svh] overflow-y-auto rounded-t-3xl border-t p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">{t('Filters')}</h2>
+            <p className="text-muted-foreground text-sm">
+              {t('Search, category, and city')}
+            </p>
+          </div>
+          <button
+            aria-label={t('Close')}
+            className="border-border flex size-10 items-center justify-center rounded-full border"
+            type="button"
+            onClick={onClose}
+          >
+            <X className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="space-y-5">
+          <label className="space-y-2">
+            <span className="text-sm font-medium">{t('Search free items')}</span>
+            <input
+              className="modern-input h-12 w-full rounded-[12px] px-3 text-base outline-none"
+              value={draftFilters.search}
+              onChange={(event) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  search: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{t('Category')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {categoryOptions.map((category) => {
+                const isActive = draftFilters.category === category.value;
+
+                return (
+                  <button
+                    className={`rounded-[12px] border px-3 py-3 text-sm font-semibold ${
+                      isActive
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-card text-muted-foreground'
+                    }`}
+                    key={category.value}
+                    type="button"
+                    onClick={() =>
+                      setDraftFilters((current) => ({
+                        ...current,
+                        category: category.value,
+                      }))
+                    }
+                  >
+                    {t(category.label)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <CityPicker
+            label={t('City')}
+            options={cityPickerOptions}
+            searchLabel={t('Search city')}
+            value={draftFilters.city}
+            onChange={(city) =>
+              setDraftFilters((current) => ({
+                ...current,
+                city,
+              }))
+            }
+          />
+
+          <label className="flex items-center justify-between gap-3 rounded-[12px] border p-4">
+            <span className="font-medium">{t('Boosted posts only')}</span>
+            <input
+              checked={draftFilters.boostedOnly}
+              className="size-5 accent-[var(--primary)]"
+              type="checkbox"
+              onChange={(event) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  boostedOnly: event.target.checked,
+                }))
+              }
+            />
+          </label>
+        </div>
+
+        <div className="bg-background sticky bottom-0 mt-6 grid grid-cols-2 gap-2 pt-3">
+          <Button type="button" variant="outline" onClick={onClear}>
+            {t('Clear filters')}
+          </Button>
+          <Button type="button" onClick={() => onApply(draftFilters)}>
+            {t('Apply')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getActiveFilterLabels(
+  filters: FeedFiltersValue,
+  t: (text: string) => string,
+) {
+  const labels: string[] = [];
+
+  if (filters.search.trim()) {
+    labels.push(filters.search.trim());
+  }
+
+  if (filters.category !== 'all') {
+    const category = categoryOptions.find(
+      (option) => option.value === filters.category,
+    );
+    labels.push(t(category?.label ?? filters.category));
+  }
+
+  if (filters.city !== 'all') {
+    labels.push(t(filters.city));
+  }
+
+  if (filters.boostedOnly) {
+    labels.push(t('Boosted only'));
+  }
+
+  return labels;
 }
 
 function shouldShowAdAfterPost(index: number, totalPosts: number) {
   const postPosition = index + 1;
 
-  return postPosition % 6 === 0 && index < totalPosts - 1;
+  return postPosition % 8 === 0 && index < totalPosts - 1;
 }
 
 function SponsoredAd({
@@ -367,10 +529,10 @@ function SponsoredAd({
   return (
     <aside
       aria-label={`Sponsored placement ${slotNumber}`}
-      className="sponsored-campaign col-span-1 overflow-hidden rounded-[30px] min-[430px]:col-span-2 sm:col-span-3"
+      className="sponsored-campaign col-span-1 overflow-hidden rounded-[14px] min-[430px]:col-span-2 xl:col-span-4"
     >
       <a
-        className="sponsored-campaign-link group relative isolate flex min-h-80 overflow-hidden p-6 sm:min-h-80 sm:p-8 lg:min-h-72 lg:p-10"
+        className="sponsored-campaign-link group relative isolate flex min-h-36 overflow-hidden p-4 sm:p-5"
         href="https://kartserluxi.com"
         rel="noopener noreferrer sponsored"
         target="_blank"
@@ -386,7 +548,7 @@ function SponsoredAd({
           aria-hidden="true"
         />
 
-        <div className="sponsored-campaign-copy flex w-full max-w-xl flex-col justify-between gap-8">
+        <div className="sponsored-campaign-copy flex w-full max-w-2xl flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <div className="flex items-center gap-3">
               <span className="sponsored-campaign-logo flex size-11 items-center justify-center rounded-xl text-sm font-black">
@@ -400,15 +562,15 @@ function SponsoredAd({
               </div>
             </div>
 
-            <h3 className="mt-7 max-w-lg text-3xl leading-tight font-semibold text-balance sm:text-4xl">
+            <h3 className="mt-3 max-w-lg text-xl leading-7 font-bold text-balance">
               {copy.headline}
             </h3>
-            <p className="sponsored-campaign-description mt-3 max-w-md text-sm leading-6 sm:text-base">
+            <p className="sponsored-campaign-description mt-2 max-w-md text-sm leading-6">
               {copy.description}
             </p>
           </div>
 
-          <span className="sponsored-campaign-action flex w-fit items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-transform group-hover:-translate-y-0.5">
+          <span className="sponsored-campaign-action flex w-fit items-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-bold">
             <GraduationCap className="size-4" aria-hidden="true" />
             {copy.action}
             <ExternalLink className="size-4" aria-hidden="true" />
@@ -416,30 +578,5 @@ function SponsoredAd({
         </div>
       </a>
     </aside>
-  );
-}
-function HomeStat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="border-border bg-card rounded-[28px] border p-6 shadow-[0_18px_44px_var(--theme-card-shadow)]">
-      <div className="flex items-center gap-4">
-        <span className="bg-primary/15 text-primary flex size-12 shrink-0 items-center justify-center rounded-full">
-          {icon}
-        </span>
-        <div>
-          <p className="text-3xl leading-none font-semibold tracking-tight">
-            {value}
-          </p>
-          <p className="text-muted-foreground mt-1 text-sm">{label}</p>
-        </div>
-      </div>
-    </div>
   );
 }
