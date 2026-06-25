@@ -1,8 +1,11 @@
-import type { Session } from '@supabase/supabase-js';
+import { useSession, useUser } from '@clerk/clerk-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { supabase } from '@/shared/lib/supabase';
+import {
+  supabase,
+  setSupabaseAccessTokenProvider,
+} from '@/shared/lib/supabase';
 import { AuthContext, type AuthContextValue } from './auth-context-value';
 
 type AuthProviderProps = {
@@ -10,54 +13,87 @@ type AuthProviderProps = {
 };
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const clerkSession = useSession();
+  const clerkUser = useUser();
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const isClerkLoading = !clerkSession.isLoaded || !clerkUser.isLoaded;
+
+  useEffect(() => {
+    setSupabaseAccessTokenProvider(async () => {
+      return clerkSession.session?.getToken() ?? null;
+    });
+
+    return () => {
+      setSupabaseAccessTokenProvider(null);
+    };
+  }, [clerkSession.session]);
 
   useEffect(() => {
     let isMounted = true;
 
-    supabase.auth
-      .getSession()
-      .then(({ data, error }) => {
-        if (!isMounted) {
-          return;
-        }
+    async function syncProfile() {
+      if (!clerkUser.user) {
+        setProfileId(null);
+        return;
+      }
 
-        if (error) {
-          console.error('Unable to load auth session', error);
-          setSession(null);
-        } else {
-          setSession(data.session);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      const displayName =
+        clerkUser.user.fullName ??
+        clerkUser.user.primaryEmailAddress?.emailAddress?.split('@')[0] ??
+        'Gaachuqe user';
+
+      const { data, error } = await supabase.rpc('ensure_clerk_profile', {
+        avatar_url_input: clerkUser.user.imageUrl ?? null,
+        display_name_input: displayName,
       });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setIsLoading(false);
-    });
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        console.error('Unable to sync Clerk profile', error);
+        setProfileId(null);
+        return;
+      }
+
+      setProfileId(data);
+    }
+
+    if (!isClerkLoading) {
+      void syncProfile();
+    }
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
     };
-  }, []);
+  }, [clerkUser.user, isClerkLoading]);
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
-      user: session?.user ?? null,
-      session,
-      isLoading,
-      isAuthenticated: Boolean(session?.user),
-    }),
-    [isLoading, session],
-  );
+  const value = useMemo<AuthContextValue>(() => {
+    const user = clerkUser.user;
+    const email = user?.primaryEmailAddress?.emailAddress;
+
+    return {
+      user:
+        user && profileId
+          ? {
+              id: profileId,
+              email,
+              phone: user.primaryPhoneNumber?.phoneNumber ?? null,
+              user_metadata: {
+                avatar_url: user.imageUrl,
+                display_name:
+                  user.fullName ?? email?.split('@')[0] ?? 'Gaachuqe user',
+                first_name: user.firstName ?? undefined,
+                last_name: user.lastName ?? undefined,
+              },
+            }
+          : null,
+      session: clerkSession.session ?? null,
+      isLoading: isClerkLoading || Boolean(user && !profileId),
+      isAuthenticated: Boolean(user && profileId),
+    };
+  }, [clerkSession.session, clerkUser.user, isClerkLoading, profileId]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -426,6 +426,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null;
+          clerk_user_id: string | null;
           created_at: string;
           display_name: string;
           id: string;
@@ -436,6 +437,7 @@ export type Database = {
         };
         Insert: {
           avatar_url?: string | null;
+          clerk_user_id?: string | null;
           created_at?: string;
           display_name: string;
           id: string;
@@ -446,6 +448,7 @@ export type Database = {
         };
         Update: {
           avatar_url?: string | null;
+          clerk_user_id?: string | null;
           created_at?: string;
           display_name?: string;
           id?: string;
@@ -591,6 +594,21 @@ export type Database = {
       create_profile_for_new_user: {
         Args: Record<PropertyKey, never>;
         Returns: unknown;
+      };
+      current_profile_id: {
+        Args: Record<PropertyKey, never>;
+        Returns: string | null;
+      };
+      current_profile_has_phone: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      ensure_clerk_profile: {
+        Args: {
+          avatar_url_input?: string | null;
+          display_name_input: string;
+        };
+        Returns: string;
       };
       get_feed_posts: {
         Args: {

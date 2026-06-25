@@ -846,14 +846,31 @@ Object.assign(ruTranslations, {
   'Item reservations': 'Брони моих вещей',
   'See who reserved your items.': 'Посмотрите, кто забронировал ваши вещи.',
   'Loading reservations': 'Загрузка броней',
-  'Checking who reserved your items.':
-    'Проверяем, кто забронировал ваши вещи.',
+  'Checking who reserved your items.': 'Проверяем, кто забронировал ваши вещи.',
   'Could not load reservations': 'Не удалось загрузить брони',
   'No item reservations yet': 'Броней ваших вещей пока нет',
   'When someone reserves your item, it will appear here.':
     'Когда кто-то забронирует вашу вещь, она появится здесь.',
   Item: 'Вещь',
   reservations: 'брони',
+});
+
+Object.assign(translations, {
+  'Phone number required': 'ტელეფონის ნომერი საჭიროა',
+  'Add phone number': 'ტელეფონის დამატება',
+  'Add a Georgian mobile number in profile settings before creating posts or reserving items.':
+    'განცხადების დამატებამდე ან ნივთის დაჯავშნამდე პროფილის პარამეტრებში დაამატეთ ქართული მობილური ნომერი.',
+  'You need to add your mobile phone number before this action.':
+    'ამ მოქმედებამდე უნდა დაამატოთ მობილური ტელეფონის ნომერი.',
+});
+
+Object.assign(ruTranslations, {
+  'Phone number required': 'Требуется номер телефона',
+  'Add phone number': 'Добавить телефон',
+  'Add a Georgian mobile number in profile settings before creating posts or reserving items.':
+    'Перед созданием объявлений или бронированием вещей добавьте грузинский мобильный номер в настройках профиля.',
+  'You need to add your mobile phone number before this action.':
+    'Перед этим действием нужно добавить номер мобильного телефона.',
 });
 
 type I18nContextValue = {

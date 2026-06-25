@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
 
-import { AuthProvider } from '@/features/auth/context/auth-context';
 import { TooltipProvider } from '@/shared/components/ui/tooltip';
 import { ThemeProvider } from '@/shared/theme/theme-context';
 
@@ -28,21 +27,19 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider delayDuration={400}>
-            {children}
-            <Toaster
-              closeButton
-              richColors
-              position="top-center"
-              toastOptions={{
-                classNames: {
-                  toast: 'glass-surface',
-                },
-              }}
-            />
-          </TooltipProvider>
-        </AuthProvider>
+        <TooltipProvider delayDuration={400}>
+          {children}
+          <Toaster
+            closeButton
+            richColors
+            position="top-center"
+            toastOptions={{
+              classNames: {
+                toast: 'glass-surface',
+              },
+            }}
+          />
+        </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

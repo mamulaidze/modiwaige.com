@@ -30,6 +30,9 @@
     "vite": "^8.0.12"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.61.8",
+    "@clerk/localizations": "^4.10.0",
+    "@clerk/themes": "^2.4.57",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-alert-dialog": "^1.1.17",
     "@radix-ui/react-avatar": "^1.2.0",

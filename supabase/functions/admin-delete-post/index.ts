@@ -25,10 +25,9 @@ Deno.serve(async (request) => {
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return Response.json(
       { error: 'Supabase environment is not configured.' },
       { headers: corsHeaders, status: 500 },
@@ -62,39 +61,30 @@ Deno.serve(async (request) => {
     );
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
     global: { headers: { Authorization: authorization } },
   });
 
-  const {
-    data: { user },
-    error: authError,
-  } = await userClient.auth.getUser();
+  const { data: isAdmin, error: authError } = await userClient.rpc('is_admin');
 
-  if (authError || !user) {
+  if (authError) {
     return Response.json(
-      { error: authError?.message ?? 'Invalid session.' },
+      { error: authError.message },
       { headers: corsHeaders, status: 401 },
+    );
+  }
+
+  if (!isAdmin) {
+    return Response.json(
+      { error: 'Admin access is required.' },
+      { headers: corsHeaders, status: 403 },
     );
   }
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
   });
-
-  const { data: profile, error: profileError } = await adminClient
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || profile?.role !== 'admin') {
-    return Response.json(
-      { error: 'Admin access is required.' },
-      { headers: corsHeaders, status: 403 },
-    );
-  }
 
   const { data: images, error: imagesError } = await adminClient
     .from('post_images')

@@ -1,7 +1,8 @@
+import { useClerk } from '@clerk/clerk-react';
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { logout } from '@/features/auth/api/auth-api';
+import { ClerkAuthProvider } from '@/features/auth/components/clerk-auth-provider';
 import { FloatingChatButton } from '@/features/chat/components/floating-chat-button';
 import { ReservedGivenReminder } from '@/features/posts/components/reserved-given-reminder';
 import { AnalyticsTracker } from '@/shared/components/analytics-tracker';
@@ -16,7 +17,9 @@ import { MobileHeader } from '@/shared/navigation/mobile-header';
 export function AppLayout() {
   return (
     <I18nProvider>
-      <LocalizedAppLayout />
+      <ClerkAuthProvider>
+        <LocalizedAppLayout />
+      </ClerkAuthProvider>
     </I18nProvider>
   );
 }
@@ -26,6 +29,7 @@ function LocalizedAppLayout() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
+  const clerk = useClerk();
   const location = useLocation();
   const { localizedPath, t } = useI18n();
   const hidesMobileBottomNav = /\/posts\/[^/]+/.test(location.pathname);
@@ -36,7 +40,7 @@ function LocalizedAppLayout() {
     setIsLoggingOut(true);
 
     try {
-      await logout();
+      await clerk.signOut();
       navigate(localizedPath('/'), { replace: true });
     } catch (error) {
       logErrorDetails('Logout failed', error);
@@ -47,7 +51,9 @@ function LocalizedAppLayout() {
   }
 
   return (
-    <div className={`text-foreground flex min-h-svh flex-col ${hidesMobileBottomNav ? '' : 'pb-[calc(env(safe-area-inset-bottom)+5rem)] md:pb-0'}`}>
+    <div
+      className={`text-foreground flex min-h-svh flex-col ${hidesMobileBottomNav ? '' : 'pb-[calc(env(safe-area-inset-bottom)+5rem)] md:pb-0'}`}
+    >
       <AnalyticsTracker />
       <a className="skip-link" href="#main-content">
         {t('Skip to content')}

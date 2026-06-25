@@ -341,7 +341,7 @@ export async function deleteAdminPost(postId: string) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(await getFunctionErrorMessage(error));
   }
 }
 
@@ -363,4 +363,34 @@ function normalizeAdminSearch(value: string | undefined) {
   const normalized = value?.trim().replaceAll('%', '').replaceAll(',', '');
 
   return normalized || null;
+}
+
+async function getFunctionErrorMessage(error: unknown) {
+  const fallback =
+    error instanceof Error ? error.message : 'Edge function request failed.';
+  const response = (error as { context?: unknown }).context;
+
+  if (!(response instanceof Response)) {
+    return fallback;
+  }
+
+  try {
+    const payload = (await response.clone().json()) as { error?: unknown };
+
+    if (typeof payload.error === 'string' && payload.error.trim()) {
+      return payload.error;
+    }
+  } catch {
+    try {
+      const text = await response.clone().text();
+
+      if (text.trim()) {
+        return text;
+      }
+    } catch {
+      return fallback;
+    }
+  }
+
+  return fallback;
 }

@@ -50,11 +50,6 @@ const HomePage = lazy(() =>
     default: module.HomePage,
   })),
 );
-const ForgotPasswordPage = lazy(() =>
-  import('@/features/auth/pages/forgot-password-page').then((module) => ({
-    default: module.ForgotPasswordPage,
-  })),
-);
 const LoginPage = lazy(() =>
   import('@/features/auth/pages/login-page').then((module) => ({
     default: module.LoginPage,
@@ -90,12 +85,6 @@ const RegisterPage = lazy(() =>
     default: module.RegisterPage,
   })),
 );
-const ResetPasswordPage = lazy(() =>
-  import('@/features/auth/pages/reset-password-page').then((module) => ({
-    default: module.ResetPasswordPage,
-  })),
-);
-
 function withSuspense(element: ReactNode) {
   return <Suspense fallback={<RouteLoading />}>{element}</Suspense>;
 }
@@ -115,11 +104,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/forgot-password',
-    element: <Navigate replace to="/ge/forgot-password" />,
+    element: <Navigate replace to="/ge/login" />,
   },
   {
     path: '/reset-password',
-    element: <Navigate replace to="/ge/reset-password" />,
+    element: <Navigate replace to="/ge/login" />,
   },
   {
     path: '/register',
@@ -192,11 +181,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'forgot-password',
-        element: withSuspense(<ForgotPasswordPage />),
+        element: <Navigate replace to="../login" />,
       },
       {
         path: 'reset-password',
-        element: withSuspense(<ResetPasswordPage />),
+        element: <Navigate replace to="../login" />,
       },
       {
         path: 'register',

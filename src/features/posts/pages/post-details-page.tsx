@@ -29,6 +29,7 @@ import {
 import { z } from 'zod';
 import { toast } from 'sonner';
 
+import { fetchProfileSummary } from '@/features/account/api/profile-api';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { StatusBadge } from '@/features/feed/components/status-badge';
 import { CityPicker } from '@/shared/components/city-picker';
@@ -127,6 +128,12 @@ export function PostDetailsPage() {
     queryKey: ['post', postId],
     queryFn: () => fetchPostDetails(postId ?? ''),
     enabled: Boolean(postId),
+  });
+
+  const profileQuery = useQuery({
+    queryKey: ['profile-summary', user?.id],
+    queryFn: () => fetchProfileSummary(user?.id ?? ''),
+    enabled: Boolean(user?.id),
   });
 
   const editForm = useForm<EditPostInput, unknown, EditPostValues>({
@@ -365,6 +372,20 @@ export function PostDetailsPage() {
     !isOwner && post.activeReservation?.requesterId === user?.id
       ? post.activeReservation
       : null;
+  const hasProfilePhone = Boolean(profileQuery.data?.phoneNumber?.trim());
+
+  function handleReserveRequest() {
+    if (!hasProfilePhone) {
+      const message =
+        'You need to add your mobile phone number before this action.';
+      setActionError(message);
+      toast.error(t(message));
+      navigate(localizedPath('/profile?tab=settings'));
+      return;
+    }
+
+    setConfirmation('reserve');
+  }
 
   return (
     <PageContainer className="gap-6 pb-28 md:pb-0">
@@ -415,7 +436,7 @@ export function PostDetailsPage() {
                 <button
                   aria-label={`Show image ${index + 1}`}
                   className={cn(
-                    'focus-visible:ring-ring overflow-hidden rounded-[10px] border bg-card transition-colors focus-visible:ring-2',
+                    'focus-visible:ring-ring bg-card overflow-hidden rounded-[10px] border transition-colors focus-visible:ring-2',
                     activeImageIndex === index
                       ? 'border-primary'
                       : 'border-border hover:border-primary/30',
@@ -754,7 +775,9 @@ export function PostDetailsPage() {
                 <div className="hidden space-y-2 md:block">
                   <VisitorAction
                     disabled={
-                      post.status !== 'available' || reserveMutation.isPending
+                      post.status !== 'available' ||
+                      reserveMutation.isPending ||
+                      profileQuery.isLoading
                     }
                     isAuthenticated={isAuthenticated}
                     isPending={reserveMutation.isPending}
@@ -763,7 +786,7 @@ export function PostDetailsPage() {
                     }
                     isCancelling={cancelReservationMutation.isPending}
                     onCancel={() => setConfirmation('cancel-reservation')}
-                    onReserve={() => setConfirmation('reserve')}
+                    onReserve={handleReserveRequest}
                   />
                   {isAuthenticated ? (
                     <Button
@@ -790,13 +813,19 @@ export function PostDetailsPage() {
         <div className="bg-background/95 fixed inset-x-0 bottom-0 z-30 border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-2xl backdrop-blur md:hidden">
           <div className="mx-auto max-w-md space-y-2">
             <VisitorAction
-              disabled={post.status !== 'available' || reserveMutation.isPending}
+              disabled={
+                post.status !== 'available' ||
+                reserveMutation.isPending ||
+                profileQuery.isLoading
+              }
               isAuthenticated={isAuthenticated}
               isPending={reserveMutation.isPending}
-              isReservedByViewer={post.activeReservation?.requesterId === user?.id}
+              isReservedByViewer={
+                post.activeReservation?.requesterId === user?.id
+              }
               isCancelling={cancelReservationMutation.isPending}
               onCancel={() => setConfirmation('cancel-reservation')}
-              onReserve={() => setConfirmation('reserve')}
+              onReserve={handleReserveRequest}
             />
             <div className="flex items-center justify-between gap-3">
               <p className="text-muted-foreground text-xs leading-5">
@@ -1077,7 +1106,7 @@ function ReservationLifecycle({
 
 function TrustMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[10px] border bg-card/70 p-3">
+    <div className="bg-card/70 rounded-[10px] border p-3">
       <p className="text-muted-foreground text-xs">{label}</p>
       <p className="mt-1 text-sm font-semibold">{value}</p>
     </div>
