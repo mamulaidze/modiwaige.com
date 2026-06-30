@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
+  CheckCircle2,
   FileWarning,
   ImageIcon,
   MapPin,
@@ -93,6 +94,75 @@ const postCityPickerOptions = postCityOptions.map((city) => ({
   value: city,
 }));
 
+function formatReservationActionMessage(
+  message: string,
+  language: string,
+  t: (text: string) => string,
+) {
+  const penaltyUntil = getReservationPenaltyUntil(message);
+
+  if (!penaltyUntil) {
+    return t(message);
+  }
+
+  const remaining = formatReservationPenaltyRemaining(penaltyUntil, language);
+
+  if (language === 'ge') {
+    return `ჯავშნის ან ნივთის დამატების ბლოკი დარჩა: ${remaining}.`;
+  }
+
+  if (language === 'ru') {
+    return `Блокировка бронирования или публикации осталось: ${remaining}.`;
+  }
+
+  return `You can reserve or post again in ${remaining}.`;
+}
+
+function getReservationPenaltyUntil(message: string) {
+  if (!message.startsWith('RESERVATION_PENALTY_UNTIL:')) {
+    return null;
+  }
+
+  const value = message.replace('RESERVATION_PENALTY_UNTIL:', '').trim();
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatReservationPenaltyRemaining(date: Date, language: string) {
+  const remainingMs = Math.max(0, date.getTime() - Date.now());
+  const totalMinutes = Math.ceil(remainingMs / 60000);
+
+  if (totalMinutes <= 1) {
+    if (language === 'ge') {
+      return '1 წუთზე ნაკლები';
+    }
+
+    if (language === 'ru') {
+      return 'меньше 1 минуты';
+    }
+
+    return 'less than 1 minute';
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (language === 'ge') {
+    return hours > 0 ? `${hours} სთ ${minutes} წთ` : `${minutes} წთ`;
+  }
+
+  if (language === 'ru') {
+    return hours > 0 ? `${hours} ч ${minutes} мин` : `${minutes} мин`;
+  }
+
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
 export function PostDetailsPage() {
   const { postId } = useParams();
   const { isAuthenticated, user } = useAuth();
@@ -112,6 +182,9 @@ export function PostDetailsPage() {
     null,
   );
   const [actionError, setActionError] = useState<string | null>(null);
+  const [reservationSuccess, setReservationSuccess] = useState<
+    'free' | 'instant' | null
+  >(null);
   const [confirmation, setConfirmation] = useState<
     'mark-given' | 'delete' | 'cancel-reservation' | 'reserve' | null
   >(null);
@@ -122,7 +195,20 @@ export function PostDetailsPage() {
 
   useEffect(() => {
     window.scrollTo({ behavior: 'smooth', top: 0 });
+    setReservationSuccess(null);
   }, [postId]);
+
+  useEffect(() => {
+    if (!reservationSuccess) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setReservationSuccess(null);
+    }, 5200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [reservationSuccess]);
 
   const {
     data: post,
@@ -163,6 +249,7 @@ export function PostDetailsPage() {
       await reservePost(post.id);
     },
     onSuccess: async () => {
+      showReservationSuccess('free');
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       setActionError(null);
@@ -170,9 +257,12 @@ export function PostDetailsPage() {
     },
     onError: (mutationError) => {
       logErrorDetails('Reserve post failed', mutationError);
-      setActionError(
-        getFriendlyErrorMessage(mutationError, 'Could not reserve item.'),
+      const message = getFriendlyErrorMessage(
+        mutationError,
+        'Could not reserve item.',
       );
+      setActionError(message);
+      toast.error(formatReservationActionMessage(message, language, t));
     },
   });
 
@@ -185,6 +275,7 @@ export function PostDetailsPage() {
       await reservePostInstantDemo(post.id);
     },
     onSuccess: async () => {
+      showReservationSuccess('instant');
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       await queryClient.invalidateQueries({ queryKey: ['reserved-items'] });
@@ -194,9 +285,12 @@ export function PostDetailsPage() {
     },
     onError: (mutationError) => {
       logErrorDetails('Instant demo reserve post failed', mutationError);
-      setActionError(
-        getFriendlyErrorMessage(mutationError, 'Could not reserve item.'),
+      const message = getFriendlyErrorMessage(
+        mutationError,
+        'Could not reserve item.',
       );
+      setActionError(message);
+      toast.error(formatReservationActionMessage(message, language, t));
     },
   });
 
@@ -421,13 +515,31 @@ export function PostDetailsPage() {
       const message =
         'You need to add your mobile phone number before this action.';
       setActionError(message);
-      toast.error(t(message));
+      toast.error(formatReservationActionMessage(message, language, t));
       navigate(localizedPath('/profile?tab=settings'));
       return;
     }
 
+    setActionError(null);
+    setReservationSuccess(null);
     setConfirmation('reserve');
   }
+
+  function showReservationSuccess(kind: 'free' | 'instant') {
+    const message =
+      kind === 'instant'
+        ? 'Reservation successful.'
+        : 'Reservation request sent.';
+
+    setReservationSuccess(kind);
+    setActionError(null);
+    setConfirmation(null);
+    toast.success(t(message));
+  }
+
+  const actionErrorMessage = actionError
+    ? formatReservationActionMessage(actionError, language, t)
+    : null;
 
   return (
     <PageContainer className="gap-6 pb-28 md:pb-0">
@@ -747,13 +859,17 @@ export function PostDetailsPage() {
                 </section>
               ) : null}
 
-              {actionError ? (
+              {actionErrorMessage ? (
                 <p
                   className="text-destructive rounded-md border border-current p-3 text-sm"
                   role="alert"
                 >
-                  {t(actionError)}
+                  {actionErrorMessage}
                 </p>
+              ) : null}
+
+              {reservationSuccess ? (
+                <ReservationSuccessNotice kind={reservationSuccess} />
               ) : null}
 
               {isOwner ? (
@@ -820,7 +936,12 @@ export function PostDetailsPage() {
                   </DropdownMenu>
                 </div>
               ) : (
-                <div className="hidden space-y-2 md:block">
+                <div
+                  className={cn(
+                    'hidden space-y-2 md:block',
+                    reservationSuccess && 'reservation-success-pulse',
+                  )}
+                >
                   <VisitorAction
                     disabled={
                       post.status !== 'available' ||
@@ -859,7 +980,15 @@ export function PostDetailsPage() {
 
       {!isOwner && !isEditing ? (
         <div className="bg-background/95 fixed inset-x-0 bottom-0 z-30 border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-2xl backdrop-blur md:hidden">
-          <div className="mx-auto max-w-md space-y-2">
+          <div
+            className={cn(
+              'mx-auto max-w-md space-y-2',
+              reservationSuccess && 'reservation-success-pulse',
+            )}
+          >
+            {reservationSuccess ? (
+              <ReservationSuccessNotice compact kind={reservationSuccess} />
+            ) : null}
             <VisitorAction
               disabled={
                 post.status !== 'available' ||
@@ -958,7 +1087,7 @@ export function PostDetailsPage() {
       {confirmation === 'cancel-reservation' ? (
         <ConfirmDialog
           danger
-          confirmLabel={t('Unreserve')}
+          confirmLabel={t('Cancel reservation and accept penalty')}
           description={t(
             'Cancel your reservation? You will not be able to reserve or post items for 5 hours.',
           )}
@@ -967,17 +1096,35 @@ export function PostDetailsPage() {
           title={t('Cancel reservation?')}
           onCancel={() => setConfirmation(null)}
           onConfirm={() => cancelReservationMutation.mutate()}
-        />
+        >
+          <div className="danger-soft text-destructive rounded-[12px] border border-current/30 p-3 text-sm leading-6">
+            <p className="font-semibold">
+              {t('Penalty warning')}
+            </p>
+            <p className="mt-1">
+              {t(
+                'If you cancel now, your account will be blocked from reserving and creating posts for 5 hours.',
+              )}
+            </p>
+          </div>
+        </ConfirmDialog>
       ) : null}
 
       {confirmation === 'reserve' ? (
         <ReservationChoiceDialog
           canUseDemoPayments={canUseDemoPayments}
+          errorMessage={actionError}
           isInstantLoading={instantReserveMutation.isPending}
           isFreeLoading={reserveMutation.isPending}
           onCancel={() => setConfirmation(null)}
-          onFreeReserve={() => reserveMutation.mutate()}
-          onInstantReserve={() => instantReserveMutation.mutate()}
+          onFreeReserve={() => {
+            setActionError(null);
+            reserveMutation.mutate();
+          }}
+          onInstantReserve={() => {
+            setActionError(null);
+            instantReserveMutation.mutate();
+          }}
         />
       ) : null}
 
@@ -1081,6 +1228,7 @@ function OwnerReservationRequests({
 
 function ReservationChoiceDialog({
   canUseDemoPayments,
+  errorMessage,
   isFreeLoading,
   isInstantLoading,
   onCancel,
@@ -1088,6 +1236,7 @@ function ReservationChoiceDialog({
   onInstantReserve,
 }: {
   canUseDemoPayments: boolean;
+  errorMessage: string | null;
   isFreeLoading: boolean;
   isInstantLoading: boolean;
   onCancel: () => void;
@@ -1179,6 +1328,15 @@ function ReservationChoiceDialog({
             ) : null}
           </div>
         </div>
+
+        {errorMessage ? (
+          <p
+            className="border-destructive/40 text-destructive mt-4 rounded-[12px] border p-3 text-sm leading-5"
+            role="alert"
+          >
+            {t(errorMessage)}
+          </p>
+        ) : null}
 
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
@@ -1429,6 +1587,54 @@ function DetailRow({
       <dd className="min-w-0 font-medium [overflow-wrap:anywhere] break-words sm:text-right">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function ReservationSuccessNotice({
+  compact = false,
+  kind,
+}: {
+  compact?: boolean;
+  kind: 'free' | 'instant';
+}) {
+  const { t } = useI18n();
+  const title =
+    kind === 'instant'
+      ? 'Reservation successful.'
+      : 'Reservation request sent.';
+  const description =
+    kind === 'instant'
+      ? 'The item is reserved for you now. The owner can still cancel it.'
+      : 'The owner will review your request soon.';
+
+  return (
+    <div
+      className={cn(
+        'reservation-success-alert border-primary/25 bg-primary/10 relative overflow-hidden rounded-[14px] border text-sm',
+        compact ? 'p-3' : 'p-4',
+      )}
+      role="status"
+    >
+      <div className="relative flex min-w-0 items-start gap-3">
+        <div className="reservation-success-icon bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-full">
+          <CheckCircle2 className="size-5" aria-hidden="true" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="font-semibold [overflow-wrap:anywhere]">
+              {t(title)}
+            </p>
+            <Sparkles
+              className="reservation-success-spark text-primary size-4 shrink-0"
+              aria-hidden="true"
+            />
+          </div>
+          <p className="text-muted-foreground mt-1 leading-5 [overflow-wrap:anywhere]">
+            {t(description)}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

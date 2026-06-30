@@ -40,6 +40,18 @@ type PostDetailsRow = {
   }> | null;
 };
 
+export class ReservationPenaltyError extends Error {
+  readonly penaltyUntil: string;
+
+  constructor(penaltyUntil: string) {
+    super(
+      'You cannot reserve or post items yet because you recently cancelled a reservation.',
+    );
+    this.name = 'ReservationPenaltyError';
+    this.penaltyUntil = penaltyUntil;
+  }
+}
+
 export async function fetchPostDetails(postId: string): Promise<PostDetails> {
   const { data, error } = await supabase
     .from('posts')
@@ -163,17 +175,21 @@ export async function reservePost(postId: string) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw getReservationRpcError(error);
   }
 }
 
 export async function reservePostInstantDemo(postId: string) {
-  const { error } = await supabase.rpc('reserve_post_instant_demo', {
-    target_post_id: postId,
+  const { error } = await supabase.functions.invoke('reserve-post-paid-demo', {
+    body: { postId },
+    method: 'POST',
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw getReservationRpcError(
+      { message: await getFunctionErrorMessage(error) },
+      'instant',
+    );
   }
 }
 
@@ -279,4 +295,128 @@ async function createSignedImageUrl(storagePath: string) {
   }
 
   return data.signedUrl;
+}
+
+function getReservationRpcError(
+  error: { message?: string; code?: string; details?: string | null },
+  mode: 'free' | 'instant' = 'free',
+) {
+  const message = getReservationErrorText(error);
+  const penaltyUntil = getReservationPenaltyUntil(message);
+
+  if (penaltyUntil) {
+    return new ReservationPenaltyError(penaltyUntil);
+  }
+
+  return new Error(getReservationRpcErrorMessage(error, mode));
+}
+
+function getReservationRpcErrorMessage(
+  error: { message?: string; code?: string; details?: string | null },
+  mode: 'free' | 'instant' = 'free',
+) {
+  const message = getReservationErrorText(error);
+
+  if (
+    mode === 'instant' &&
+    /schema cache|could not find.*function|function.*does not exist|pgrst202/i.test(
+      message,
+    )
+  ) {
+    return 'Instant reservation RPC is not available to this Supabase API role yet. Grant execute to public, reload the schema cache, and try again.';
+  }
+
+  if (mode === 'instant' && /permission denied/i.test(message)) {
+    return 'Instant reservation RPC permission is still blocked. Grant execute to public, reload the schema cache, and try again.';
+  }
+
+  if (/authentication is required|not authenticated/i.test(message)) {
+    return 'Log in to reserve this item.';
+  }
+
+  if (/admins only|admin/i.test(message)) {
+    return 'Instant reservation is available to admins only during demo testing.';
+  }
+
+  if (/phone number|mobile phone/i.test(message)) {
+    return 'Add phone number';
+  }
+
+  if (/owner.*own|owners cannot reserve/i.test(message)) {
+    return 'Owners cannot reserve their own posts.';
+  }
+
+  if (/already reserved|not available/i.test(message)) {
+    return 'This item is not available.';
+  }
+
+  if (/reserve or post items again after|5 hours|penalty/i.test(message)) {
+    return 'You cannot reserve or post items yet because you recently cancelled a reservation.';
+  }
+
+  if (message.trim()) {
+    return message;
+  }
+
+  return 'Could not reserve item.';
+}
+
+function getReservationErrorText(error: {
+  message?: string;
+  code?: string;
+  details?: string | null;
+}) {
+  return [error.message, error.details, error.code].filter(Boolean).join(' ');
+}
+
+function getReservationPenaltyUntil(message: string) {
+  const match = message.match(
+    /after\s+([0-9]{4}-[0-9]{2}-[0-9]{2}[T\s][0-9:.+-]+Z?)/i,
+  );
+
+  if (!match?.[1]) {
+    return null;
+  }
+
+  const rawValue = match[1].trim().replace(/\.$/, '');
+  const normalizedValue = rawValue
+    .replace(' ', 'T')
+    .replace(/([+-]\d{2})$/, '$1:00');
+  const date = new Date(normalizedValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+}
+
+async function getFunctionErrorMessage(error: unknown) {
+  const fallback =
+    error instanceof Error ? error.message : 'Edge function request failed.';
+  const response = (error as { context?: unknown }).context;
+
+  if (!(response instanceof Response)) {
+    return fallback;
+  }
+
+  try {
+    const payload = (await response.clone().json()) as { error?: unknown };
+
+    if (typeof payload.error === 'string' && payload.error.trim()) {
+      return payload.error;
+    }
+  } catch {
+    try {
+      const text = await response.clone().text();
+
+      if (text.trim()) {
+        return text;
+      }
+    } catch {
+      return fallback;
+    }
+  }
+
+  return fallback;
 }

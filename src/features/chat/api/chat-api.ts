@@ -36,10 +36,18 @@ export async function fetchChatContext(
       'id, reservation_id, post_id, owner_id, requester_id, status, closed_at',
     )
     .eq('reservation_id', reservationId)
-    .single();
+    .limit(1)
+    .then(({ data, error }) => ({
+      data: data?.[0] ?? null,
+      error,
+    }));
 
   if (conversationError) {
     throw new Error(conversationError.message);
+  }
+
+  if (!conversation) {
+    throw new Error('Chat is not ready yet. Please try again in a moment.');
   }
 
   const [reservationResult, postResult, profilesResult, messagesResult] =

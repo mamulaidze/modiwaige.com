@@ -4,6 +4,12 @@ const knownFriendlyMessages = new Set([
   'Log in to reserve this item.',
   'Reservation was not found.',
   'Post was not found.',
+  'Instant reservation RPC is not available to this Supabase API role yet. Grant execute to public, reload the schema cache, and try again.',
+  'Instant reservation RPC permission is still blocked. Grant execute to public, reload the schema cache, and try again.',
+  'Instant reservation is available to admins only during demo testing.',
+  'Owners cannot reserve their own posts.',
+  'This item is not available.',
+  'You cannot reserve or post items yet because you recently cancelled a reservation.',
   'Log in to report this item.',
   'Image compression failed.',
 ]);
@@ -121,10 +127,20 @@ export function getFriendlyErrorMessage(
     return 'Check your internet connection and try again.';
   }
 
+  const penaltyUntil = getReservationPenaltyUntil(error);
+
+  if (penaltyUntil) {
+    return `RESERVATION_PENALTY_UNTIL:${penaltyUntil}`;
+  }
+
   const message = getErrorText(error);
 
   if (!message) {
     return fallback;
+  }
+
+  if (message.startsWith('RESERVATION_PENALTY_UNTIL:')) {
+    return message;
   }
 
   if (knownFriendlyMessages.has(message)) {
@@ -167,6 +183,19 @@ function hasMessage(value: unknown): value is { message: string } {
     'message' in value &&
     typeof value.message === 'string'
   );
+}
+
+function getReservationPenaltyUntil(error: unknown) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'penaltyUntil' in error &&
+    typeof error.penaltyUntil === 'string'
+  ) {
+    return error.penaltyUntil;
+  }
+
+  return null;
 }
 
 function isOffline() {

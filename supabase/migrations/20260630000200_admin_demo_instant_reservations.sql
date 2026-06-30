@@ -607,7 +607,11 @@ end;
 $$;
 
 revoke all on function public.reserve_post_instant_demo(uuid) from public;
+grant execute on function public.reserve_post_instant_demo(uuid) to public;
 grant execute on function public.reserve_post_instant_demo(uuid) to authenticated;
+grant execute on function public.reserve_post_instant_demo(uuid) to anon;
 revoke all on function public.activate_demo_post_boost(uuid, text) from public;
 grant execute on function public.activate_demo_post_boost(uuid, text) to authenticated;
 grant execute on function public.reservation_penalty_until(uuid) to authenticated;
+
+notify pgrst, 'reload schema';

@@ -186,6 +186,12 @@ const translations: Record<string, string> = {
   'Gaachuqe member': 'Gaachuqe-ის წევრი',
   'Owner information is limited': 'მფლობელის ინფორმაცია შეზღუდულია',
   'Reservation active': 'ჯავშანი აქტიურია',
+  'Reservation request sent.': 'ჯავშნის მოთხოვნა გაიგზავნა.',
+  'Reservation successful.': 'ჯავშანი წარმატებულია.',
+  'The owner will review your request soon.':
+    'მფლობელი მალე განიხილავს თქვენს მოთხოვნას.',
+  'The item is reserved for you now. The owner can still cancel it.':
+    'ნივთი ახლა თქვენთვის არის დაჯავშნილი. მფლობელს გაუქმება მაინც შეუძლია.',
   'Contact the owner to arrange pickup.':
     'დაუკავშირდით მფლობელს ნივთის ასაღებად.',
   Call: 'დარეკვა',
@@ -229,6 +235,8 @@ const translations: Record<string, string> = {
   'Delete this post permanently? This cannot be undone.':
     'წავშალოთ ეს განცხადება სამუდამოდ? ეს ქმედება შეუქცევადია.',
   'Cancel your reservation for this item?': 'გავაუქმოთ ამ ნივთის ჯავშანი?',
+  'The owner will be notified and the item may become available again.':
+    'მფლობელი მიიღებს შეტყობინებას და ნივთი შეიძლება ისევ ხელმისაწვდომი გახდეს.',
   'Reserve this item? The owner will be notified.':
     'დაჯავშნოთ ეს ნივთი? მფლობელი მიიღებს შეტყობინებას.',
 
@@ -618,6 +626,14 @@ const ruTranslations: Record<string, string> = {
   'Total posts': 'Всего объявлений',
   'Reserved posts': 'Забронированные объявления',
   'My reservations': 'Мои брони',
+  'Reservation request sent.': 'Запрос на бронь отправлен.',
+  'Reservation successful.': 'Бронь успешно создана.',
+  'The owner will review your request soon.':
+    'Владелец скоро рассмотрит ваш запрос.',
+  'The item is reserved for you now. The owner can still cancel it.':
+    'Вещь уже забронирована за вами. Владелец все еще может отменить бронь.',
+  'The owner will be notified and the item may become available again.':
+    'Владелец получит уведомление, и вещь может снова стать доступной.',
   'My Posts': 'Мои объявления',
   'Reserved Items': 'Забронированные вещи',
   Settings: 'Настройки',
@@ -691,6 +707,8 @@ Object.assign(translations, {
   'Your temporary conversation is loading.': 'დროებითი საუბარი იტვირთება.',
   'Chat unavailable': 'ჩატი მიუწვდომელია',
   'This chat could not be opened.': 'ჩატის გახსნა ვერ მოხერხდა.',
+  'Chat is not ready yet. Please try again in a moment.':
+    'ჩატი ჯერ მზად არ არის. სცადეთ რამდენიმე წამში.',
   'This chat is temporary. Messages are deleted when the reservation ends, is cancelled, or the item is given.':
     'ეს ჩატი დროებითია. შეტყობინებები წაიშლება, როცა ჯავშანი დასრულდება, გაუქმდება ან ნივთი გაიცემა.',
   'No messages yet': 'შეტყობინებები ჯერ არ არის',
@@ -770,10 +788,26 @@ Object.assign(translations, {
   'Admin demo only': 'მხოლოდ ადმინის დემო',
   'Reserve for 2.99 GEL': '2.99 GEL-ად დაჯავშნა',
   'Choose reservation': 'ჯავშნის არჩევა',
+  'Cancel reservation and accept penalty':
+    'ჯავშნის გაუქმება და ჯარიმის მიღება',
+  'Penalty warning': 'ჯარიმის გაფრთხილება',
+  'If you cancel now, your account will be blocked from reserving and creating posts for 5 hours.':
+    'თუ ახლა გააუქმებთ, თქვენი ანგარიში 5 საათით ვეღარ დაჯავშნის და ვეღარ დაამატებს ნივთებს.',
   'Cancel your reservation? You will not be able to reserve or post items for 5 hours.':
     'ჯავშნის გაუქმების შემდეგ 5 საათით ვერ დაჯავშნით და ვერ დაამატებთ ნივთებს.',
   'Cancel this accepted reservation? The requester will be notified and the item will become available again.':
     'გააუქმებთ მიღებულ ჯავშანს? მომხმარებელი შეტყობინებას მიიღებს და ნივთი ისევ ხელმისაწვდომი გახდება.',
+  'Instant reservation RPC is not available to this Supabase API role yet. Grant execute to public, reload the schema cache, and try again.':
+    'მყისიერი ჯავშნის RPC ამ Supabase API როლისთვის ჯერ არ ჩანს. მიეცით execute უფლება public როლს, განაახლეთ schema cache და სცადეთ თავიდან.',
+  'Instant reservation RPC permission is still blocked. Grant execute to public, reload the schema cache, and try again.':
+    'მყისიერი ჯავშნის RPC-ის უფლება ჯერ კიდევ დაბლოკილია. მიეცით execute უფლება public როლს, განაახლეთ schema cache და სცადეთ თავიდან.',
+  'Instant reservation is available to admins only during demo testing.':
+    'მყისიერი ჯავშანი სატესტო რეჟიმში მხოლოდ ადმინებისთვისაა.',
+  'Owners cannot reserve their own posts.':
+    'მფლობელი საკუთარ განცხადებას ვერ დაჯავშნის.',
+  'This item is not available.': 'ეს ნივთი ხელმისაწვდომი აღარ არის.',
+  'You cannot reserve or post items yet because you recently cancelled a reservation.':
+    'ჯერ ვერ დაჯავშნით და ვერ დაამატებთ ნივთებს, რადგან ცოტა ხნის წინ ჯავშანი გააუქმეთ.',
   'Posts are always free. Add clear photos and pickup details so people know exactly what they are requesting.':
     'განცხადებები ყოველთვის უფასოა. დაამატეთ მკაფიო ფოტოები და გატანის დეტალები, რომ მომხმარებელმა ზუსტად იცოდეს რას ითხოვს.',
   Pickup: 'გატანა',
@@ -824,6 +858,8 @@ Object.assign(ruTranslations, {
   'Your temporary conversation is loading.': 'Временный разговор загружается.',
   'Chat unavailable': 'Чат недоступен',
   'This chat could not be opened.': 'Не удалось открыть чат.',
+  'Chat is not ready yet. Please try again in a moment.':
+    'Чат еще не готов. Попробуйте через несколько секунд.',
   'This chat is temporary. Messages are deleted when the reservation ends, is cancelled, or the item is given.':
     'Этот чат временный. Сообщения удаляются после завершения или отмены брони либо передачи вещи.',
   'No messages yet': 'Сообщений пока нет',
@@ -899,10 +935,26 @@ Object.assign(ruTranslations, {
   'Admin demo only': 'Демо только для админов',
   'Reserve for 2.99 GEL': 'Забронировать за 2.99 GEL',
   'Choose reservation': 'Выбрать бронь',
+  'Cancel reservation and accept penalty':
+    'Отменить бронь и принять штраф',
+  'Penalty warning': 'Предупреждение о штрафе',
+  'If you cancel now, your account will be blocked from reserving and creating posts for 5 hours.':
+    'Если отменить сейчас, аккаунт будет заблокирован для бронирования и публикации вещей на 5 часов.',
   'Cancel your reservation? You will not be able to reserve or post items for 5 hours.':
     'Отменить бронь? Вы не сможете бронировать или добавлять вещи в течение 5 часов.',
   'Cancel this accepted reservation? The requester will be notified and the item will become available again.':
     'Отменить принятую бронь? Пользователь получит уведомление, а вещь снова станет доступной.',
+  'Instant reservation RPC is not available to this Supabase API role yet. Grant execute to public, reload the schema cache, and try again.':
+    'RPC мгновенного бронирования пока недоступен этой роли Supabase API. Выдайте execute для public, обновите schema cache и попробуйте снова.',
+  'Instant reservation RPC permission is still blocked. Grant execute to public, reload the schema cache, and try again.':
+    'Право RPC мгновенного бронирования все еще заблокировано. Выдайте execute для public, обновите schema cache и попробуйте снова.',
+  'Instant reservation is available to admins only during demo testing.':
+    'Мгновенное бронирование в демо-режиме доступно только администраторам.',
+  'Owners cannot reserve their own posts.':
+    'Владелец не может бронировать свое объявление.',
+  'This item is not available.': 'Эта вещь больше недоступна.',
+  'You cannot reserve or post items yet because you recently cancelled a reservation.':
+    'Вы пока не можете бронировать или добавлять вещи, потому что недавно отменили бронь.',
   'Posts are always free. Add clear photos and pickup details so people know exactly what they are requesting.':
     'Объявления всегда бесплатные. Добавьте понятные фото и детали передачи, чтобы пользователи точно понимали, что запрашивают.',
   Pickup: 'Передача',

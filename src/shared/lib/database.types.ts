@@ -647,6 +647,12 @@ export type Database = {
         };
         Returns: Database['public']['Tables']['reservations']['Row'];
       };
+      reserve_post_paid_demo: {
+        Args: {
+          target_post_id: string;
+        };
+        Returns: Database['public']['Tables']['reservations']['Row'];
+      };
       reservation_penalty_until: {
         Args: {
           target_profile_id?: string;
