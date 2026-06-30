@@ -1,11 +1,6 @@
-export type FeedCategory =
-  | 'clothing'
-  | 'home'
-  | 'electronics'
-  | 'books'
-  | 'children'
-  | 'sports'
-  | 'other';
+import type { CategoryValue } from '@/features/categories/category-taxonomy';
+
+export type FeedCategory = CategoryValue;
 
 export type FeedStatus = 'available' | 'reserved' | 'given';
 

@@ -8,7 +8,9 @@ import {
   MessageCircle,
   MoreHorizontal,
   Pencil,
+  ShieldCheck,
   Rocket,
+  Sparkles,
   X,
   Trash2,
   User,
@@ -30,7 +32,12 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 
 import { fetchProfileSummary } from '@/features/account/api/profile-api';
+import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
+import {
+  categoryGroups,
+  formatCategoryLabel,
+} from '@/features/categories/category-taxonomy';
 import { StatusBadge } from '@/features/feed/components/status-badge';
 import { CityPicker } from '@/shared/components/city-picker';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
@@ -58,16 +65,14 @@ import {
   manageReservation,
   markPostGiven,
   reservePost,
+  reservePostInstantDemo,
   updatePostDetails,
 } from '../api/post-details-api';
 import {
   activateDemoPostBoost,
   type PostBoostPlan,
 } from '../api/post-boost-api';
-import {
-  postCategoryOptions,
-  postCityOptions,
-} from '../constants/post-options';
+import { postCityOptions } from '../constants/post-options';
 import { ReservationCountdown } from '../components/reservation-countdown';
 import { ReservationStatusBadge } from '../components/reservation-status-badge';
 import { BoostBadge } from '../components/boost-badge';
@@ -135,6 +140,7 @@ export function PostDetailsPage() {
     queryFn: () => fetchProfileSummary(user?.id ?? ''),
     enabled: Boolean(user?.id),
   });
+  const adminStatus = useAdminStatus();
 
   const editForm = useForm<EditPostInput, unknown, EditPostValues>({
     resolver: zodResolver(editPostSchema),
@@ -170,13 +176,44 @@ export function PostDetailsPage() {
     },
   });
 
+  const instantReserveMutation = useMutation({
+    mutationFn: async () => {
+      if (!post || !user) {
+        throw new Error('Log in to reserve this item.');
+      }
+
+      await reservePostInstantDemo(post.id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      await queryClient.invalidateQueries({ queryKey: ['feed'] });
+      await queryClient.invalidateQueries({ queryKey: ['reserved-items'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
+      setActionError(null);
+      setConfirmation(null);
+    },
+    onError: (mutationError) => {
+      logErrorDetails('Instant demo reserve post failed', mutationError);
+      setActionError(
+        getFriendlyErrorMessage(mutationError, 'Could not reserve item.'),
+      );
+    },
+  });
+
   const cancelReservationMutation = useMutation({
     mutationFn: async () => {
-      if (!post?.activeReservation) {
+      const reservationToCancel = post?.reservations.find(
+        (reservation) =>
+          reservation.requesterId === user?.id &&
+          (reservation.status === 'pending' ||
+            reservation.status === 'accepted'),
+      );
+
+      if (!reservationToCancel) {
         throw new Error('Reservation was not found.');
       }
 
-      await cancelReservation(post.activeReservation.id);
+      await cancelReservation(reservationToCancel.id);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
@@ -368,11 +405,16 @@ export function PostDetailsPage() {
     isOwner && (isEditingManually || searchParams.get('edit') === '1');
   const activeImage = post.images[activeImageIndex];
   const postDescription = post.description.replace(/\s+/g, ' ').trim();
-  const viewerActiveReservation =
-    !isOwner && post.activeReservation?.requesterId === user?.id
-      ? post.activeReservation
-      : null;
+  const viewerActiveReservation = !isOwner
+    ? (post.reservations.find(
+        (reservation) =>
+          reservation.requesterId === user?.id &&
+          (reservation.status === 'pending' ||
+            reservation.status === 'accepted'),
+      ) ?? null)
+    : null;
   const hasProfilePhone = Boolean(profileQuery.data?.phoneNumber?.trim());
+  const canUseDemoPayments = Boolean(adminStatus.data);
 
   function handleReserveRequest() {
     if (!hasProfilePhone) {
@@ -498,10 +540,14 @@ export function PostDetailsPage() {
                     className="modern-input h-11 w-full rounded-[10px] px-3 text-base outline-none"
                     {...editForm.register('category')}
                   >
-                    {postCategoryOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {t(option.label)}
-                      </option>
+                    {categoryGroups.map((group) => (
+                      <optgroup key={group.value} label={t(group.label)}>
+                        {group.options.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {t(option.label)}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </label>
@@ -561,7 +607,7 @@ export function PostDetailsPage() {
                       {t(post.location)}
                     </span>
                     <span className="text-muted-foreground text-sm">
-                      {formatCategory(post.category, t)}
+                      {formatCategoryLabel(post.category, t)}
                     </span>
                   </div>
                 </div>
@@ -649,7 +695,7 @@ export function PostDetailsPage() {
                 <dl className="mt-3 grid gap-3 border-t pt-4 text-sm">
                   <DetailRow
                     label={t('Condition')}
-                    value={formatCategory(post.condition, t)}
+                    value={formatValue(post.condition, t)}
                   />
                   <DetailRow
                     label={t('Pickup area')}
@@ -735,23 +781,25 @@ export function PostDetailsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        disabled={
-                          post.status !== 'available' ||
-                          post.isBoosted ||
-                          boostMutation.isPending
-                        }
-                        onSelect={() => setIsBoostDialogOpen(true)}
-                      >
-                        <Rocket className="size-4" aria-hidden="true" />
-                        {post.isBoosted && post.boostExpiresAt ? (
-                          <BoostActiveCountdown
-                            expiresAt={post.boostExpiresAt}
-                          />
-                        ) : (
-                          t('Boost post')
-                        )}
-                      </DropdownMenuItem>
+                      {canUseDemoPayments ? (
+                        <DropdownMenuItem
+                          disabled={
+                            post.status !== 'available' ||
+                            post.isBoosted ||
+                            boostMutation.isPending
+                          }
+                          onSelect={() => setIsBoostDialogOpen(true)}
+                        >
+                          <Rocket className="size-4" aria-hidden="true" />
+                          {post.isBoosted && post.boostExpiresAt ? (
+                            <BoostActiveCountdown
+                              expiresAt={post.boostExpiresAt}
+                            />
+                          ) : (
+                            t('Boost post')
+                          )}
+                        </DropdownMenuItem>
+                      ) : null}
                       <DropdownMenuItem
                         disabled={
                           post.status === 'given' || markGivenMutation.isPending
@@ -777,13 +825,13 @@ export function PostDetailsPage() {
                     disabled={
                       post.status !== 'available' ||
                       reserveMutation.isPending ||
+                      instantReserveMutation.isPending ||
                       profileQuery.isLoading
                     }
+                    canUseDemoPayments={canUseDemoPayments}
                     isAuthenticated={isAuthenticated}
                     isPending={reserveMutation.isPending}
-                    isReservedByViewer={
-                      post.activeReservation?.requesterId === user?.id
-                    }
+                    isReservedByViewer={Boolean(viewerActiveReservation)}
                     isCancelling={cancelReservationMutation.isPending}
                     onCancel={() => setConfirmation('cancel-reservation')}
                     onReserve={handleReserveRequest}
@@ -816,13 +864,13 @@ export function PostDetailsPage() {
               disabled={
                 post.status !== 'available' ||
                 reserveMutation.isPending ||
+                instantReserveMutation.isPending ||
                 profileQuery.isLoading
               }
+              canUseDemoPayments={canUseDemoPayments}
               isAuthenticated={isAuthenticated}
               isPending={reserveMutation.isPending}
-              isReservedByViewer={
-                post.activeReservation?.requesterId === user?.id
-              }
+              isReservedByViewer={Boolean(viewerActiveReservation)}
               isCancelling={cancelReservationMutation.isPending}
               onCancel={() => setConfirmation('cancel-reservation')}
               onReserve={handleReserveRequest}
@@ -911,7 +959,9 @@ export function PostDetailsPage() {
         <ConfirmDialog
           danger
           confirmLabel={t('Unreserve')}
-          description={t('Cancel your reservation for this item?')}
+          description={t(
+            'Cancel your reservation? You will not be able to reserve or post items for 5 hours.',
+          )}
           isLoading={cancelReservationMutation.isPending}
           loadingLabel={t('Cancelling...')}
           title={t('Cancel reservation?')}
@@ -921,14 +971,13 @@ export function PostDetailsPage() {
       ) : null}
 
       {confirmation === 'reserve' ? (
-        <ConfirmDialog
-          confirmLabel={t('Reserve')}
-          description={t('Reserve this item? The owner will be notified.')}
-          isLoading={reserveMutation.isPending}
-          loadingLabel={t('Reserving...')}
-          title={t('Reserve item?')}
+        <ReservationChoiceDialog
+          canUseDemoPayments={canUseDemoPayments}
+          isInstantLoading={instantReserveMutation.isPending}
+          isFreeLoading={reserveMutation.isPending}
           onCancel={() => setConfirmation(null)}
-          onConfirm={() => reserveMutation.mutate()}
+          onFreeReserve={() => reserveMutation.mutate()}
+          onInstantReserve={() => instantReserveMutation.mutate()}
         />
       ) : null}
 
@@ -1027,6 +1076,141 @@ function OwnerReservationRequests({
         ))}
       </div>
     </section>
+  );
+}
+
+function ReservationChoiceDialog({
+  canUseDemoPayments,
+  isFreeLoading,
+  isInstantLoading,
+  onCancel,
+  onFreeReserve,
+  onInstantReserve,
+}: {
+  canUseDemoPayments: boolean;
+  isFreeLoading: boolean;
+  isInstantLoading: boolean;
+  onCancel: () => void;
+  onFreeReserve: () => void;
+  onInstantReserve: () => void;
+}) {
+  const { t } = useI18n();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const isLoading = isFreeLoading || isInstantLoading;
+
+  useDialogFocusTrap(dialogRef, {
+    initialFocusRef: cancelButtonRef,
+    onEscape: isLoading ? undefined : onCancel,
+  });
+
+  return (
+    <div
+      aria-describedby="reservation-choice-description"
+      aria-labelledby="reservation-choice-title"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--theme-backdrop)] p-3 backdrop-blur-sm sm:items-center sm:p-4"
+      role="dialog"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isLoading) {
+          onCancel();
+        }
+      }}
+    >
+      <div
+        className="border-border bg-card max-h-[calc(100svh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-[18px] border p-4 shadow-[0_18px_54px_var(--theme-surface-shadow)] sm:p-5"
+        ref={dialogRef}
+      >
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center rounded-[14px]">
+            <Sparkles className="size-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <h2
+              className="text-xl leading-7 font-bold"
+              id="reservation-choice-title"
+            >
+              {t('Choose how to reserve')}
+            </h2>
+            <p
+              className="text-muted-foreground mt-1 text-sm leading-6"
+              id="reservation-choice-description"
+            >
+              {t(
+                'Pick the free request or test instant reservation. Instant reservation is a demo for admins only.',
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-[14px] border p-4">
+            <p className="text-muted-foreground text-xs font-semibold tracking-[0.12em] uppercase">
+              {t('Free')}
+            </p>
+            <h3 className="mt-2 text-lg font-bold">{t('Request for free')}</h3>
+            <p className="text-muted-foreground mt-2 text-sm leading-6">
+              {t(
+                'Send a normal reservation request. The owner reviews it and accepts or rejects it.',
+              )}
+            </p>
+          </div>
+
+          <div className="border-primary/30 bg-accent/50 rounded-[14px] border p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-primary text-xs font-semibold tracking-[0.12em] uppercase">
+                {t('Instant')}
+              </p>
+              <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs font-bold">
+                2.99 GEL
+              </span>
+            </div>
+            <h3 className="mt-2 text-lg font-bold">{t('Reserve instantly')}</h3>
+            <p className="text-muted-foreground mt-2 text-sm leading-6">
+              {t(
+                'Skip owner approval in this demo. The item becomes reserved immediately, but the owner can still cancel.',
+              )}
+            </p>
+            {!canUseDemoPayments ? (
+              <p className="text-muted-foreground mt-3 inline-flex items-center gap-1.5 text-xs font-semibold">
+                <ShieldCheck className="size-3.5" aria-hidden="true" />
+                {t('Admin demo only')}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            disabled={isLoading}
+            ref={cancelButtonRef}
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
+            {t('Cancel')}
+          </Button>
+          <Button
+            disabled={isLoading}
+            type="button"
+            variant="outline"
+            onClick={onFreeReserve}
+          >
+            {isFreeLoading ? t('Reserving...') : t('Request for free')}
+          </Button>
+          {canUseDemoPayments ? (
+            <Button
+              className="bg-amber-600 text-white hover:bg-amber-700"
+              disabled={isLoading}
+              type="button"
+              onClick={onInstantReserve}
+            >
+              {isInstantLoading ? t('Reserving...') : t('Reserve for 2.99 GEL')}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1250,6 +1434,7 @@ function DetailRow({
 }
 
 function VisitorAction({
+  canUseDemoPayments,
   disabled,
   isAuthenticated,
   isCancelling,
@@ -1258,6 +1443,7 @@ function VisitorAction({
   onCancel,
   onReserve,
 }: {
+  canUseDemoPayments: boolean;
   disabled: boolean;
   isAuthenticated: boolean;
   isCancelling: boolean;
@@ -1297,7 +1483,11 @@ function VisitorAction({
       type="button"
       onClick={onReserve}
     >
-      {isPending ? t('Reserving...') : t('Reserve')}
+      {isPending
+        ? t('Reserving...')
+        : canUseDemoPayments
+          ? t('Choose reservation')
+          : t('Reserve')}
     </Button>
   );
 }
@@ -1479,16 +1669,10 @@ function formatDateTime(value: string, language: string) {
   }).format(new Date(value));
 }
 
-function formatCategory(value: string, t: (text: string) => string) {
-  if (value === 'home') {
-    return t('HomeCategory');
-  }
-
-  const label = value
-    .replace('_', ' ')
-    .replace(/^\w/, (letter) => letter.toUpperCase());
-
-  return t(label);
+function formatValue(value: string, t: (text: string) => string) {
+  return t(
+    value.replaceAll('_', ' ').replace(/^\w/, (letter) => letter.toUpperCase()),
+  );
 }
 
 function getReservationActionLabel(
@@ -1526,7 +1710,8 @@ function getReservationActionDescription(
   const labels = {
     accepted: 'Accept this reservation request?',
     declined: 'Reject this reservation request?',
-    cancelled: 'Cancel this accepted reservation?',
+    cancelled:
+      'Cancel this accepted reservation? The requester will be notified and the item will become available again.',
     completed: 'Mark this reservation as completed?',
   };
 

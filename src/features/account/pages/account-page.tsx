@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { formatGeorgianPhoneNumber } from '@/features/auth/utils/georgian-phone-number';
 import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import { useAuth } from '@/features/auth/context/use-auth';
+import { formatCategoryLabel } from '@/features/categories/category-taxonomy';
 import { StatusBadge } from '@/features/feed/components/status-badge';
 import {
   cancelReservation,
@@ -191,10 +192,9 @@ export function AccountPage() {
       <Tabs
         value={activeTab}
         onValueChange={(value) =>
-          setSearchParams(
-            value === 'posts' ? {} : { tab: value },
-            { replace: true },
-          )
+          setSearchParams(value === 'posts' ? {} : { tab: value }, {
+            replace: true,
+          })
         }
       >
         <TabsList className="grid-cols-3" aria-label={t('Profile')}>
@@ -331,6 +331,8 @@ function MyPostsSection({
       | 'cancel-reservation'
       | 'complete-reservation';
   } | null>(null);
+  const adminStatus = useAdminStatus();
+  const canUseDemoPayments = Boolean(adminStatus.data);
 
   if (posts.length === 0) {
     return (
@@ -442,7 +444,7 @@ function MyPostsSection({
                   <PostMetaChip
                     icon={<Tag className="size-4" aria-hidden="true" />}
                     label={t('Category')}
-                    value={formatCategory(post.category, t)}
+                    value={formatCategoryLabel(post.category, t)}
                   />
                   <PostMetaChip
                     icon={<BarChart3 className="size-4" aria-hidden="true" />}
@@ -460,23 +462,25 @@ function MyPostsSection({
               </div>
 
               <div className="border-border flex flex-wrap items-center gap-2 border-t pt-4">
-                <Button
-                  className="h-10 bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-100"
-                  disabled={
-                    post.status !== 'available' ||
-                    post.isBoosted ||
-                    boostingPostId === post.id
-                  }
-                  type="button"
-                  onClick={() => setBoostDialogPostId(post.id)}
-                >
-                  <Rocket className="size-4" aria-hidden="true" />
-                  {post.isBoosted && post.boostExpiresAt ? (
-                    <BoostActiveCountdown expiresAt={post.boostExpiresAt} />
-                  ) : (
-                    t('Boost post')
-                  )}
-                </Button>
+                {canUseDemoPayments ? (
+                  <Button
+                    className="h-10 bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-100"
+                    disabled={
+                      post.status !== 'available' ||
+                      post.isBoosted ||
+                      boostingPostId === post.id
+                    }
+                    type="button"
+                    onClick={() => setBoostDialogPostId(post.id)}
+                  >
+                    <Rocket className="size-4" aria-hidden="true" />
+                    {post.isBoosted && post.boostExpiresAt ? (
+                      <BoostActiveCountdown expiresAt={post.boostExpiresAt} />
+                    ) : (
+                      t('Boost post')
+                    )}
+                  </Button>
+                ) : null}
                 <Button asChild variant="outline">
                   <Link to={localizedPath(`/posts/${post.id}`)}>
                     <Eye className="size-4" aria-hidden="true" />
@@ -562,7 +566,7 @@ function MyPostsSection({
         />
       ) : null}
 
-      {boostDialogPostId ? (
+      {boostDialogPostId && canUseDemoPayments ? (
         <BoostPostDialog
           isLoading={boostingPostId === boostDialogPostId}
           onCancel={() => setBoostDialogPostId(null)}
@@ -634,7 +638,9 @@ function MyPostsSection({
         <ConfirmDialog
           danger
           confirmLabel={t('Cancel reservation')}
-          description={t('Cancel this accepted reservation?')}
+          description={t(
+            'Cancel this accepted reservation? The requester will be notified and the item will become available again.',
+          )}
           isLoading={managingReservationId === confirmation.id}
           loadingLabel={t('Cancelling...')}
           title={t('Cancel reservation?')}
@@ -792,7 +798,7 @@ function PostMetaChip({
 function PostStatistics({ post }: { post: ProfilePost }) {
   const { language, t } = useI18n();
   const statusLabel =
-    post.status === 'archived' ? t('Archived') : formatCategory(post.status, t);
+    post.status === 'archived' ? t('Archived') : formatStatus(post.status, t);
 
   return (
     <dl className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-4">
@@ -1259,16 +1265,8 @@ function FieldError({ message }: { message?: string }) {
   ) : null;
 }
 
-function formatCategory(value: string, t: (text: string) => string) {
-  if (value === 'home') {
-    return t('HomeCategory');
-  }
-
-  const label = value
-    .replace('_', ' ')
-    .replace(/^\w/, (letter) => letter.toUpperCase());
-
-  return t(label);
+function formatStatus(value: string, t: (text: string) => string) {
+  return t(value.replace(/^\w/, (letter) => letter.toUpperCase()));
 }
 
 function formatDate(value: string, language: string) {

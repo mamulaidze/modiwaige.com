@@ -1,17 +1,12 @@
+import { flatCategoryOptions } from '@/features/categories/category-taxonomy';
 import type { FeedCategory } from '@/features/feed/types/feed';
 
 export const postCategoryOptions: Array<{
+  groupLabel: string;
+  groupValue: string;
   label: string;
   value: FeedCategory;
-}> = [
-  { label: 'Clothing', value: 'clothing' },
-  { label: 'HomeCategory', value: 'home' },
-  { label: 'Electronics', value: 'electronics' },
-  { label: 'Books', value: 'books' },
-  { label: 'Children', value: 'children' },
-  { label: 'Sports', value: 'sports' },
-  { label: 'Other', value: 'other' },
-];
+}> = flatCategoryOptions;
 
 export const postCityOptions = [
   'Tbilisi',

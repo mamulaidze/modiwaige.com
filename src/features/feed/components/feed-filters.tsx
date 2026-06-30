@@ -1,11 +1,12 @@
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 
+import { categoryGroups } from '@/features/categories/category-taxonomy';
 import { CityPicker } from '@/shared/components/city-picker';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/i18n/i18n';
 import { cn } from '@/shared/lib/cn';
-import { categoryOptions, cityOptions } from '../constants/feed-filters';
+import { cityOptions } from '../constants/feed-filters';
 import type { FeedFilters as FeedFiltersValue } from '../types/feed';
 
 type FeedFiltersProps = {
@@ -160,10 +161,15 @@ export function FeedFilters({ filters, onChange }: FeedFiltersProps) {
                       })
                     }
                   >
-                    {categoryOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {t(option.label)}
-                      </option>
+                    <option value="all">{t('All categories')}</option>
+                    {categoryGroups.map((group) => (
+                      <optgroup key={group.value} label={t(group.label)}>
+                        {group.options.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {t(option.label)}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </label>

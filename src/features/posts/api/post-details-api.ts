@@ -124,9 +124,7 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
   const activeReservation =
     reservations.find(
       (reservation) =>
-        (reservation.status === 'pending' ||
-          reservation.status === 'accepted') &&
-        Boolean(reservation.expiresAt),
+        reservation.status === 'accepted' && Boolean(reservation.expiresAt),
     ) ?? null;
 
   return {
@@ -161,6 +159,16 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
 
 export async function reservePost(postId: string) {
   const { error } = await supabase.rpc('reserve_post', {
+    target_post_id: postId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function reservePostInstantDemo(postId: string) {
+  const { error } = await supabase.rpc('reserve_post_instant_demo', {
     target_post_id: postId,
   });
 

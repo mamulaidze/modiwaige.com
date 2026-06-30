@@ -1,4 +1,8 @@
 import { postCityOptions } from '@/features/posts/constants/post-options';
+import {
+  flatCategoryOptions,
+  topLevelCategoryOptions,
+} from '@/features/categories/category-taxonomy';
 
 import type { FeedCategory } from '../types/feed';
 
@@ -7,13 +11,21 @@ export const categoryOptions: Array<{
   value: FeedCategory | 'all';
 }> = [
   { label: 'All categories', value: 'all' },
-  { label: 'Clothing', value: 'clothing' },
-  { label: 'HomeCategory', value: 'home' },
-  { label: 'Electronics', value: 'electronics' },
-  { label: 'Books', value: 'books' },
-  { label: 'Children', value: 'children' },
-  { label: 'Sports', value: 'sports' },
-  { label: 'Other', value: 'other' },
+  ...flatCategoryOptions.map((option) => ({
+    label: option.label,
+    value: option.value,
+  })),
+];
+
+export const topLevelFeedCategoryOptions: Array<{
+  label: string;
+  value: FeedCategory | 'all';
+}> = [
+  { label: 'All categories', value: 'all' },
+  ...topLevelCategoryOptions.map((option) => ({
+    label: option.label,
+    value: option.value,
+  })),
 ];
 
 export const cityOptions = [

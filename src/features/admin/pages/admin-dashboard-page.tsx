@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { formatCategoryLabel } from '@/features/categories/category-taxonomy';
 import { ConfirmDialog } from '@/shared/components/confirm-dialog';
 import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
@@ -435,7 +436,7 @@ function PostsTable({
                       {post.title}
                     </Link>
                     <p className="text-muted-foreground text-xs">
-                      {t(post.location)} - {formatValue(post.category, t)}
+                      {t(post.location)} - {formatCategoryLabel(post.category, t)}
                     </p>
                   </BodyCell>
                   <BodyCell>{post.ownerName}</BodyCell>

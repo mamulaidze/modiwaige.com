@@ -8,6 +8,21 @@ type CreatePostInput = CreatePostFormValues & {
 };
 
 export async function createPost(input: CreatePostInput): Promise<FeedPost> {
+  const { data: penaltyUntil, error: penaltyError } = await supabase.rpc(
+    'reservation_penalty_until',
+    { target_profile_id: input.ownerId },
+  );
+
+  if (penaltyError) {
+    throw new Error(penaltyError.message);
+  }
+
+  if (penaltyUntil) {
+    throw new Error(
+      `You can reserve or post items again after ${penaltyUntil}.`,
+    );
+  }
+
   const { data: post, error: postError } = await supabase
     .from('posts')
     .insert({
@@ -72,7 +87,7 @@ export async function createPost(input: CreatePostInput): Promise<FeedPost> {
     description: post.description,
     location: post.location,
     status: 'available',
-    category: post.category,
+    category: input.category,
     createdAt: post.created_at,
     expiresAt: post.expires_at,
     boostExpiresAt: null,

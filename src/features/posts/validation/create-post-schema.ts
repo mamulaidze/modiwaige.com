@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { isCategoryValue } from '@/features/categories/category-taxonomy';
 import { postCityOptions } from '../constants/post-options';
 
 type PostCity = (typeof postCityOptions)[number];
@@ -24,15 +25,9 @@ export const createPostSchema = z.object({
     .trim()
     .min(10, 'Description must be at least 10 characters.')
     .max(2000, 'Description must be 2000 characters or fewer.'),
-  category: z.enum([
-    'clothing',
-    'home',
-    'electronics',
-    'books',
-    'children',
-    'sports',
-    'other',
-  ]),
+  category: z.string().refine((category) => isCategoryValue(category), {
+    message: 'Choose a category from the list.',
+  }),
   city: citySchema,
   photos: z
     .array(z.instanceof(File))

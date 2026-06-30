@@ -340,14 +340,7 @@ export type Database = {
       posts: {
         Row: {
           boost_expires_at: string | null;
-          category:
-            | 'clothing'
-            | 'home'
-            | 'electronics'
-            | 'books'
-            | 'children'
-            | 'sports'
-            | 'other';
+          category: string;
           condition: 'new' | 'good' | 'used' | 'needs_repair';
           cleanup_attempts: number;
           cleanup_error: string | null;
@@ -365,14 +358,7 @@ export type Database = {
         };
         Insert: {
           boost_expires_at?: string | null;
-          category:
-            | 'clothing'
-            | 'home'
-            | 'electronics'
-            | 'books'
-            | 'children'
-            | 'sports'
-            | 'other';
+          category: string;
           condition: 'new' | 'good' | 'used' | 'needs_repair';
           cleanup_attempts?: number;
           cleanup_error?: string | null;
@@ -390,14 +376,7 @@ export type Database = {
         };
         Update: {
           boost_expires_at?: string | null;
-          category?:
-            | 'clothing'
-            | 'home'
-            | 'electronics'
-            | 'books'
-            | 'children'
-            | 'sports'
-            | 'other';
+          category?: string;
           condition?: 'new' | 'good' | 'used' | 'needs_repair';
           cleanup_attempts?: number;
           cleanup_error?: string | null;
@@ -509,6 +488,8 @@ export type Database = {
       };
       reservations: {
         Row: {
+          cancelled_at: string | null;
+          cancelled_by: string | null;
           created_at: string;
           expires_at: string | null;
           id: string;
@@ -524,6 +505,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
           created_at?: string;
           expires_at?: string | null;
           id?: string;
@@ -539,6 +522,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
           created_at?: string;
           expires_at?: string | null;
           id?: string;
@@ -655,6 +640,18 @@ export type Database = {
           target_post_id: string;
         };
         Returns: Database['public']['Tables']['reservations']['Row'];
+      };
+      reserve_post_instant_demo: {
+        Args: {
+          target_post_id: string;
+        };
+        Returns: Database['public']['Tables']['reservations']['Row'];
+      };
+      reservation_penalty_until: {
+        Args: {
+          target_profile_id?: string;
+        };
+        Returns: string | null;
       };
       cancel_reservation: {
         Args: {

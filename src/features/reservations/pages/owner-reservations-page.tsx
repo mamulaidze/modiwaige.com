@@ -1,56 +1,104 @@
 import { useQuery } from '@tanstack/react-query';
-import { CalendarCheck, MessageCircle, PackageOpen, Phone, User } from 'lucide-react';
+import {
+  CalendarCheck,
+  MessageCircle,
+  PackageOpen,
+  Phone,
+  User,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { fetchMyPosts } from '@/features/account/api/profile-api';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { ReservationStatusBadge } from '@/features/posts/components/reservation-status-badge';
-import { EmptyState } from '@/shared/components/empty-state';
 import { LoadingState } from '@/shared/components/loading-state';
 import { Seo } from '@/shared/components/seo';
 import { Button } from '@/shared/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { PageContainer } from '@/shared/layouts/page-container';
 import { getFriendlyErrorMessage } from '@/shared/lib/errors';
 
+type ReservationSort = 'newest' | 'oldest' | 'most' | 'item_asc' | 'item_desc';
+
 export function OwnerReservationsPage() {
   const { user } = useAuth();
   const { language, localizedPath, t } = useI18n();
+  const [sortMode, setSortMode] = useState<ReservationSort>('newest');
   const postsQuery = useQuery({
     queryKey: ['my-posts', user?.id, 'owner-reservations'],
     queryFn: () => fetchMyPosts(user?.id ?? ''),
     enabled: Boolean(user?.id),
   });
 
-  const postsWithReservations = (postsQuery.data ?? [])
-    .map((post) => ({
-      ...post,
-      reservations: post.reservations.filter(
-        (reservation) =>
-          reservation.status === 'pending' || reservation.status === 'accepted',
-      ),
-    }))
-    .filter((post) => post.reservations.length > 0)
-    .sort((first, second) => first.title.localeCompare(second.title));
+  const postsWithReservations = useMemo(() => {
+    const activePosts = (postsQuery.data ?? [])
+      .map((post) => ({
+        ...post,
+        reservations: post.reservations.filter(
+          (reservation) =>
+            reservation.status === 'pending' ||
+            reservation.status === 'accepted',
+        ),
+      }))
+      .filter((post) => post.reservations.length > 0);
+
+    return activePosts.sort((first, second) => {
+      if (sortMode === 'item_asc') {
+        return first.title.localeCompare(second.title);
+      }
+
+      if (sortMode === 'item_desc') {
+        return second.title.localeCompare(first.title);
+      }
+
+      if (sortMode === 'most') {
+        return second.reservations.length - first.reservations.length;
+      }
+
+      const firstReservationTime = getReservationSortTime(
+        first.reservations[0]?.createdAt,
+      );
+      const secondReservationTime = getReservationSortTime(
+        second.reservations[0]?.createdAt,
+      );
+
+      return sortMode === 'oldest'
+        ? firstReservationTime - secondReservationTime
+        : secondReservationTime - firstReservationTime;
+    });
+  }, [postsQuery.data, sortMode]);
+
+  const totalReservations = postsWithReservations.reduce(
+    (total, post) => total + post.reservations.length,
+    0,
+  );
 
   return (
-    <PageContainer className="gap-5">
+    <PageContainer className="gap-3 pb-36 md:gap-4 md:pb-10">
       <Seo
         noindex
         title={t('Item reservations')}
         description={t('See who reserved your items.')}
       />
 
-      <section className="premium-card rounded-[14px] p-5 sm:p-6">
-        <div className="flex items-start gap-3">
-          <span className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center rounded-full">
+      <section className="premium-card rounded-[14px] p-3 sm:p-4">
+        <div className="flex items-center gap-3">
+          <span className="bg-accent text-primary flex size-9 shrink-0 items-center justify-center rounded-[12px]">
             <CalendarCheck className="size-5" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h1 className="text-2xl leading-8 font-bold tracking-tight">
+            <h1 className="truncate text-lg leading-6 font-bold tracking-tight sm:text-xl">
               {t('Item reservations')}
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
+            <p className="text-muted-foreground mt-0.5 truncate text-sm">
               {t('See who reserved your items.')}
             </p>
           </div>
@@ -78,33 +126,74 @@ export function OwnerReservationsPage() {
       {!postsQuery.isLoading &&
       !postsQuery.isError &&
       postsWithReservations.length === 0 ? (
-        <EmptyState
-          title={t('No item reservations yet')}
-          description={t('When someone reserves your item, it will appear here.')}
-        />
+        <section className="border-border bg-card rounded-[14px] border border-dashed p-5 text-center sm:p-6">
+          <span className="bg-accent text-primary mx-auto flex size-11 items-center justify-center rounded-[12px]">
+            <PackageOpen className="size-5" aria-hidden="true" />
+          </span>
+          <h2 className="mx-auto mt-4 max-w-sm text-lg leading-6 font-bold">
+            {t('No item reservations yet')}
+          </h2>
+          <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm leading-5">
+            {t('When someone reserves your item, it will appear here.')}
+          </p>
+          <div className="mt-4 flex justify-center">
+            <Button asChild className="h-10">
+              <Link to={localizedPath('/create')}>{t('Post an item')}</Link>
+            </Button>
+          </div>
+        </section>
       ) : null}
 
       {postsWithReservations.length > 0 ? (
-        <section className="space-y-4" aria-label={t('Item reservations')}>
+        <section className="space-y-3" aria-label={t('Item reservations')}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-muted-foreground text-xs font-semibold tracking-[0.12em] uppercase">
+                {t('Item reservations')}
+              </p>
+              <p className="text-sm font-semibold">
+                {totalReservations} {t('reservations')}
+              </p>
+            </div>
+            <Select
+              value={sortMode}
+              onValueChange={(value) => setSortMode(value as ReservationSort)}
+            >
+              <SelectTrigger
+                aria-label={t('Sort')}
+                className="h-9 w-[142px] shrink-0 rounded-full px-3 text-sm sm:w-44"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end" className="w-44">
+                <SelectItem value="newest">{t('Newest')}</SelectItem>
+                <SelectItem value="oldest">{t('Oldest')}</SelectItem>
+                <SelectItem value="most">{t('Most reservations')}</SelectItem>
+                <SelectItem value="item_asc">{t('Item')} A-Z</SelectItem>
+                <SelectItem value="item_desc">{t('Item')} Z-A</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {postsWithReservations.map((post) => (
             <article
-              className="premium-card overflow-hidden rounded-[14px]"
+              className="bg-card border-border overflow-hidden rounded-[14px] border"
               key={post.id}
             >
-              <div className="border-border/70 flex flex-col gap-2 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="border-border/70 flex items-start justify-between gap-3 border-b p-3">
                 <div className="min-w-0">
-                  <p className="text-muted-foreground flex items-center gap-2 text-xs font-semibold tracking-[0.12em] uppercase">
-                    <PackageOpen className="size-4" aria-hidden="true" />
+                  <p className="text-muted-foreground flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase">
+                    <PackageOpen className="size-3.5" aria-hidden="true" />
                     {t('Item')}
                   </p>
                   <Link
-                    className="mt-1 block truncate text-lg font-semibold hover:underline"
+                    className="mt-0.5 block truncate text-base font-semibold hover:underline"
                     to={localizedPath(`/posts/${post.id}`)}
                   >
                     {post.title}
                   </Link>
                 </div>
-                <span className="bg-accent text-primary w-fit rounded-full px-3 py-1.5 text-sm font-semibold">
+                <span className="bg-accent text-primary shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
                   {post.reservations.length} {t('reservations')}
                 </span>
               </div>
@@ -112,20 +201,23 @@ export function OwnerReservationsPage() {
               <div className="divide-border divide-y">
                 {post.reservations.map((reservation) => (
                   <div
-                    className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex items-start justify-between gap-3 p-3"
                     key={reservation.id}
                   >
-                    <div className="min-w-0 space-y-1">
-                      <p className="flex items-center gap-2 font-semibold">
-                        <User className="text-muted-foreground size-4" aria-hidden="true" />
+                    <div className="min-w-0 space-y-1.5">
+                      <p className="flex items-center gap-2 text-sm font-semibold">
+                        <User
+                          className="text-muted-foreground size-3.5"
+                          aria-hidden="true"
+                        />
                         <span className="truncate">
                           {reservation.requesterName}
                         </span>
                       </p>
-                      <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                      <div className="text-muted-foreground flex flex-col gap-1 text-xs sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
                         {reservation.requesterPhoneNumber ? (
                           <a
-                            className="inline-flex items-center gap-1.5 hover:text-foreground"
+                            className="hover:text-foreground inline-flex items-center gap-1.5"
                             href={`tel:${reservation.requesterPhoneNumber}`}
                           >
                             <Phone className="size-3.5" aria-hidden="true" />
@@ -143,13 +235,22 @@ export function OwnerReservationsPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center">
                       <ReservationStatusBadge status={reservation.status} />
                       {reservation.status === 'accepted' ? (
-                        <Button asChild className="h-9 px-3" variant="outline">
+                        <Button
+                          asChild
+                          className="h-8 rounded-full px-2.5 text-xs"
+                          variant="outline"
+                        >
                           <Link to={localizedPath(`/chat/${reservation.id}`)}>
-                            <MessageCircle className="size-4" aria-hidden="true" />
-                            {t('Chat')}
+                            <MessageCircle
+                              className="size-4"
+                              aria-hidden="true"
+                            />
+                            <span className="hidden sm:inline">
+                              {t('Chat')}
+                            </span>
                           </Link>
                         </Button>
                       ) : null}
@@ -163,4 +264,8 @@ export function OwnerReservationsPage() {
       ) : null}
     </PageContainer>
   );
+}
+
+function getReservationSortTime(createdAt: string | undefined) {
+  return createdAt ? new Date(createdAt).getTime() : 0;
 }

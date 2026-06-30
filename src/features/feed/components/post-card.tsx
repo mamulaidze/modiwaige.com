@@ -1,6 +1,7 @@
 import { ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { formatCategoryLabel } from '@/features/categories/category-taxonomy';
 import { getLanguageLocale, useI18n } from '@/shared/i18n/i18n';
 import { BoostBadge } from '@/features/posts/components/boost-badge';
 import type { FeedPost } from '../types/feed';
@@ -65,7 +66,7 @@ export function PostCard({ post }: PostCardProps) {
           </span>
         </div>
         <div className="text-muted-foreground flex min-w-0 items-center text-xs leading-5 sm:text-sm">
-          <span className="truncate">{formatCategory(post.category, t)}</span>
+          <span className="truncate">{formatCategoryLabel(post.category, t)}</span>
         </div>
       </div>
     </article>
@@ -80,12 +81,4 @@ function formatRelativeDate(value: string, language: string) {
   return new Intl.RelativeTimeFormat(getLanguageLocale(language), {
     numeric: 'auto',
   }).format(elapsedDays, 'day');
-}
-
-function formatCategory(value: string, t: (text: string) => string) {
-  if (value === 'home') {
-    return t('HomeCategory');
-  }
-
-  return t(value.replace(/^\w/, (letter) => letter.toUpperCase()));
 }

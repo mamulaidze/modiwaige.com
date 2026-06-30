@@ -1,5 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { ImagePlus, Phone } from 'lucide-react';
+import {
+  CheckCircle2,
+  ImagePlus,
+  MapPin,
+  Phone,
+  ShieldCheck,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { fetchProfileSummary } from '@/features/account/api/profile-api';
@@ -22,7 +29,7 @@ export function CreatePostPage() {
   const hasPhoneNumber = Boolean(profileQuery.data?.phoneNumber?.trim());
 
   return (
-    <PageContainer className="gap-6">
+    <PageContainer className="max-w-6xl gap-4 pb-36 md:gap-6 md:pb-10">
       <Seo
         noindex
         title={language === 'ge' ? 'განცხადების დამატება' : 'Create post'}
@@ -32,19 +39,48 @@ export function CreatePostPage() {
             : 'Create a free giveaway post on Gaachuqe and help a useful item find a new owner.'
         }
       />
-      <section className="border-border bg-card rounded-[14px] border p-4 sm:p-5">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="bg-accent text-primary flex size-10 shrink-0 items-center justify-center rounded-[10px]">
-            <ImagePlus className="size-5" aria-hidden="true" />
+      <section className="premium-card rounded-[16px] p-4 sm:p-5">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="bg-accent text-primary flex size-10 shrink-0 items-center justify-center rounded-[12px]">
+              <ImagePlus className="size-5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl leading-7 font-bold tracking-tight [overflow-wrap:anywhere] break-words sm:text-2xl sm:leading-[30px]">
+                {t('Create Post')}
+              </h1>
+              <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere] break-words">
+                {t('Give away an unwanted item for free.')}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl leading-7 font-bold tracking-tight [overflow-wrap:anywhere] break-words sm:text-2xl sm:leading-[30px]">
-              {t('Create Post')}
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere] break-words">
-              {t('Give away an unwanted item for free.')}
-            </p>
+          <div className="grid grid-cols-3 gap-2 text-xs sm:w-[330px]">
+            <CreatePostSignal
+              icon={<CheckCircle2 className="size-4" aria-hidden="true" />}
+              label={t('Free')}
+            />
+            <CreatePostSignal
+              icon={<ImagePlus className="size-4" aria-hidden="true" />}
+              label={t('Photos')}
+            />
+            <CreatePostSignal
+              icon={<MapPin className="size-4" aria-hidden="true" />}
+              label={t('Pickup')}
+            />
           </div>
+        </div>
+      </section>
+
+      <section className="border-border bg-card/70 rounded-[14px] border p-3 text-sm sm:p-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="bg-accent text-primary flex size-9 shrink-0 items-center justify-center rounded-[10px]">
+            <ShieldCheck className="size-4" aria-hidden="true" />
+          </div>
+          <p className="text-muted-foreground leading-6">
+            {t(
+              'Posts are always free. Add clear photos and pickup details so people know exactly what they are requesting.',
+            )}
+          </p>
         </div>
       </section>
 
@@ -96,5 +132,14 @@ export function CreatePostPage() {
         </section>
       ) : null}
     </PageContainer>
+  );
+}
+
+function CreatePostSignal({ icon, label }: { icon: ReactNode; label: string }) {
+  return (
+    <div className="soft-surface flex min-w-0 items-center justify-center gap-1.5 rounded-[10px] px-2 py-2 font-semibold">
+      <span className="text-primary shrink-0">{icon}</span>
+      <span className="truncate">{label}</span>
+    </div>
   );
 }
