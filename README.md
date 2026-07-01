@@ -13,6 +13,7 @@ Required:
 Recommended for production:
 
 - `VITE_SUPPORT_EMAIL`, currently `gaachuqegeorgia@gmail.com`.
+- `VITE_INSTAGRAM_URL`, currently `https://www.instagram.com/gaachuqe_/`.
 - `VITE_APP_ENV=production`
 - `VITE_APP_RELEASE` with the deployed version or commit SHA.
 

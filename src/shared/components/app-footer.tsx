@@ -1,6 +1,8 @@
+import { Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { BrandLogo } from '@/shared/components/brand-logo';
+import { instagramUrl } from '@/shared/config/contact';
 import { useI18n } from '@/shared/i18n/i18n';
 
 const footerLinks = [
@@ -28,20 +30,33 @@ export function AppFooter() {
           </div>
         </div>
 
-        <nav
-          aria-label={t('Legal and trust')}
-          className="flex flex-wrap gap-x-3 gap-y-1 text-sm"
-        >
-          {footerLinks.map((link) => (
-            <Link
-              className="text-muted-foreground hover:text-foreground rounded-md py-1 font-medium transition-colors"
-              key={link.href}
-              to={localizedPath(link.href)}
-            >
-              {t(link.label)}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <nav
+            aria-label={t('Legal and trust')}
+            className="flex flex-wrap gap-x-3 gap-y-1 text-sm"
+          >
+            {footerLinks.map((link) => (
+              <Link
+                className="text-muted-foreground hover:text-foreground rounded-md py-1 font-medium transition-colors"
+                key={link.href}
+                to={localizedPath(link.href)}
+              >
+                {t(link.label)}
+              </Link>
+            ))}
+          </nav>
+
+          <a
+            aria-label="Gaachuqe Instagram"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md py-1 text-sm font-semibold transition-colors"
+            href={instagramUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <Camera className="size-4" aria-hidden="true" />
+            <span>@gaachuqe_</span>
+          </a>
+        </div>
       </div>
     </footer>
   );
