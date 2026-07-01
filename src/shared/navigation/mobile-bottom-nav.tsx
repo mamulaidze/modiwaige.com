@@ -19,7 +19,7 @@ export function MobileBottomNav() {
         return false;
       }
 
-      return ['Home', 'Search', 'Post', 'Reservations', 'Profile'].includes(
+      return ['Home', 'Search', 'Post', 'Chats', 'Profile'].includes(
         item.labelKey,
       );
     })
@@ -70,31 +70,31 @@ export function MobileBottomNav() {
           );
 
           return (
-          <NavLink
-            className={() =>
-              cn(
-                'text-muted-foreground flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] leading-none font-medium transition-colors',
-                item.labelKey === 'Post' &&
-                  'bg-primary text-primary-foreground -mt-4 min-h-[60px] gap-1.5 rounded-2xl px-2 pt-2 pb-1 text-[10px] leading-tight shadow-md',
-                isActive &&
-                  item.labelKey !== 'Post' &&
-                  'bg-accent/80 text-primary backdrop-blur',
-              )
-            }
-            key={item.labelKey}
-            to={localizedPath(item.href)}
-          >
-            <item.icon
-              className={cn(
-                'size-[18px] shrink-0',
-                item.labelKey === 'Post' && 'size-5',
-              )}
-              aria-hidden="true"
-            />
-            <span className="block max-w-full truncate text-center">
-              {t(item.labelKey)}
-            </span>
-          </NavLink>
+            <NavLink
+              className={() =>
+                cn(
+                  'text-muted-foreground flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] leading-none font-medium transition-colors',
+                  item.labelKey === 'Post' &&
+                    'bg-primary text-primary-foreground -mt-4 min-h-[60px] gap-1.5 rounded-2xl px-2 pt-2 pb-1 text-[10px] leading-tight shadow-md',
+                  isActive &&
+                    item.labelKey !== 'Post' &&
+                    'bg-accent/80 text-primary backdrop-blur',
+                )
+              }
+              key={item.labelKey}
+              to={localizedPath(item.href)}
+            >
+              <item.icon
+                className={cn(
+                  'size-[18px] shrink-0',
+                  item.labelKey === 'Post' && 'size-5',
+                )}
+                aria-hidden="true"
+              />
+              <span className="block max-w-full truncate text-center">
+                {t(item.labelKey)}
+              </span>
+            </NavLink>
           );
         })}
       </div>

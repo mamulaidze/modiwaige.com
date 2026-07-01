@@ -6,6 +6,7 @@ import {
   ImagePlus,
   MapPin,
   Package,
+  Rocket,
   Tag,
   Trash2,
 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
+import { useAdminStatus } from '@/features/admin/hooks/use-admin-status';
 import type { FeedPage } from '@/features/feed/api/feed-api';
 import { useAuth } from '@/features/auth/context/use-auth';
 import {
@@ -27,6 +29,12 @@ import { cn } from '@/shared/lib/cn';
 import { getFriendlyErrorMessage, logErrorDetails } from '@/shared/lib/errors';
 
 import { createPost } from '../api/create-post-api';
+import type { PostBoostPlan } from '../api/post-boost-api';
+import {
+  boostPlanOptions,
+  defaultBoostPlan,
+  getBoostPlanOption,
+} from '../constants/boost-plans';
 import { postCityOptions } from '../constants/post-options';
 import { compressImage } from '../utils/compress-image';
 import {
@@ -39,14 +47,22 @@ type PhotoPreview = {
   file: File;
   url: string;
 };
+type CreateListingPlan = PostBoostPlan | 'free';
 
 export function CreatePostForm() {
   const { user } = useAuth();
   const { localizedPath, t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const adminStatus = useAdminStatus();
+  const canUseDemoPayments = Boolean(adminStatus.data);
+  const [selectedPlan, setSelectedPlan] = useState<CreateListingPlan | null>(
+    null,
+  );
   const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
+  const selectedBoostPlan =
+    selectedPlan && selectedPlan !== 'free' ? selectedPlan : null;
 
   const {
     formState: { errors },
@@ -94,7 +110,16 @@ export function CreatePostForm() {
         },
       );
       void queryClient.invalidateQueries({ queryKey: ['feed'] });
-      navigate(localizedPath('/'), { replace: true });
+      navigate(
+        localizedPath(
+          `/posts/${post.id}${
+            selectedBoostPlan && canUseDemoPayments
+              ? `?boost=${selectedBoostPlan}`
+              : ''
+          }`,
+        ),
+        { replace: true },
+      );
     },
     onError: (error) => {
       logErrorDetails('Post creation failed', error);
@@ -185,12 +210,35 @@ export function CreatePostForm() {
     });
   }
 
+  function choosePlan(plan: CreateListingPlan) {
+    setSelectedPlan(plan);
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ behavior: 'smooth', top: 0 });
+    });
+  }
+
+  if (!selectedPlan) {
+    return (
+      <CreatePostPlanChooser
+        canUseDemoPayments={canUseDemoPayments}
+        isCheckingVip={adminStatus.isLoading}
+        onSelect={choosePlan}
+      />
+    );
+  }
+
   return (
     <form
       className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="min-w-0 space-y-4">
+        <SelectedPlanSummary
+          className="lg:hidden"
+          selectedPlan={selectedPlan}
+          onChangePlan={() => setSelectedPlan(null)}
+        />
+
         <FormCard>
           <SectionTitle
             icon={<ImagePlus className="size-4" aria-hidden="true" />}
@@ -524,6 +572,11 @@ export function CreatePostForm() {
               </div>
             ))}
           </div>
+          <SelectedPlanSummary
+            className="mt-4"
+            selectedPlan={selectedPlan}
+            onChangePlan={() => setSelectedPlan(null)}
+          />
           <Button
             className="mt-5 h-12 w-full"
             disabled={isSubmitting}
@@ -553,6 +606,195 @@ export function CreatePostForm() {
         </div>
       </aside>
     </form>
+  );
+}
+
+function CreatePostPlanChooser({
+  canUseDemoPayments,
+  isCheckingVip,
+  onSelect,
+}: {
+  canUseDemoPayments: boolean;
+  isCheckingVip: boolean;
+  onSelect: (plan: CreateListingPlan) => void;
+}) {
+  const { t } = useI18n();
+  const isVipDisabled = isCheckingVip || !canUseDemoPayments;
+
+  return (
+    <section className="space-y-4">
+      <div className="boost-priority-card rounded-[16px] p-5 sm:p-6">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="boost-cta-button flex size-11 shrink-0 items-center justify-center rounded-[12px]">
+            <Rocket className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-xl leading-7 font-bold">
+              {t('Choose listing plan')}
+            </h2>
+            <p className="mt-1 text-sm leading-6 opacity-85">
+              {t('Pick how your item should appear before writing the post.')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        className="solid-surface border-primary/40 hover:border-primary/70 hover:bg-accent/60 flex w-full flex-col gap-4 rounded-[16px] border p-4 text-left transition-colors sm:p-5"
+        type="button"
+        onClick={() => onSelect('free')}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-primary text-xs font-bold tracking-[0.12em] uppercase">
+                {t('Free plan')}
+              </p>
+            </div>
+            <h3 className="mt-1 text-lg font-bold">{t('Standard listing')}</h3>
+            <p className="text-muted-foreground mt-1 text-sm leading-5">
+              {t(
+                'Post for free now. You can still boost this item later from the post page.',
+              )}
+            </p>
+          </div>
+          <span className="bg-primary text-primary-foreground flex min-h-11 shrink-0 items-center justify-center rounded-[10px] px-4 text-sm font-bold">
+            {t('Continue free')}
+          </span>
+        </div>
+      </button>
+
+      <div className="space-y-3">
+        <div className="flex flex-col gap-1 px-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-bold">{t('VIP priority')}</p>
+            <p className="text-muted-foreground text-sm leading-5">
+              {t('Publish, then boost your item to the top of the feed.')}
+            </p>
+          </div>
+          {!canUseDemoPayments ? (
+            <p className="text-muted-foreground text-xs font-semibold">
+              {t('Admin demo only')}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          {boostPlanOptions.map((option) => {
+            const isRecommended = option.plan === defaultBoostPlan;
+
+            return (
+              <button
+                className={cn(
+                  'boost-priority-card flex min-h-44 flex-col rounded-[16px] p-4 text-left transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:translate-y-0 sm:p-5',
+                  isRecommended && 'shadow-lg ring-2 ring-amber-300/75',
+                )}
+                disabled={isVipDisabled}
+                key={option.plan}
+                type="button"
+                onClick={() => onSelect(option.plan)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs font-bold tracking-[0.12em] uppercase">
+                        {t('VIP priority')}
+                      </p>
+                      {isRecommended ? (
+                        <span className="rounded-full bg-white/70 px-2.5 py-1 text-xs font-black text-amber-800 dark:bg-white/15 dark:text-amber-100">
+                          {t('Recommended')}
+                        </span>
+                      ) : null}
+                    </div>
+                    <h3 className="mt-1 text-lg font-bold">
+                      {t(option.title)}
+                    </h3>
+                  </div>
+                  <span className="rounded-full bg-white/60 px-2 py-1 text-sm font-black text-amber-800 dark:bg-white/10 dark:text-amber-100">
+                    {option.price}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm font-semibold">
+                  {t(option.duration)}
+                </p>
+                <p className="mt-1 text-sm leading-5 opacity-80">
+                  {t(option.description)}
+                </p>
+                <span className="boost-cta-button mt-auto flex min-h-11 items-center justify-center rounded-[10px] px-3 py-2 text-sm font-bold">
+                  {isCheckingVip
+                    ? t('Checking VIP availability...')
+                    : canUseDemoPayments
+                      ? t('Continue with VIP')
+                      : t('Admin demo only')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SelectedPlanSummary({
+  className,
+  onChangePlan,
+  selectedPlan,
+}: {
+  className?: string;
+  onChangePlan: () => void;
+  selectedPlan: CreateListingPlan;
+}) {
+  const { t } = useI18n();
+  const boostOption =
+    selectedPlan === 'free' ? null : getBoostPlanOption(selectedPlan);
+
+  return (
+    <div
+      className={cn(
+        boostOption ? 'boost-priority-card' : 'soft-surface',
+        'rounded-[14px] p-4',
+        className,
+      )}
+    >
+      <div className="flex min-w-0 items-start gap-3">
+        <span
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-[10px]',
+            boostOption ? 'boost-cta-button' : 'bg-accent text-primary',
+          )}
+        >
+          {boostOption ? (
+            <Rocket className="size-5" aria-hidden="true" />
+          ) : (
+            <Check className="size-5" aria-hidden="true" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold tracking-[0.12em] uppercase opacity-75">
+            {t('Selected plan')}
+          </p>
+          <p className="mt-1 font-bold">
+            {boostOption
+              ? `${t(boostOption.title)} - ${boostOption.price}`
+              : t('Free plan')}
+          </p>
+          <p className="mt-1 text-sm leading-5 opacity-80">
+            {boostOption
+              ? t('VIP boost opens after publishing.')
+              : t('Standard free listing.')}
+          </p>
+        </div>
+        <Button
+          className="h-9 shrink-0 px-3"
+          type="button"
+          variant="outline"
+          onClick={onChangePlan}
+        >
+          {t('Change')}
+        </Button>
+      </div>
+    </div>
   );
 }
 

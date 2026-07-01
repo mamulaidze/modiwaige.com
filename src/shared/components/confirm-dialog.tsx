@@ -22,6 +22,7 @@ type ConfirmDialogProps = {
   isLoading?: boolean;
   loadingLabel?: string;
   children?: ReactNode;
+  confirmClassName?: string;
   icon?: ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
@@ -30,6 +31,7 @@ type ConfirmDialogProps = {
 export function ConfirmDialog({
   cancelLabel,
   children,
+  confirmClassName,
   confirmLabel,
   danger = false,
   description,
@@ -92,6 +94,7 @@ export function ConfirmDialog({
                 'h-auto min-h-12 py-3 text-center leading-5 whitespace-normal',
                 danger &&
                   'bg-destructive text-primary-foreground hover:bg-destructive/90 shadow-none hover:shadow-none',
+                confirmClassName,
               )}
               disabled={isLoading}
               type="button"

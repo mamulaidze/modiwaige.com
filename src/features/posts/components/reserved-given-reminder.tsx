@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { fetchMyPosts } from '@/features/account/api/profile-api';
@@ -10,7 +10,7 @@ import { useI18n } from '@/shared/i18n/i18n';
 export function ReservedGivenReminder() {
   const { isAuthenticated, user } = useAuth();
   const { localizedPath, t } = useI18n();
-  const [dismissedKey, setDismissedKey] = useState<string | null>(null);
+  const [dismissedKeys, setDismissedKeys] = useState<string[]>([]);
 
   const myPostsQuery = useQuery({
     queryKey: ['my-posts', user?.id, 'reserved-given-reminder'],
@@ -36,28 +36,20 @@ export function ReservedGivenReminder() {
     user?.id && acceptedReservationPostIds.length > 0
       ? `reserved-given-reminder:${user.id}:${acceptedReservationPostIds.join(',')}`
       : null;
+  const isDismissed =
+    Boolean(reminderKey && dismissedKeys.includes(reminderKey)) ||
+    Boolean(reminderKey && sessionStorage.getItem(reminderKey) === 'dismissed');
 
-  useEffect(() => {
-    if (!reminderKey) {
-      setDismissedKey(null);
-      return;
-    }
-
-    setDismissedKey(
-      sessionStorage.getItem(reminderKey) === 'dismissed'
-        ? reminderKey
-        : null,
-    );
-  }, [reminderKey]);
-
-  if (!isAuthenticated || !reminderKey || dismissedKey === reminderKey) {
+  if (!isAuthenticated || !reminderKey || isDismissed) {
     return null;
   }
 
   function dismissReminder() {
     if (reminderKey) {
       sessionStorage.setItem(reminderKey, 'dismissed');
-      setDismissedKey(reminderKey);
+      setDismissedKeys((current) =>
+        current.includes(reminderKey) ? current : [...current, reminderKey],
+      );
     }
   }
 

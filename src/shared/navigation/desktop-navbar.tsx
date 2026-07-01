@@ -10,6 +10,7 @@ import {
   Home,
   Laptop,
   LogOut,
+  MessageCircle,
   Moon,
   PawPrint,
   Search,
@@ -281,6 +282,12 @@ export function DesktopNavbar({ isLoggingOut, onLogout }: DesktopNavbarProps) {
                         {unreadLabel}
                       </span>
                     ) : null}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={localizedPath('/chats')}>
+                    <MessageCircle className="size-4" aria-hidden="true" />
+                    {t('Chats')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

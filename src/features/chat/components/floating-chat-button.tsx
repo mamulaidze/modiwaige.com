@@ -3,12 +3,9 @@ import { MessageCircle } from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { fetchMyPosts, fetchReservedItems } from '@/features/account/api/profile-api';
 import { useAuth } from '@/features/auth/context/use-auth';
 import { fetchUnreadChatNotificationCount } from '@/features/notifications/api/notifications-api';
 import { useI18n } from '@/shared/i18n/i18n';
-
-import { buildChatInboxRows } from '../utils/chat-inbox';
 
 const EDGE_INSET = 12;
 const TOP_INSET = 72;
@@ -49,20 +46,6 @@ export function FloatingChatButton() {
   const positionRef = useRef(position);
   const shouldHide = /\/chat(s)?(\/|$)/.test(location.pathname);
 
-  const reservedItemsQuery = useQuery({
-    queryKey: ['reserved-items', user?.id],
-    queryFn: () => fetchReservedItems(user?.id ?? ''),
-    enabled: isAuthenticated && Boolean(user?.id) && !shouldHide,
-    staleTime: 20_000,
-  });
-
-  const myPostsQuery = useQuery({
-    queryKey: ['my-posts', user?.id],
-    queryFn: () => fetchMyPosts(user?.id ?? ''),
-    enabled: isAuthenticated && Boolean(user?.id) && !shouldHide,
-    staleTime: 20_000,
-  });
-
   const unreadChatQuery = useQuery({
     queryKey: ['unread-chat-notifications', user?.id],
     queryFn: () => fetchUnreadChatNotificationCount(user?.id),
@@ -82,12 +65,7 @@ export function FloatingChatButton() {
 
     positionRef.current = nextPosition;
     setPosition(nextPosition);
-  }, [
-    isAuthenticated,
-    myPostsQuery.dataUpdatedAt,
-    reservedItemsQuery.dataUpdatedAt,
-    shouldHide,
-  ]);
+  }, [isAuthenticated, shouldHide]);
 
   useEffect(() => {
     if (!isAuthenticated || shouldHide) {
@@ -95,7 +73,9 @@ export function FloatingChatButton() {
     }
 
     function handleResize() {
-      updatePosition(clampPosition(positionRef.current.x, positionRef.current.y));
+      updatePosition(
+        clampPosition(positionRef.current.x, positionRef.current.y),
+      );
     }
 
     window.addEventListener('resize', handleResize);
@@ -107,17 +87,9 @@ export function FloatingChatButton() {
     };
   }, [isAuthenticated, shouldHide]);
 
-  const chats = buildChatInboxRows(
-    reservedItemsQuery.data ?? [],
-    myPostsQuery.data ?? [],
-  );
   const unreadChatCount = Number(unreadChatQuery.data ?? 0);
 
   if (!isAuthenticated || shouldHide) {
-    return null;
-  }
-
-  if (chats.length === 0) {
     return null;
   }
 
@@ -223,9 +195,12 @@ export function FloatingChatButton() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <MessageCircle className="size-[22px] sm:size-6 lg:size-[22px]" aria-hidden="true" />
+      <MessageCircle
+        className="size-[22px] sm:size-6 lg:size-[22px]"
+        aria-hidden="true"
+      />
       {unreadChatCount > 0 ? (
-        <span className="bg-destructive text-primary-foreground absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-5 font-bold ring-2 ring-background sm:min-w-[22px] sm:text-[11px] sm:leading-[22px]">
+        <span className="bg-destructive text-primary-foreground ring-background absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-5 font-bold ring-2 sm:min-w-[22px] sm:text-[11px] sm:leading-[22px]">
           {unreadChatCount > 9 ? '9+' : unreadChatCount}
         </span>
       ) : null}

@@ -170,12 +170,15 @@ export async function fetchPostDetails(postId: string): Promise<PostDetails> {
 }
 
 export async function reservePost(postId: string) {
-  const { error } = await supabase.rpc('reserve_post', {
-    target_post_id: postId,
+  const { error } = await supabase.functions.invoke('reserve-post-free', {
+    body: { postId },
+    method: 'POST',
   });
 
   if (error) {
-    throw getReservationRpcError(error);
+    throw getReservationRpcError({
+      message: await getFunctionErrorMessage(error),
+    });
   }
 }
 
@@ -346,7 +349,19 @@ function getReservationRpcErrorMessage(
     return 'Owners cannot reserve their own posts.';
   }
 
-  if (/already reserved|not available/i.test(message)) {
+  if (
+    /already requested|already have.*reservation|reservations_one_active_per_post_requester/i.test(
+      message,
+    )
+  ) {
+    return 'You already requested this item.';
+  }
+
+  if (/already reserved/i.test(message)) {
+    return 'This item is already reserved.';
+  }
+
+  if (/not available/i.test(message)) {
     return 'This item is not available.';
   }
 

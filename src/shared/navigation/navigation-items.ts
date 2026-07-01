@@ -1,6 +1,7 @@
 import {
   Home,
   LogIn,
+  MessageCircle,
   Search,
   CalendarCheck,
   PlusCircle,
@@ -40,6 +41,12 @@ export const navigationItems: NavigationItem[] = [
     href: '/reservations',
     labelKey: 'Reservations',
     icon: CalendarCheck,
+    requiresAuth: true,
+  },
+  {
+    href: '/chats',
+    labelKey: 'Chats',
+    icon: MessageCircle,
     requiresAuth: true,
   },
   {

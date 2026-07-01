@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useClerk } from '@clerk/clerk-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
@@ -12,7 +13,6 @@ import {
   Phone,
   Settings,
   ShieldCheck,
-  Rocket,
   Tag,
   Trash2,
   User,
@@ -37,7 +37,7 @@ import {
 import { ReservationCountdown } from '@/features/posts/components/reservation-countdown';
 import { ReservationStatusBadge } from '@/features/posts/components/reservation-status-badge';
 import { BoostBadge } from '@/features/posts/components/boost-badge';
-import { BoostActiveCountdown } from '@/features/posts/components/boost-active-countdown';
+import { BoostCtaButton } from '@/features/posts/components/boost-cta-button';
 import {
   BoostPaymentSuccess,
   BoostSuccessAlert,
@@ -89,6 +89,7 @@ const profileLocationBaseOptions = [
 
 export function AccountPage() {
   const { user } = useAuth();
+  const clerk = useClerk();
   const { language, localizedPath, t } = useI18n();
   const adminStatus = useAdminStatus();
   const navigate = useNavigate();
@@ -277,6 +278,7 @@ export function AccountPage() {
           }}
           onAccountDeleted={() => {
             queryClient.clear();
+            void clerk.signOut();
             navigate(localizedPath('/'), { replace: true });
           }}
         />
@@ -463,23 +465,16 @@ function MyPostsSection({
 
               <div className="border-border flex flex-wrap items-center gap-2 border-t pt-4">
                 {canUseDemoPayments ? (
-                  <Button
-                    className="h-10 bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-100"
+                  <BoostCtaButton
+                    boostExpiresAt={post.boostExpiresAt}
                     disabled={
                       post.status !== 'available' ||
                       post.isBoosted ||
                       boostingPostId === post.id
                     }
-                    type="button"
+                    isBoosted={post.isBoosted}
                     onClick={() => setBoostDialogPostId(post.id)}
-                  >
-                    <Rocket className="size-4" aria-hidden="true" />
-                    {post.isBoosted && post.boostExpiresAt ? (
-                      <BoostActiveCountdown expiresAt={post.boostExpiresAt} />
-                    ) : (
-                      t('Boost post')
-                    )}
-                  </Button>
+                  />
                 ) : null}
                 <Button asChild variant="outline">
                   <Link to={localizedPath(`/posts/${post.id}`)}>

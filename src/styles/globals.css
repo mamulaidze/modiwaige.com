@@ -245,6 +245,85 @@ a:not([class]) {
     background: var(--theme-destructive-soft);
   }
 
+  .boost-cta-button {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid hsl(42 92% 50% / 0.5);
+    background:
+      linear-gradient(
+        135deg,
+        hsl(42 94% 52%) 0%,
+        hsl(35 88% 48%) 48%,
+        hsl(154 52% 35%) 100%
+      ),
+      hsl(38 90% 48%);
+    color: white;
+    box-shadow:
+      0 12px 28px hsl(35 88% 42% / 0.24),
+      inset 0 1px 0 hsl(0 0% 100% / 0.28);
+  }
+
+  .boost-cta-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-110%) skewX(-18deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(0 0% 100% / 0.22),
+      transparent
+    );
+    transition: transform 420ms ease;
+  }
+
+  .boost-cta-button:hover {
+    border-color: hsl(42 96% 58% / 0.72);
+    background:
+      linear-gradient(
+        135deg,
+        hsl(42 98% 57%) 0%,
+        hsl(35 90% 52%) 46%,
+        hsl(154 56% 38%) 100%
+      ),
+      hsl(38 90% 48%);
+    box-shadow:
+      0 14px 34px hsl(35 88% 42% / 0.32),
+      inset 0 1px 0 hsl(0 0% 100% / 0.34);
+  }
+
+  .boost-cta-button:hover::after {
+    transform: translateX(110%) skewX(-18deg);
+  }
+
+  .boost-priority-card {
+    border: 1px solid hsl(42 92% 50% / 0.38);
+    background:
+      linear-gradient(
+        135deg,
+        hsl(42 100% 96%) 0%,
+        hsl(44 94% 91%) 58%,
+        hsl(154 54% 92%) 100%
+      ),
+      theme(--color-card);
+    color: hsl(35 46% 18%);
+    box-shadow: 0 14px 34px hsl(35 88% 42% / 0.1);
+  }
+
+  :root[data-theme='dark'] .boost-priority-card {
+    border-color: hsl(42 90% 58% / 0.28);
+    background:
+      linear-gradient(
+        135deg,
+        hsl(38 74% 18%) 0%,
+        hsl(35 72% 14%) 58%,
+        hsl(154 48% 13%) 100%
+      ),
+      theme(--color-card);
+    color: hsl(42 90% 88%);
+    box-shadow: 0 16px 38px hsl(0 0% 0% / 0.24);
+  }
+
   .sponsored-campaign {
     border: 1px solid var(--theme-border);
     background: theme(--color-card);
@@ -602,7 +681,8 @@ a:not([class]) {
 
 @keyframes reservation-success-pulse {
   0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--theme-primary) 30%, transparent);
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--theme-primary) 30%, transparent);
   }
   100% {
     box-shadow: 0 0 0 14px transparent;

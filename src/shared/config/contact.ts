@@ -3,6 +3,6 @@ const configuredSupportEmail = import.meta.env.VITE_SUPPORT_EMAIL as
   | undefined;
 
 export const supportEmail =
-  configuredSupportEmail?.trim() || 'support@gaachuqe.com';
+  configuredSupportEmail?.trim() || 'gaachuqegeorgia@gmail.com';
 
 export const supportMailto = `mailto:${supportEmail}`;

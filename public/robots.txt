@@ -1,0 +1,44 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /register
+Disallow: /create
+Disallow: /profile
+Disallow: /reservations
+Disallow: /notifications
+Disallow: /admin
+Disallow: /chats
+Disallow: /chat/
+
+Disallow: /ge/login
+Disallow: /ge/register
+Disallow: /ge/create
+Disallow: /ge/profile
+Disallow: /ge/reservations
+Disallow: /ge/notifications
+Disallow: /ge/admin
+Disallow: /ge/chats
+Disallow: /ge/chat/
+
+Disallow: /en/login
+Disallow: /en/register
+Disallow: /en/create
+Disallow: /en/profile
+Disallow: /en/reservations
+Disallow: /en/notifications
+Disallow: /en/admin
+Disallow: /en/chats
+Disallow: /en/chat/
+
+Disallow: /ru/login
+Disallow: /ru/register
+Disallow: /ru/create
+Disallow: /ru/profile
+Disallow: /ru/reservations
+Disallow: /ru/notifications
+Disallow: /ru/admin
+Disallow: /ru/chats
+Disallow: /ru/chat/
+
+Sitemap: https://gaachuqe.com/sitemap.xml

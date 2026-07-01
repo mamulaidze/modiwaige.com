@@ -213,8 +213,7 @@ export async function fetchReservedItems(
           title: reservation.posts.title,
           location: reservation.posts.location,
           status: reservation.posts.status,
-          ownerName:
-            reservation.posts.owner?.display_name ?? 'Gaachuqe member',
+          ownerName: reservation.posts.owner?.display_name ?? 'Gaachuqe member',
         }
       : null,
   }));
@@ -248,6 +247,4 @@ export async function deleteAccount() {
   if (error) {
     throw new Error(error.message);
   }
-
-  await supabase.auth.signOut();
 }

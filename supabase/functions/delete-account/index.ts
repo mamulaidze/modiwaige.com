@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 type DeleteAccountResponse = {
   deletedImageCount: number;
   deletedPostCount: number;
+  deletedProfileId: string;
 };
 
 const corsHeaders = {
@@ -49,14 +50,19 @@ Deno.serve(async (request) => {
     global: { headers: { Authorization: authorization } },
   });
 
-  const {
-    data: { user },
-    error: authError,
-  } = await userClient.auth.getUser();
+  const { data: profileId, error: profileError } =
+    await userClient.rpc('current_profile_id');
 
-  if (authError || !user) {
+  if (profileError) {
     return Response.json(
-      { error: authError?.message ?? 'Invalid session.' },
+      { error: profileError.message },
+      { headers: corsHeaders, status: 401 },
+    );
+  }
+
+  if (!profileId) {
+    return Response.json(
+      { error: 'Authentication is required.' },
       { headers: corsHeaders, status: 401 },
     );
   }
@@ -68,7 +74,7 @@ Deno.serve(async (request) => {
   const { data: posts, error: postsError } = await adminClient
     .from('posts')
     .select('id')
-    .eq('owner_id', user.id);
+    .eq('owner_id', profileId);
 
   if (postsError) {
     return Response.json(
@@ -109,13 +115,14 @@ Deno.serve(async (request) => {
     }
   }
 
-  const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(
-    user.id,
-  );
+  const { error: deleteProfileError } = await adminClient
+    .from('profiles')
+    .delete()
+    .eq('id', profileId);
 
-  if (deleteUserError) {
+  if (deleteProfileError) {
     return Response.json(
-      { error: deleteUserError.message },
+      { error: deleteProfileError.message },
       { headers: corsHeaders, status: 500 },
     );
   }
@@ -124,6 +131,7 @@ Deno.serve(async (request) => {
     {
       deletedImageCount: storagePaths.length,
       deletedPostCount: postIds.length,
+      deletedProfileId: profileId,
     } satisfies DeleteAccountResponse,
     { headers: corsHeaders },
   );

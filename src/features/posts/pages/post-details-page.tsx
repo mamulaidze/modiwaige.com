@@ -10,7 +10,6 @@ import {
   MoreHorizontal,
   Pencil,
   ShieldCheck,
-  Rocket,
   Sparkles,
   X,
   Trash2,
@@ -73,11 +72,12 @@ import {
   activateDemoPostBoost,
   type PostBoostPlan,
 } from '../api/post-boost-api';
+import { parseBoostPlan } from '../constants/boost-plans';
 import { postCityOptions } from '../constants/post-options';
 import { ReservationCountdown } from '../components/reservation-countdown';
 import { ReservationStatusBadge } from '../components/reservation-status-badge';
 import { BoostBadge } from '../components/boost-badge';
-import { BoostActiveCountdown } from '../components/boost-active-countdown';
+import { BoostCtaButton } from '../components/boost-cta-button';
 import {
   BoostPaymentSuccess,
   BoostSuccessAlert,
@@ -89,6 +89,10 @@ import type { PostReservation } from '../types/post-details';
 const editPostSchema = createPostSchema.omit({ photos: true });
 type EditPostInput = z.input<typeof editPostSchema>;
 type EditPostValues = z.output<typeof editPostSchema>;
+type ReservationSuccessState = {
+  kind: 'free' | 'instant';
+  postId: string;
+};
 const postCityPickerOptions = postCityOptions.map((city) => ({
   label: city,
   value: city,
@@ -182,9 +186,8 @@ export function PostDetailsPage() {
     null,
   );
   const [actionError, setActionError] = useState<string | null>(null);
-  const [reservationSuccess, setReservationSuccess] = useState<
-    'free' | 'instant' | null
-  >(null);
+  const [reservationSuccess, setReservationSuccess] =
+    useState<ReservationSuccessState | null>(null);
   const [confirmation, setConfirmation] = useState<
     'mark-given' | 'delete' | 'cancel-reservation' | 'reserve' | null
   >(null);
@@ -195,11 +198,15 @@ export function PostDetailsPage() {
 
   useEffect(() => {
     window.scrollTo({ behavior: 'smooth', top: 0 });
-    setReservationSuccess(null);
   }, [postId]);
 
+  const currentReservationSuccess =
+    reservationSuccess && reservationSuccess.postId === postId
+      ? reservationSuccess.kind
+      : null;
+
   useEffect(() => {
-    if (!reservationSuccess) {
+    if (!currentReservationSuccess) {
       return;
     }
 
@@ -208,7 +215,7 @@ export function PostDetailsPage() {
     }, 5200);
 
     return () => window.clearTimeout(timeoutId);
-  }, [reservationSuccess]);
+  }, [currentReservationSuccess]);
 
   const {
     data: post,
@@ -454,6 +461,7 @@ export function PostDetailsPage() {
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       await queryClient.invalidateQueries({ queryKey: ['my-posts'] });
       setIsBoostDialogOpen(false);
+      clearBoostPlanSearchParam();
       setActionError(null);
       setBoostSuccessExpiresAt(boostedPost.boost_expires_at);
     },
@@ -509,6 +517,30 @@ export function PostDetailsPage() {
     : null;
   const hasProfilePhone = Boolean(profileQuery.data?.phoneNumber?.trim());
   const canUseDemoPayments = Boolean(adminStatus.data);
+  const requestedBoostPlan = parseBoostPlan(searchParams.get('boost'));
+  const isRequestedBoostDialogOpen = Boolean(
+    requestedBoostPlan &&
+    isOwner &&
+    canUseDemoPayments &&
+    post.status === 'available' &&
+    !post.isBoosted,
+  );
+  const isBoostDialogVisible = isBoostDialogOpen || isRequestedBoostDialogOpen;
+
+  function clearBoostPlanSearchParam() {
+    if (!searchParams.has('boost')) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('boost');
+    setSearchParams(nextParams, { replace: true });
+  }
+
+  function closeBoostDialog() {
+    setIsBoostDialogOpen(false);
+    clearBoostPlanSearchParam();
+  }
 
   function handleReserveRequest() {
     if (!hasProfilePhone) {
@@ -531,7 +563,7 @@ export function PostDetailsPage() {
         ? 'Reservation successful.'
         : 'Reservation request sent.';
 
-    setReservationSuccess(kind);
+    setReservationSuccess({ kind, postId: postId ?? '' });
     setActionError(null);
     setConfirmation(null);
     toast.success(t(message));
@@ -868,12 +900,24 @@ export function PostDetailsPage() {
                 </p>
               ) : null}
 
-              {reservationSuccess ? (
-                <ReservationSuccessNotice kind={reservationSuccess} />
+              {currentReservationSuccess ? (
+                <ReservationSuccessNotice kind={currentReservationSuccess} />
               ) : null}
 
               {isOwner ? (
                 <div className="border-border flex flex-wrap items-center gap-2 border-t pt-4">
+                  {canUseDemoPayments ? (
+                    <BoostCtaButton
+                      boostExpiresAt={post.boostExpiresAt}
+                      disabled={
+                        post.status !== 'available' ||
+                        post.isBoosted ||
+                        boostMutation.isPending
+                      }
+                      isBoosted={post.isBoosted}
+                      onClick={() => setIsBoostDialogOpen(true)}
+                    />
+                  ) : null}
                   <Button
                     className="h-10"
                     type="button"
@@ -897,25 +941,6 @@ export function PostDetailsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {canUseDemoPayments ? (
-                        <DropdownMenuItem
-                          disabled={
-                            post.status !== 'available' ||
-                            post.isBoosted ||
-                            boostMutation.isPending
-                          }
-                          onSelect={() => setIsBoostDialogOpen(true)}
-                        >
-                          <Rocket className="size-4" aria-hidden="true" />
-                          {post.isBoosted && post.boostExpiresAt ? (
-                            <BoostActiveCountdown
-                              expiresAt={post.boostExpiresAt}
-                            />
-                          ) : (
-                            t('Boost post')
-                          )}
-                        </DropdownMenuItem>
-                      ) : null}
                       <DropdownMenuItem
                         disabled={
                           post.status === 'given' || markGivenMutation.isPending
@@ -939,7 +964,7 @@ export function PostDetailsPage() {
                 <div
                   className={cn(
                     'hidden space-y-2 md:block',
-                    reservationSuccess && 'reservation-success-pulse',
+                    currentReservationSuccess && 'reservation-success-pulse',
                   )}
                 >
                   <VisitorAction
@@ -983,11 +1008,14 @@ export function PostDetailsPage() {
           <div
             className={cn(
               'mx-auto max-w-md space-y-2',
-              reservationSuccess && 'reservation-success-pulse',
+              currentReservationSuccess && 'reservation-success-pulse',
             )}
           >
-            {reservationSuccess ? (
-              <ReservationSuccessNotice compact kind={reservationSuccess} />
+            {currentReservationSuccess ? (
+              <ReservationSuccessNotice
+                compact
+                kind={currentReservationSuccess}
+              />
             ) : null}
             <VisitorAction
               disabled={
@@ -1030,10 +1058,11 @@ export function PostDetailsPage() {
         />
       ) : null}
 
-      {isBoostDialogOpen ? (
+      {isBoostDialogVisible ? (
         <BoostPostDialog
+          initialPlan={requestedBoostPlan ?? undefined}
           isLoading={boostMutation.isPending}
-          onCancel={() => setIsBoostDialogOpen(false)}
+          onCancel={closeBoostDialog}
           onConfirm={(plan) => boostMutation.mutate(plan)}
         />
       ) : null}
@@ -1098,9 +1127,7 @@ export function PostDetailsPage() {
           onConfirm={() => cancelReservationMutation.mutate()}
         >
           <div className="danger-soft text-destructive rounded-[12px] border border-current/30 p-3 text-sm leading-6">
-            <p className="font-semibold">
-              {t('Penalty warning')}
-            </p>
+            <p className="font-semibold">{t('Penalty warning')}</p>
             <p className="mt-1">
               {t(
                 'If you cancel now, your account will be blocked from reserving and creating posts for 5 hours.',
@@ -1622,9 +1649,7 @@ function ReservationSuccessNotice({
         </div>
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
-            <p className="font-semibold [overflow-wrap:anywhere]">
-              {t(title)}
-            </p>
+            <p className="font-semibold [overflow-wrap:anywhere]">{t(title)}</p>
             <Sparkles
               className="reservation-success-spark text-primary size-4 shrink-0"
               aria-hidden="true"

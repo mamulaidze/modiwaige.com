@@ -788,8 +788,7 @@ Object.assign(translations, {
   'Admin demo only': 'მხოლოდ ადმინის დემო',
   'Reserve for 2.99 GEL': '2.99 GEL-ად დაჯავშნა',
   'Choose reservation': 'ჯავშნის არჩევა',
-  'Cancel reservation and accept penalty':
-    'ჯავშნის გაუქმება და ჯარიმის მიღება',
+  'Cancel reservation and accept penalty': 'ჯავშნის გაუქმება და ჯარიმის მიღება',
   'Penalty warning': 'ჯარიმის გაფრთხილება',
   'If you cancel now, your account will be blocked from reserving and creating posts for 5 hours.':
     'თუ ახლა გააუქმებთ, თქვენი ანგარიში 5 საათით ვეღარ დაჯავშნის და ვეღარ დაამატებს ნივთებს.',
@@ -806,6 +805,8 @@ Object.assign(translations, {
   'Owners cannot reserve their own posts.':
     'მფლობელი საკუთარ განცხადებას ვერ დაჯავშნის.',
   'This item is not available.': 'ეს ნივთი ხელმისაწვდომი აღარ არის.',
+  'This item is already reserved.': 'ეს ნივთი უკვე დაჯავშნილია.',
+  'You already requested this item.': 'ამ ნივთზე მოთხოვნა უკვე გაგზავნილია.',
   'You cannot reserve or post items yet because you recently cancelled a reservation.':
     'ჯერ ვერ დაჯავშნით და ვერ დაამატებთ ნივთებს, რადგან ცოტა ხნის წინ ჯავშანი გააუქმეთ.',
   'Posts are always free. Add clear photos and pickup details so people know exactly what they are requesting.':
@@ -935,8 +936,7 @@ Object.assign(ruTranslations, {
   'Admin demo only': 'Демо только для админов',
   'Reserve for 2.99 GEL': 'Забронировать за 2.99 GEL',
   'Choose reservation': 'Выбрать бронь',
-  'Cancel reservation and accept penalty':
-    'Отменить бронь и принять штраф',
+  'Cancel reservation and accept penalty': 'Отменить бронь и принять штраф',
   'Penalty warning': 'Предупреждение о штрафе',
   'If you cancel now, your account will be blocked from reserving and creating posts for 5 hours.':
     'Если отменить сейчас, аккаунт будет заблокирован для бронирования и публикации вещей на 5 часов.',
@@ -953,6 +953,8 @@ Object.assign(ruTranslations, {
   'Owners cannot reserve their own posts.':
     'Владелец не может бронировать свое объявление.',
   'This item is not available.': 'Эта вещь больше недоступна.',
+  'This item is already reserved.': 'Эта вещь уже забронирована.',
+  'You already requested this item.': 'Вы уже отправили запрос на эту вещь.',
   'You cannot reserve or post items yet because you recently cancelled a reservation.':
     'Вы пока не можете бронировать или добавлять вещи, потому что недавно отменили бронь.',
   'Posts are always free. Add clear photos and pickup details so people know exactly what they are requesting.':
@@ -1084,6 +1086,68 @@ Object.assign(translations, {
   'Office equipment': 'საოფისე ტექნიკა',
   'Packaging materials': 'შეფუთვის მასალები',
   'Shop and cafe equipment': 'მაღაზიის და კაფეს ინვენტარი',
+});
+
+Object.assign(translations, {
+  Chats: 'ჩატები',
+  'Boost after publishing': 'გამოქვეყნების შემდეგ აბუსთე',
+  'VIP priority': 'VIP პრიორიტეტი',
+  'Publish, then boost your item to the top of the feed.':
+    'გამოაქვეყნე და შემდეგ აწიე ნივთი სიის თავში.',
+  'Choose listing plan': 'აირჩიეთ განთავსების გეგმა',
+  'Pick how your item should appear before writing the post.':
+    'პოსტის შევსებამდე აირჩიეთ, როგორ გამოჩნდეს თქვენი ნივთი.',
+  'Starter VIP': 'საწყისი VIP',
+  'Popular VIP': 'პოპულარული VIP',
+  'Maximum VIP': 'მაქსიმალური VIP',
+  '24 hours near the top of the feed.': '24 საათი სიის ზედა ნაწილთან.',
+  '3 days of priority visibility.': '3 დღე პრიორიტეტული გამოჩენა.',
+  '7 days of maximum visibility.': '7 დღე მაქსიმალური ხილვადობა.',
+  'Continue with VIP': 'VIP-ით გაგრძელება',
+  'Checking VIP availability...': 'VIP ხელმისაწვდომობა მოწმდება...',
+  'Free plan': 'უფასო გეგმა',
+  'Standard listing': 'სტანდარტული განცხადება',
+  'Post for free now. You can still boost this item later from the post page.':
+    'განათავსეთ უფასოდ ახლა. ამ ნივთის აბუსთვა მოგვიანებითაც შეგიძლიათ პოსტის გვერდიდან.',
+  'Continue free': 'უფასოდ გაგრძელება',
+  'Selected plan': 'არჩეული გეგმა',
+  'VIP boost opens after publishing.':
+    'VIP აბუსთვის ფანჯარა გამოქვეყნების შემდეგ გაიხსნება.',
+  'Standard free listing.': 'სტანდარტული უფასო განცხადება.',
+  Change: 'შეცვლა',
+  'Demo only - no payment will be charged.':
+    'მხოლოდ დემო - თანხა არ ჩამოგეჭრებათ.',
+});
+
+Object.assign(ruTranslations, {
+  Chats: 'Чаты',
+  'Boost after publishing': 'Продвиньте после публикации',
+  'VIP priority': 'VIP-приоритет',
+  'Publish, then boost your item to the top of the feed.':
+    'Опубликуйте, затем поднимите вещь в начало ленты.',
+  'Choose listing plan': 'Выберите план размещения',
+  'Pick how your item should appear before writing the post.':
+    'Выберите, как вещь будет показываться, перед заполнением объявления.',
+  'Starter VIP': 'Стартовый VIP',
+  'Popular VIP': 'Популярный VIP',
+  'Maximum VIP': 'Максимальный VIP',
+  '24 hours near the top of the feed.': '24 часа ближе к началу ленты.',
+  '3 days of priority visibility.': '3 дня приоритетной видимости.',
+  '7 days of maximum visibility.': '7 дней максимальной видимости.',
+  'Continue with VIP': 'Продолжить с VIP',
+  'Checking VIP availability...': 'Проверка доступности VIP...',
+  'Free plan': 'Бесплатный план',
+  'Standard listing': 'Стандартное объявление',
+  'Post for free now. You can still boost this item later from the post page.':
+    'Опубликуйте бесплатно сейчас. Позже вещь можно продвинуть со страницы объявления.',
+  'Continue free': 'Продолжить бесплатно',
+  'Selected plan': 'Выбранный план',
+  'VIP boost opens after publishing.':
+    'Окно VIP-продвижения откроется после публикации.',
+  'Standard free listing.': 'Стандартное бесплатное объявление.',
+  Change: 'Изменить',
+  'Demo only - no payment will be charged.':
+    'Только демо - оплата не будет списана.',
 });
 
 type I18nContextValue = {

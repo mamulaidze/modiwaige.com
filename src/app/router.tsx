@@ -103,14 +103,6 @@ export const router = createBrowserRouter([
     element: <Navigate replace to="/ge/login" />,
   },
   {
-    path: '/forgot-password',
-    element: <Navigate replace to="/ge/login" />,
-  },
-  {
-    path: '/reset-password',
-    element: <Navigate replace to="/ge/login" />,
-  },
-  {
     path: '/register',
     element: <Navigate replace to="/ge/register" />,
   },
@@ -178,14 +170,6 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: withSuspense(<LoginPage />),
-      },
-      {
-        path: 'forgot-password',
-        element: <Navigate replace to="../login" />,
-      },
-      {
-        path: 'reset-password',
-        element: <Navigate replace to="../login" />,
       },
       {
         path: 'register',

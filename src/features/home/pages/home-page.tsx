@@ -29,7 +29,7 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 import { PostCard } from '@/features/feed/components/post-card';
 import {
@@ -106,10 +106,18 @@ const categoryIcons: Record<string, typeof Sparkles> = {
 };
 
 export function HomePage() {
+  const location = useLocation();
+
+  return <HomePageContent key={location.search} />;
+}
+
+function HomePageContent() {
   const { language, t } = useI18n();
   const [searchParams] = useSearchParams();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [filters, setFilters] = useState<FeedFiltersValue>(initialFilters);
+  const [filters, setFilters] = useState<FeedFiltersValue>(() =>
+    getFiltersFromSearchParams(searchParams),
+  );
   const [sortMode, setSortMode] = useState<SortMode>('recommended');
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(filters.search.trim(), 400);
@@ -149,10 +157,11 @@ export function HomePage() {
     filters.category === 'all'
       ? null
       : getCategoryGroupForValue(filters.category);
-  const primaryCategoryOptions = topLevelFeedCategoryOptions.filter((category) =>
-    primaryParentCategories.includes(
-      category.value as (typeof primaryParentCategories)[number],
-    ),
+  const primaryCategoryOptions = topLevelFeedCategoryOptions.filter(
+    (category) =>
+      primaryParentCategories.includes(
+        category.value as (typeof primaryParentCategories)[number],
+      ),
   );
   const moreCategoryOptions = topLevelFeedCategoryOptions.filter(
     (category) =>
@@ -166,23 +175,6 @@ export function HomePage() {
     moreCategoryOptions.some(
       (category) => category.value === selectedCategoryGroup.value,
     );
-
-  useEffect(() => {
-    const nextFilters = getFiltersFromSearchParams(searchParams);
-
-    setFilters((current) => {
-      if (
-        current.search === nextFilters.search &&
-        current.category === nextFilters.category &&
-        current.city === nextFilters.city &&
-        current.boostedOnly === nextFilters.boostedOnly
-      ) {
-        return current;
-      }
-
-      return nextFilters;
-    });
-  }, [searchParams]);
 
   useEffect(() => {
     if (searchParams.get('focus') !== 'search') {
@@ -380,7 +372,10 @@ export function HomePage() {
                 }
               />
               {selectedCategoryGroup.options
-                .filter((subcategory) => subcategory.value !== selectedCategoryGroup.value)
+                .filter(
+                  (subcategory) =>
+                    subcategory.value !== selectedCategoryGroup.value,
+                )
                 .map((subcategory) => (
                   <SubcategoryButton
                     active={filters.category === subcategory.value}
@@ -530,7 +525,9 @@ export function HomePage() {
   }
 }
 
-function getFiltersFromSearchParams(searchParams: URLSearchParams): FeedFiltersValue {
+function getFiltersFromSearchParams(
+  searchParams: URLSearchParams,
+): FeedFiltersValue {
   const search = searchParams.get('search')?.trim() ?? '';
   const categoryParam = searchParams.get('category') ?? 'all';
   const city = searchParams.get('city')?.trim() || 'all';
@@ -580,7 +577,7 @@ function MobileFilterSheet({
         }
       }}
     >
-      <div className="glass-surface fixed inset-x-0 bottom-0 max-h-[88svh] touch-pan-y overflow-y-auto rounded-t-3xl p-4 overscroll-contain pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
+      <div className="glass-surface fixed inset-x-0 bottom-0 max-h-[88svh] touch-pan-y overflow-y-auto overscroll-contain rounded-t-3xl p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">{t('Filters')}</h2>
@@ -600,9 +597,11 @@ function MobileFilterSheet({
 
         <div className="space-y-5">
           <label className="space-y-2">
-            <span className="text-sm font-medium">{t('Search free items')}</span>
+            <span className="text-sm font-medium">
+              {t('Search free items')}
+            </span>
             <input
-                className="glass-control h-12 w-full rounded-[12px] px-3 text-base outline-none"
+              className="glass-control h-12 w-full rounded-[12px] px-3 text-base outline-none"
               value={draftFilters.search}
               onChange={(event) =>
                 setDraftFilters((current) => ({
@@ -662,7 +661,7 @@ function MobileFilterSheet({
           />
         </div>
 
-        <div className="sticky bottom-0 -mx-4 mt-6 grid grid-cols-[0.9fr_1.1fr] gap-2 border-t border-white/10 bg-background/55 px-4 pt-3 backdrop-blur-xl">
+        <div className="bg-background/55 sticky bottom-0 -mx-4 mt-6 grid grid-cols-[0.9fr_1.1fr] gap-2 border-t border-white/10 px-4 pt-3 backdrop-blur-xl">
           <Button
             className="h-11 px-3 text-xs leading-tight sm:px-4 sm:text-sm"
             type="button"
@@ -761,7 +760,8 @@ function MobileCategoryPicker({
 }) {
   const { t } = useI18n();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const selectedGroup = value === 'all' ? null : getCategoryGroupForValue(value);
+  const selectedGroup =
+    value === 'all' ? null : getCategoryGroupForValue(value);
 
   return (
     <div className="space-y-4">

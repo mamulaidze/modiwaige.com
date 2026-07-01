@@ -7,12 +7,18 @@ Required:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_CLERK_PUBLISHABLE_KEY`
+- `VITE_SITE_URL` for canonical and social metadata URLs.
 
 Recommended for production:
 
-- `VITE_SITE_URL` for canonical and social metadata URLs.
+- `VITE_SUPPORT_EMAIL`, currently `gaachuqegeorgia@gmail.com`.
 - `VITE_APP_ENV=production`
 - `VITE_APP_RELEASE` with the deployed version or commit SHA.
+
+SEO crawler files are served from `public/robots.txt` and
+`public/sitemap.xml`. Update their `https://gaachuqe.com` URLs if the
+production domain changes.
 
 Optional observability:
 
