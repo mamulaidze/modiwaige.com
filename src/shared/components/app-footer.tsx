@@ -52,7 +52,7 @@ export function AppFooter() {
             rel="noopener noreferrer"
             target="_blank"
           >
-            <InstagramIcon className="size-4" aria-hidden="true" />
+            <InstagramIcon className="size-5" aria-hidden="true" />
             <span>@gaachuqe_</span>
           </a>
         </div>
