@@ -1,4 +1,3 @@
-import { Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { BrandLogo } from '@/shared/components/brand-logo';
@@ -53,11 +52,53 @@ export function AppFooter() {
             rel="noopener noreferrer"
             target="_blank"
           >
-            <Camera className="size-4" aria-hidden="true" />
+            <InstagramIcon className="size-4" aria-hidden="true" />
             <span>@gaachuqe_</span>
           </a>
         </div>
       </div>
     </footer>
+  );
+}
+
+function InstagramIcon({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <defs>
+        <linearGradient
+          gradientUnits="userSpaceOnUse"
+          id="instagram-brand-gradient"
+          x1="4"
+          x2="20"
+          y1="20"
+          y2="4"
+        >
+          <stop offset="0" stopColor="#feda75" />
+          <stop offset="0.25" stopColor="#fa7e1e" />
+          <stop offset="0.5" stopColor="#d62976" />
+          <stop offset="0.75" stopColor="#962fbf" />
+          <stop offset="1" stopColor="#4f5bd5" />
+        </linearGradient>
+      </defs>
+      <rect
+        fill="url(#instagram-brand-gradient)"
+        height="18"
+        rx="5"
+        width="18"
+        x="3"
+        y="3"
+      />
+      <circle cx="12" cy="12" r="3.75" stroke="white" strokeWidth="2" />
+      <circle cx="17.25" cy="6.75" fill="white" r="1.25" />
+    </svg>
   );
 }
